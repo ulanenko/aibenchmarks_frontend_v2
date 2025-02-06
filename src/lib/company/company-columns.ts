@@ -1,0 +1,114 @@
+import {BaseRenderer} from 'handsontable/renderers';
+import {ValidatorCallback} from '@/types/handsontable';
+import {Column, StatusColumn} from '@/lib/column-definition';
+import {StatusRenderer, urlRenderer} from '@/components/hot/renderers';
+
+// Column definitions
+export const companyColumns = {
+	status: new StatusColumn({
+		title: 'Status',
+		statusPath: 'step.input',
+		description: 'Validation status of the company entry',
+	}),
+	name: new Column({
+		title: 'Company Name',
+		type: 'text',
+		width: 200,
+		data: 'name',
+		required: true,
+		validator: (value: string, callback: ValidatorCallback) => {
+			callback(!!value?.trim());
+		},
+		description: 'Name of the company',
+	}),
+	databaseId: new Column({
+		title: 'Database ID',
+		type: 'text',
+		width: 120,
+		data: 'databaseId',
+		description: 'Unique database identifier',
+	}),
+	country: new Column({
+		title: 'Country',
+		type: 'text',
+		width: 120,
+		data: 'country',
+		required: true,
+		validator: (value: string, callback: ValidatorCallback) => {
+			callback(!!value?.trim());
+		},
+		description: 'Country where the company is based',
+	}),
+	url: new Column({
+		title: 'Website',
+		type: 'text',
+		width: 200,
+		data: 'url',
+		renderer: urlRenderer,
+		description: 'Website of the company',
+	}),
+	streetAndNumber: new Column({
+		title: 'Street & Number',
+		type: 'text',
+		width: 150,
+		data: 'streetAndNumber',
+		description: 'Street and number of the company',
+	}),
+	addressLine1: new Column({
+		title: 'Address Line 1',
+		type: 'text',
+		width: 150,
+		data: 'addressLine1',
+		description: 'First address line of the company',
+	}),
+	consolidationCode: new Column({
+		title: 'Consolidation Code',
+		type: 'text',
+		width: 150,
+		data: 'consolidationCode',
+		description: 'Consolidation code of the company',
+	}),
+	independenceIndicator: new Column({
+		title: 'Independence Indicator',
+		type: 'text',
+		width: 150,
+		data: 'independenceIndicator',
+		description: 'Independence indicator of the company',
+	}),
+	naceRev2: new Column({
+		title: 'NACE Rev.2',
+		type: 'text',
+		width: 120,
+		data: 'naceRev2',
+		description: 'NACE revision 2 code of the company',
+	}),
+	mainActivity: new Column({
+		title: 'Main Activity',
+		type: 'text',
+		width: 200,
+		data: 'mainActivity',
+		description: 'Main activity of the company',
+	}),
+};
+
+export type ColumnConfig = {
+	column: Column;
+	show: 'always' | 'yes' | 'no';
+};
+
+export const defaultColumns: ColumnConfig[] = [
+	{column: companyColumns.status, show: 'yes'},
+	{column: companyColumns.name, show: 'always'},
+	{column: companyColumns.country, show: 'yes'},
+	{column: companyColumns.url, show: 'yes'},
+];
+
+export const inputColumns: ColumnConfig[] = [
+	{column: companyColumns.databaseId, show: 'always'},
+	{column: companyColumns.streetAndNumber, show: 'yes'},
+	{column: companyColumns.addressLine1, show: 'yes'},
+	{column: companyColumns.consolidationCode, show: 'no'},
+	{column: companyColumns.independenceIndicator, show: 'no'},
+	{column: companyColumns.naceRev2, show: 'yes'},
+	{column: companyColumns.mainActivity, show: 'yes'},
+];
