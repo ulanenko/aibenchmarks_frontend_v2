@@ -21,8 +21,6 @@ export const benchmarkSchema = z.object({
 	lang: z.string().optional(),
 });
 
-export type BenchmarkSchemaType = z.infer<typeof benchmarkSchema>;
-
 export const BenchmarkFields: Record<string, FieldDefinition> = {
 	name: {
 		type: 'text',

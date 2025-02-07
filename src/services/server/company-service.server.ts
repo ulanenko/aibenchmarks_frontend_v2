@@ -2,32 +2,27 @@
 
 import {db} from '@/db';
 import {company, StepStatus} from '@/db/schema';
-import {eq, and, inArray} from 'drizzle-orm';
-import type {UpdateCompanyDTO} from '@/lib/company';
+import {eq, and, inArray, sql} from 'drizzle-orm';
+import type {CompanyDBType, UpdateCompanyDTO} from '@/lib/company/type';
 
-// Use the actual database types from schema
-type DBCompany = typeof company.$inferSelect;
-type DBCompanyInsert = typeof company.$inferInsert;
+type CompanyInsert = Omit<CompanyDBType, 'id' | 'createdAt' | 'updatedAt'>;
 
-function sanitizeCompanyData(data: Partial<UpdateCompanyDTO>): Partial<DBCompanyInsert> {
-	const {id, createdAt, updatedAt, ...rest} = data;
-	const sanitized: Partial<DBCompanyInsert> = {...rest};
+function sanitizeCompanyData(data: UpdateCompanyDTO): CompanyInsert {
+	const {id, createdAt, updatedAt, dataStatus, ...rest} = data;
+	const sanitized: Partial<CompanyInsert> = {
+		...rest,
+		dataStatus:
+			dataStatus && ['pending', 'in_progress', 'completed', 'failed'].includes(dataStatus)
+				? (dataStatus as StepStatus)
+				: null,
+	};
 
-	// Ensure dataStatus is a valid enum value if present
-	if (rest.dataStatus) {
-		if (['pending', 'in_progress', 'completed', 'failed'].includes(rest.dataStatus)) {
-			sanitized.dataStatus = rest.dataStatus as StepStatus;
-		} else {
-			delete sanitized.dataStatus;
-		}
-	}
-
-	return sanitized;
+	return sanitized as CompanyInsert;
 }
 
-export async function saveCompanies(benchmarkId: number, companies: UpdateCompanyDTO[]) {
+export async function saveCompanies(benchmarkId: number, companies: UpdateCompanyDTO[]): Promise<CompanyDBType[]> {
 	// Separate new companies from updates
-	const [newCompanies, existingCompanies] = companies.reduce<[DBCompanyInsert[], UpdateCompanyDTO[]]>(
+	const [newCompanies, existingCompanies] = companies.reduce<[CompanyInsert[], UpdateCompanyDTO[]]>(
 		(acc, company) => {
 			if (company.id < 0) {
 				// Remove temp ID and add to new companies
@@ -36,7 +31,7 @@ export async function saveCompanies(benchmarkId: number, companies: UpdateCompan
 					...sanitizedData,
 					benchmarkId,
 					name: company.name ?? null,
-				} as DBCompanyInsert);
+				});
 			} else {
 				acc[1].push(company);
 			}
@@ -47,7 +42,7 @@ export async function saveCompanies(benchmarkId: number, companies: UpdateCompan
 
 	// Use a single transaction for all operations
 	return await db.transaction(async (tx) => {
-		const savedCompanies: DBCompany[] = [];
+		const savedCompanies: CompanyDBType[] = [];
 
 		// Batch insert new companies if any
 		if (newCompanies.length > 0) {
@@ -55,36 +50,45 @@ export async function saveCompanies(benchmarkId: number, companies: UpdateCompan
 			savedCompanies.push(...insertedCompanies);
 		}
 
-		// Update existing companies in batches
+		// Batch update existing companies
 		if (existingCompanies.length > 0) {
-			// Create update promises for each company
-			const updatePromises = existingCompanies.map((companyUpdate) => {
-				const {id} = companyUpdate;
+			// Group companies by their update fields to batch similar updates
+			const updateGroups = new Map<string, UpdateCompanyDTO[]>();
+
+			existingCompanies.forEach((companyUpdate) => {
 				const sanitizedData = sanitizeCompanyData(companyUpdate);
-
-				// Only update if there are fields to update
 				if (Object.keys(sanitizedData).length > 0) {
-					return tx
-						.update(company)
-						.set({
-							...sanitizedData,
-							updatedAt: new Date(),
-						})
-						.where(and(eq(company.id, id), eq(company.benchmarkId, benchmarkId)))
-						.returning();
+					// Create a key based on the fields being updated
+					const updateKey = Object.keys(sanitizedData).sort().join(',');
+					if (!updateGroups.has(updateKey)) {
+						updateGroups.set(updateKey, []);
+					}
+					updateGroups.get(updateKey)!.push(companyUpdate);
 				}
-				return Promise.resolve([]);
 			});
 
-			// Execute all updates in parallel within the transaction
-			const updatedCompaniesArrays = await Promise.all(updatePromises);
-			updatedCompaniesArrays.forEach((companies) => {
-				if (companies.length > 0) {
-					savedCompanies.push(companies[0]);
-				}
-			});
+			// Process each update group in a batch
+			for (const [_, groupCompanies] of updateGroups) {
+				const ids = groupCompanies.map((c) => c.id);
+				const sanitizedData = sanitizeCompanyData(groupCompanies[0]); // All companies in group have same fields to update
+
+				const updatedCompanies = await tx
+					.update(company)
+					.set({
+						...sanitizedData,
+						updatedAt: new Date(),
+					})
+					.where(and(inArray(company.id, ids), eq(company.benchmarkId, benchmarkId)))
+					.returning();
+
+				savedCompanies.push(...updatedCompanies);
+			}
 		}
 
 		return savedCompanies;
 	});
+}
+
+export async function getCompaniesByBenchmarkId(benchmarkId: number): Promise<CompanyDBType[]> {
+	return await db.select().from(company).where(eq(company.benchmarkId, benchmarkId));
 }

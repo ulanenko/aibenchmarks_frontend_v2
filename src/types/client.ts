@@ -1,27 +1,12 @@
-// Base type from database schema
-export type ClientType = {
-	id: number;
-	name: string;
-	createdAt: Date;
-	updatedAt: Date | null;
-	description: string | null;
-};
+import {client} from '@/db/schema';
+
+export type ClientDBType = typeof client.$inferSelect;
 
 // Core client type for the application
-export type Client = ClientType;
+export type ClientDTO = ClientDBType;
 
 // Type for client creation
-export type CreateClientInput = Omit<ClientType, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateClientDTO = Omit<ClientDTO, 'id' | 'createdAt' | 'updatedAt'>;
 
 // Type for client update
-export type UpdateClientInput = Partial<CreateClientInput>;
-
-// Type for client with UI-specific properties
-export interface ClientWithUI extends Client {
-	isSelected?: boolean;
-	isEditing?: boolean;
-	validationErrors?: Record<string, string>;
-}
-
-// Export the base type for use in other type definitions
-export type ClientBase = Client;
+export type UpdateClientDTO = Partial<Omit<CreateClientDTO, 'id'>> & {id: number};

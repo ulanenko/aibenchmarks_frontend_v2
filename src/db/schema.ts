@@ -81,24 +81,11 @@ export const company = pgTable('bm_company', {
 	dataStatus: stepStatusEnum('data_status'),
 });
 
-export type BenchmarkType = typeof benchmark.$inferSelect;
-export type ClientType = typeof client.$inferSelect;
-export type UserType = typeof user.$inferSelect;
-
 export interface BaseFields {
 	id: number;
 	name: string;
 	createdAt: Date;
 	updatedAt: Date | null;
-}
-
-// Types for different view models
-export interface BenchmarkBase extends BaseFields {
-	year: number;
-	clientName: string | null;
-	lang: string | null;
-	userId: number;
-	userName: string | null;
 }
 
 export interface ClientBase extends BaseFields {
@@ -109,34 +96,4 @@ export interface UserBase extends BaseFields {
 	email: string;
 	isAdmin: boolean;
 	password: string;
-}
-
-export interface CompanyBase extends BaseFields {
-	benchmarkId: number;
-	databaseId: string | null;
-	country: string | null;
-	url: string | null;
-	streetAndNumber: string | null;
-	addressLine1: string | null;
-	consolidationCode: string | null;
-	independenceIndicator: string | null;
-	naceRev2: string | null;
-	fullOverview: string | null;
-	fullOverviewManual: string | null;
-	tradeDescriptionEnglish: string | null;
-	tradeDescriptionOriginal: string | null;
-	mainActivity: string | null;
-	mainProductsAndServices: string | null;
-	sourceData: any;
-	mappedSourceData: any;
-	dataStatus: StepStatus | null;
-}
-
-export interface CompanyDetail extends CompanyBase {
-	// No need for companyInfo field anymore since it's merged
-}
-
-export interface BenchmarkDetail extends BenchmarkBase {
-	client: ClientBase | null;
-	companies: CompanyDetail[];
 }

@@ -1,7 +1,6 @@
-import type {ClientType} from '@/types/client';
-import type {CompanyDTO} from '@/lib/company';
 import {benchmark} from '@/db/schema';
-
+import {benchmarkSchema} from './schema-and-fields';
+import {z} from 'zod';
 export type BenchmarkDBType = typeof benchmark.$inferSelect;
 
 // Core benchmark type with additional view properties
@@ -11,7 +10,7 @@ export interface BenchmarkDTO extends BenchmarkDBType {
 }
 
 // Type for benchmark creation
-export type CreateBenchmarkDTO = Omit<BenchmarkDBType, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateBenchmarkDTO = z.infer<typeof benchmarkSchema>;
 
 // Type for benchmark update
 

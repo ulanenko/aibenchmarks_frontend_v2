@@ -12,15 +12,14 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {useBenchmarkListStore} from '@/stores/use-benchmark-store';
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {BenchmarkFields, BenchmarkSchemaType, benchmarkSchema} from '@/lib/benchmark/benchmark';
 import {EntityDefinition} from '@/lib/field-definition';
 import {SelectOrCreate} from '@/components/ui/select-or-create';
-import {BenchmarkDTO} from '@/lib/benchmark/type';
+import {BenchmarkDTO, CreateBenchmarkDTO} from '@/lib/benchmark/type';
+import {benchmarkSchema, BenchmarkFields} from '@/lib/benchmark/schema-and-fields';
 
 interface BenchmarkFormDialogProps {
 	mode: 'create' | 'edit';
@@ -36,7 +35,7 @@ export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}
 	const {addBenchmark, editBenchmark, isLoading} = useBenchmarkListStore();
 	const [selectOptions, setSelectOptions] = React.useState<Record<string, Array<{value: number; label: string}>>>({});
 
-	const form = useForm<BenchmarkSchemaType>({
+	const form = useForm<CreateBenchmarkDTO>({
 		resolver: zodResolver(benchmarkSchema),
 		defaultValues: benchmarkDefinition.getDefaultValues(initialBenchmark),
 		mode: 'onChange',
@@ -60,11 +59,11 @@ export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}
 		});
 	}, [open]);
 
-	const onSubmit = async (data: BenchmarkSchemaType) => {
+	const onSubmit = async (data: CreateBenchmarkDTO) => {
 		if (mode === 'create') {
 			await addBenchmark(data);
 		} else if (initialBenchmark?.id) {
-			await editBenchmark(initialBenchmark.id, data);
+			await editBenchmark({...data, id: initialBenchmark.id});
 		}
 		setOpen(false);
 	};
@@ -74,7 +73,7 @@ export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}
 			...prev,
 			[field]: [...(prev[field] || []), {value: entity.id, label: entity.name}],
 		}));
-		form.setValue(field as keyof BenchmarkSchemaType, entity.id);
+		form.setValue(field as keyof CreateBenchmarkDTO, entity.id);
 		setCreatingField(null);
 	};
 
@@ -107,7 +106,7 @@ export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}
 								<DialogDescription>{description}</DialogDescription>
 							</DialogHeader>
 							<div className="grid gap-4 py-4">
-								{(Object.keys(benchmarkSchema.shape) as Array<keyof BenchmarkSchemaType>).map((field) => {
+								{(Object.keys(benchmarkSchema.shape) as Array<keyof CreateBenchmarkDTO>).map((field) => {
 									const fieldProps = benchmarkDefinition.getFieldProps(field);
 									if (!fieldProps) return null;
 									const {icon: Icon, label, type, placeholder} = fieldProps;

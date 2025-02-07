@@ -1,8 +1,5 @@
 import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from './type';
-import {benchmarkSchema, BenchmarkFields, type BenchmarkSchemaType} from './schema-and-fields';
-
-export {benchmarkSchema, BenchmarkFields};
-export type {BenchmarkSchemaType};
+import {benchmarkSchema, BenchmarkFields} from './schema-and-fields';
 
 export class Benchmark implements BenchmarkDTO {
 	private static tempIdCounter = -1;

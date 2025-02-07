@@ -21,21 +21,22 @@ import {
 	SidebarGroup,
 	SidebarGroupLabel,
 } from '@/components/ui/sidebar';
+import {routes} from '@/lib/routes';
 
 const navMain = [
 	{
 		title: 'Dashboard',
-		url: '/',
+		url: routes.dashboard.home(),
 		icon: LayoutDashboard,
 	},
 	{
 		title: 'Benchmarks',
-		url: '/benchmarks',
+		url: routes.benchmarks.list(),
 		icon: BarChart2,
 	},
 	{
 		title: 'Criteria & Strategies',
-		url: '/strategies',
+		url: routes.strategies.list(),
 		icon: CheckSquare,
 	},
 ];

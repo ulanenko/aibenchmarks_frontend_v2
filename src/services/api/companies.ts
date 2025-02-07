@@ -1,8 +1,10 @@
 import {CompanyDTO, UpdateCompanyDTO} from '@/lib/company';
 import {Company} from '@/lib/company/company';
 
+const BASE_URL = (benchmarkId: number) => `/api/benchmarks/${benchmarkId}/companies`;
+
 export async function getCompanies(benchmarkId: number): Promise<Company[]> {
-	const response = await fetch(`/api/benchmarks/${benchmarkId}/companies`);
+	const response = await fetch(BASE_URL(benchmarkId));
 	const data = await response.json();
 
 	if (!response.ok) {
@@ -13,7 +15,7 @@ export async function getCompanies(benchmarkId: number): Promise<Company[]> {
 }
 
 export async function saveCompanies(benchmarkId: number, companies: UpdateCompanyDTO[]): Promise<CompanyDTO[]> {
-	const response = await fetch(`/api/benchmarks/${benchmarkId}/companies`, {
+	const response = await fetch(BASE_URL(benchmarkId), {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
 		body: JSON.stringify({companies}),

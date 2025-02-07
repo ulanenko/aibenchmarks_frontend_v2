@@ -6,12 +6,12 @@ import {BenchmarkFormDialog} from './benchmark-form-dialog';
 import {ConfirmDialog} from '@/components/layout/dialogues/confirm-dialog';
 import {useBenchmarkListStore} from '@/stores/use-benchmark-store';
 import {Pencil, Trash2} from 'lucide-react';
-import type {InferSelectModel} from 'drizzle-orm';
-import {BenchmarkBase} from '@/db/schema';
 import {useRouter} from 'next/navigation';
+import {Benchmark} from '@/lib/benchmark/benchmark';
+import {routes} from '@/lib/routes';
 
 interface BenchmarkItemProps {
-	benchmark: BenchmarkBase;
+	benchmark: Benchmark;
 }
 
 export function BenchmarkItem({benchmark}: BenchmarkItemProps) {
@@ -19,9 +19,9 @@ export function BenchmarkItem({benchmark}: BenchmarkItemProps) {
 	const router = useRouter();
 
 	const handleClick = (e: React.MouseEvent) => {
-		// Don't navigate if clicking on buttons
-		if ((e.target as HTMLElement).closest('button')) return;
-		router.push(`/benchmarks/${benchmark.id}/steps/1`);
+		// Don't navigate if clicking on buttons or within a dialog
+		if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('[role="dialog"]')) return;
+		router.push(routes.benchmarks.companies(benchmark.id));
 	};
 
 	return (

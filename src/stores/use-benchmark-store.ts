@@ -1,6 +1,6 @@
 import {create} from 'zustand';
-import {Benchmark, BenchmarkSchemaType} from '@/lib/benchmark/benchmark';
-import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
+import {Benchmark} from '@/lib/benchmark/benchmark';
+import {CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
 import {toast} from '@/hooks/use-toast';
 import * as benchmarkService from '@/services/api/benchmarks';
 
