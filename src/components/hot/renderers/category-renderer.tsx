@@ -29,7 +29,6 @@ export const CategoryRenderer = (
 		(getValueForPath(rowData, categoryValuePath) as CategoryValue) ?? {};
 	// Center the content in the cell
 	if (!category || !categoryKey) {
-		console.log('categoryKey', categoryKey);
 		td.innerHTML = '';
 		return td;
 	}

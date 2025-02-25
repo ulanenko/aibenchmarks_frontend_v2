@@ -1,45 +1,52 @@
 import {useMemo} from 'react';
-
+import {Company} from '@/lib/company/company';
+import {getObjectsByCategory} from '@/lib/company/utils';
+import {getValueForPath} from '@/lib/object-utils';
+import {CATEGORIES} from '@/config/categories';
+import {CategoryColor} from '@/types/category';
+import {CategoryDefinition} from '@/lib/category-definition';
 interface ProgressBarProps {
-	total: number;
-	valid: number;
-	invalid: number;
+	companies: Company[];
+	categoryPath: string;
 	className?: string;
 }
 
-export function ProgressBar({total, valid, invalid}: ProgressBarProps) {
+export function ProgressBar({companies, categoryPath}: ProgressBarProps) {
 	const segments = useMemo(() => {
-		if (total === 0) return [];
-		const validPercent = (valid / total) * 100;
-		const invalidPercent = (invalid / total) * 100;
+		if (companies.length === 0) return [];
+		const companiesByCategory = getObjectsByCategory(companies, `step.${categoryPath}.categoryKey`);
+		const categoryKeys = Object.keys(companiesByCategory);
+		const total = companies.length;
+		const categories = categoryKeys.map((key) => {
+			const category = getValueForPath(CATEGORIES, key.replace('CATEGORIES.', '')) as CategoryDefinition;
+			if (!category) {
+				throw new Error(`Category not found for key: ${key}`);
+			}
+			const count = companiesByCategory[key].length;
+			return {
+				key: category.label,
+				label: `${category.label} (${count})`,
+				color: category.getColorClass(),
+				width: (count / total) * 100,
+				count,
+			};
+		});
+		return categories;
+	}, [companies, categoryPath]);
 
-		return [
-			{
-				type: 'reject' as const,
-				width: invalidPercent,
-				label: `Reject (data availability) (${invalid})`,
-				color: 'bg-red-500',
-			},
-			{
-				type: 'valid' as const,
-				width: validPercent,
-				label: `Valid (${valid})`,
-				color: 'bg-blue-500',
-			},
-		];
-	}, [total, valid, invalid]);
-
-	if (total === 0) {
+	if (companies.length === 0) {
 		return <div className="flex items-center gap-2 text-sm text-muted-foreground">No companies added yet</div>;
 	}
 
 	return (
 		<div className="space-y-2 min-w-0">
-			<div className="text-sm text-muted-foreground whitespace-nowrap">PROGRESS (TOTAL COMPANIES: {total})</div>
+			<div className="text-sm text-muted-foreground whitespace-nowrap">
+				PROGRESS (TOTAL COMPANIES: {companies.length})
+			</div>
 			<div className="flex items-center gap-2 flex-wrap">
 				<div className="flex items-center gap-4 text-sm flex-wrap">
 					{segments.map((segment) => (
-						<div key={segment.type} className="flex items-center gap-1 whitespace-nowrap">
+						<div key={segment.key} className="flex items-center gap-1 whitespace-nowrap">
 							<div className={`h-3 w-3 rounded-full ${segment.color}`} />
 							<span>{segment.label}</span>
 						</div>
@@ -50,7 +57,7 @@ export function ProgressBar({total, valid, invalid}: ProgressBarProps) {
 				<div className="flex h-full">
 					{segments.map((segment) => (
 						<div
-							key={segment.type}
+							key={segment.key}
 							className={`h-full ${segment.color} transition-all duration-300`}
 							style={{width: `${segment.width}%`}}
 						/>

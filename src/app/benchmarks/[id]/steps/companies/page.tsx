@@ -33,17 +33,6 @@ export default function BenchmarkStep1Page({params}: Props) {
 		})),
 	);
 
-	// Calculate statistics
-	const stats = useMemo(() => {
-		const nonEmptyCompanies = companies.filter((company) => company.name || company.databaseId || company.country);
-		const validCompanies = nonEmptyCompanies.filter((company) => company.step.input.status === 'completed');
-		return {
-			total: nonEmptyCompanies.length,
-			valid: validCompanies.length,
-			invalid: nonEmptyCompanies.length - validCompanies.length,
-		};
-	}, [companies]);
-
 	// Load companies data
 	useEffect(() => {
 		loadCompanies(benchmarkId);
@@ -100,7 +89,8 @@ export default function BenchmarkStep1Page({params}: Props) {
 				onSave={handleSave}
 				onNext={handleNext}
 				isSaving={isSaving}
-				stats={stats}
+				companies={companies}
+				categoryPath="input"
 				className="border-t flex-none"
 			/>
 		</div>
