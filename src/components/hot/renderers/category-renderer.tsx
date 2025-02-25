@@ -57,7 +57,7 @@ export const CategoryRenderer = (
 	return td;
 };
 
-function createHOTFilter(
+export function createHOTFilter(
 	hotInstance: Handsontable,
 	categoryColumnOrCategoryKeyPath: CategoryColumn | string,
 	category: CategoryDefinition,

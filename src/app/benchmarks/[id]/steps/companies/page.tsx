@@ -1,6 +1,6 @@
 'use client';
 
-import {use, useEffect, useMemo, useRef} from 'react';
+import {use, useEffect, useMemo, useRef, useState} from 'react';
 import {Card} from '@/components/ui/card';
 import {toast} from 'sonner';
 import {useCompanyStore} from '@/stores/use-company-store';
@@ -11,6 +11,7 @@ import {CompanyTable} from '@/components/features/benchmark/company-table';
 import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
 import {useShallow} from 'zustand/react/shallow';
 import {companyColumns, defaultColumns, inputColumns} from '@/lib/company/company-columns';
+import Handsontable from 'handsontable';
 
 interface Props {
 	params: Promise<{
@@ -22,6 +23,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 	const {id} = use(params);
 	console.log('BenchmarkStep1Page', id);
 	const benchmarkId = parseInt(id);
+	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
 
 	const {loadCompanies, saveChanges, companies, isLoading, isSaving} = useCompanyStore(
 		useShallow((state) => ({
@@ -77,7 +79,11 @@ export default function BenchmarkStep1Page({params}: Props) {
 							{isLoading ? (
 								<LoadingSpinner message="Loading companies..." />
 							) : (
-								<CompanyTable benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />
+								<CompanyTable
+									benchmarkId={benchmarkId}
+									columnConfigs={uniqueColumnConfigs}
+									onHotInstanceReady={setHotInstance}
+								/>
 							)}
 						</div>
 					</div>
@@ -92,6 +98,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 				companies={companies}
 				categoryColumn={companyColumns.inputStatus}
 				className="border-t flex-none"
+				hotInstance={hotInstance}
 			/>
 		</div>
 	);

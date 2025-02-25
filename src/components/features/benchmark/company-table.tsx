@@ -16,9 +16,10 @@ registerAllModules();
 interface CompanyTableProps {
 	benchmarkId: number;
 	columnConfigs: ColumnConfig[];
+	onHotInstanceReady?: (instance: Handsontable) => void;
 }
 
-export function CompanyTable({benchmarkId, columnConfigs}: CompanyTableProps) {
+export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: CompanyTableProps) {
 	const hotRef = useRef<any>(null);
 	const {updateCompanyProperties, hotCopyCompanies} = useCompanyStore(
 		useShallow((state) => ({
@@ -39,6 +40,13 @@ export function CompanyTable({benchmarkId, columnConfigs}: CompanyTableProps) {
 			return orderA - orderB;
 		});
 	}, [settings.order, columns]);
+
+	// Share the Handsontable instance with the parent component
+	useEffect(() => {
+		if (hotRef.current?.hotInstance && onHotInstanceReady) {
+			onHotInstanceReady(hotRef.current.hotInstance);
+		}
+	}, [hotRef.current?.hotInstance, onHotInstanceReady]);
 
 	const handleBeforeChange = (changes: (CellChange | null)[], source: ChangeSource) => {
 		console.log('changes', changes);
