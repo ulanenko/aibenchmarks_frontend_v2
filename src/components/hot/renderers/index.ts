@@ -1,2 +1,2 @@
 export * from './url-renderer';
-export * from './status-renderer';
+export * from './category-renderer';

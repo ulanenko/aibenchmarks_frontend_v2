@@ -1,7 +1,9 @@
-import {StepType} from '@/types/stepType';
 import {CompanyDTO, UpdateCompanyDTO} from './type';
 import {validateCompany} from './utils';
 import {setValueForPath} from '../object-utils';
+import {isEmpty} from '../utils';
+import {CategoryValue} from '@/config/labeller';
+import {CATEGORIES} from '@/config/categories';
 
 export class Company implements CompanyDTO {
 	private static tempIdCounter = -1;
@@ -32,13 +34,13 @@ export class Company implements CompanyDTO {
 	// this is updated after validating the company to ensure that the hot table is updated
 	hotCopy: {[key: string]: any} = {};
 	step: {
-		input: StepType;
+		input: CategoryValue;
 	} = {
 		input: {
-			status: 'pending',
-			value: '',
+			category: CATEGORIES.INPUT.NEW,
+			label: '',
 			description: '',
-			errors: [],
+			categoryKey: CATEGORIES.INPUT.NEW.label,
 		},
 	};
 
@@ -80,6 +82,22 @@ export class Company implements CompanyDTO {
 		return this.tempIdCounter--;
 	}
 
+	isEmpty(): boolean {
+		return [this.name, this.country, this.url].every(isEmpty);
+	}
+	isCompleted(): string | true {
+		if (isEmpty(this.name)) {
+			return 'name';
+		}
+		if (isEmpty(this.country)) {
+			return 'country';
+		}
+		if (isEmpty(this.url)) {
+			return 'url';
+		}
+		return true;
+	}
+
 	validate(): boolean {
 		const value = validateCompany(this);
 		// update the hotCopy to ensure that the hot table is updated
@@ -95,7 +113,9 @@ export class Company implements CompanyDTO {
 	updateHOTExport() {
 		const copy = {...this} as any;
 		delete copy.changes;
+		const categories = this.step;
 		this.hotCopy = JSON.parse(JSON.stringify(copy));
+		this.hotCopy.step = categories;
 	}
 
 	// Method to update company data

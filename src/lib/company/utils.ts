@@ -1,34 +1,17 @@
-import {StepType} from '@/types/stepType';
 import {getValueForPath, setValueForPath} from '@/lib/object-utils';
 import {Company} from './company';
+import {companyCategorizer} from './categorizer';
+import {CategoryValue} from '@/types/category';
+// Legacy function for backward compatibility
+// Legacy function for backward compatibility
+export const validateCompany = (company: Company): CategoryValue[] => {
+	// step 1
+	const stepName = 'input';
+	const step1 = companyCategorizer(company, stepName);
+	company.step[stepName] = step1;
+	// step 2
 
-const statusToValue = {
-	completed: 'Completed',
-	failed: 'Failed',
-};
-
-/**
- * Validates a company's required fields and updates its validation status.
- * @param company - The company object to validate
- * @returns An array of validation error messages
- */
-export const validateCompany = (company: Company): string[] => {
-	const errors: string[] = [];
-	if (!company.name?.trim()) {
-		errors.push('Company name is required');
-	}
-	if (!company.country?.trim()) {
-		errors.push('Country is required');
-	}
-	const status = errors.length === 0 ? 'completed' : 'failed';
-	const statusValue: StepType = {
-		description: errors.length === 0 ? 'Completed' : errors.join(', '),
-		errors: errors,
-		value: statusToValue[status],
-		status,
-	};
-	setValueForPath(company, 'step.input', statusValue);
-	return errors;
+	return [step1];
 };
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {

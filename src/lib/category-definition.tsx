@@ -2,20 +2,25 @@ import {Badge, badgeVariants} from '@/components/ui/badge';
 import {LucideIcon} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {VariantProps} from 'class-variance-authority';
-
-export type COLOR_OPTIONS = 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'pink' | 'gray' | 'orange';
+import {CategoryColor, CategoryConfig} from '@/types/category';
+import {StepStatus} from '@/db/schema';
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 export class CategoryDefinition {
-	color: COLOR_OPTIONS;
+	color: CategoryColor;
 	icon: LucideIcon;
 	onclick?: () => void;
 	tooltipText?: string;
-	constructor(config: CategoryDefinitionConfig) {
+	status?: StepStatus;
+	label: string;
+
+	constructor(config: CategoryConfig) {
 		this.color = config.color;
 		this.icon = config.icon;
+		this.status = config.status;
 		this.onclick = config.onclick;
-		this.tooltipText = config.tooltipText;
+		this.tooltipText = config.onclickTooltip;
+		this.label = config.label;
 	}
 
 	createBadge(value: string, tooltipText?: string, filterFunction?: () => void, isFiltered: boolean = true) {
@@ -24,7 +29,7 @@ export class CategoryDefinition {
 		const badgeClickFunction = this.onclick ?? (() => filterFunction?.());
 		const badge = (
 			<Badge variant={variant} className="my-1 whitespace-nowrap cursor-pointer" onClick={badgeClickFunction}>
-				<this.icon className="w-3 h-3 " style={{marginRight: '0.35rem'}} />
+				{this.icon && <this.icon className="w-3 h-3 " style={{marginRight: '0.35rem'}} />}
 				{value}
 			</Badge>
 		);
@@ -44,9 +49,9 @@ export class CategoryDefinition {
 	}
 }
 
-export type CategoryDefinitionConfig = {
-	color: COLOR_OPTIONS;
-	icon: LucideIcon;
-	onclick?: () => void;
-	tooltipText?: string;
-};
+// export type CategoryDefinitionConfig = {
+// 	color: COLOR_OPTIONS;
+// 	icon: LucideIcon;
+// 	onclick?: () => void;
+// 	tooltipText?: string;
+// };

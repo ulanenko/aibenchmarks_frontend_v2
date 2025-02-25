@@ -1,8 +1,25 @@
 import {pgTable, text, serial, timestamp, integer, boolean, json, pgEnum} from 'drizzle-orm/pg-core';
 
-export type StepStatus = 'pending' | 'in_progress' | 'completed' | 'failed';
+export type StepStatus =
+	| 'not_ready'
+	| 'not_started'
+	| 'input_required'
+	| 'ready'
+	| 'pending'
+	| 'in_progress'
+	| 'completed'
+	| 'failed';
 
-export const stepStatusEnum = pgEnum('step_status', ['pending', 'in_progress', 'completed', 'failed']);
+export const stepStatusEnum = pgEnum('step_status', [
+	'not_ready',
+	'not_started',
+	'input_required',
+	'ready',
+	'pending',
+	'in_progress',
+	'completed',
+	'failed',
+]);
 
 // Base configuration with common fields
 const baseFields = {

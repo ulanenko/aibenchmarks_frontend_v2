@@ -1,13 +1,13 @@
 import {BaseRenderer} from 'handsontable/renderers';
 import {ValidatorCallback} from '@/types/handsontable';
-import {Column, StatusColumn} from '@/lib/column-definition';
-import {StatusRenderer, urlRenderer} from '@/components/hot/renderers';
+import {Column, CategoryColumn} from '@/lib/column-definition';
+import {urlRenderer} from '@/components/hot/renderers';
 
 // Column definitions
 export const companyColumns = {
-	status: new StatusColumn({
+	inputStatus: new CategoryColumn({
 		title: 'Status',
-		statusPath: 'step.input',
+		stepId: 'input',
 		description: 'Validation status of the company entry',
 	}),
 	name: new Column({
@@ -97,7 +97,7 @@ export type ColumnConfig = {
 };
 
 export const defaultColumns: ColumnConfig[] = [
-	{column: companyColumns.status, show: 'yes'},
+	{column: companyColumns.inputStatus, show: 'yes'},
 	{column: companyColumns.name, show: 'always'},
 	{column: companyColumns.country, show: 'yes'},
 	{column: companyColumns.url, show: 'yes'},

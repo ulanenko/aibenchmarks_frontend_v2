@@ -11,7 +11,6 @@ export const urlRenderer = (
 ) => {
 	// Clear the cell content
 	td.innerHTML = '';
-	console.log('render url', value);
 
 	if (!value) {
 		return td;

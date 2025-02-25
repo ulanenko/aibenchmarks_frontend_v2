@@ -1,5 +1,4 @@
 import {StepStatus} from '@/db/schema';
-import {StepType} from '@/types/stepType';
 import {company} from '@/db/schema';
 
 export type CompanyDBType = typeof company.$inferSelect;

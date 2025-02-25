@@ -1,10 +1,8 @@
 import {BaseRenderer} from 'handsontable/renderers';
-import {ValidatorCallback} from '@/types/handsontable';
-import {StatusRenderer} from '@/lib/hot/renderers';
-import {CategoryDefinition} from './category-definition';
-import {StepStatus} from '@/db/schema';
 import {HotColumnProps} from '@handsontable/react';
-import {Check, Clock, Loader, X} from 'lucide-react';
+import {ValidatorCallback} from '@/types/handsontable';
+import {StepId} from '@/config/steps';
+import {CategoryRenderer} from '@/components/hot/renderers';
 
 export type ColumnConfig = {
 	title: string;
@@ -93,54 +91,35 @@ export class Column {
 	}
 }
 
-export type StatusColumnConfig = Omit<ColumnConfig, 'data' | 'type' | 'renderer' | 'readOnly' | 'hotProps'> & {
-	statusPath: string;
-	categories?: Record<StepStatus, CategoryDefinition>;
+export type CategoryColumnConfig = Omit<ColumnConfig, 'data' | 'type' | 'renderer' | 'readOnly' | 'hotProps'> & {
+	stepId: StepId;
+	// categories: StatusConfigs;
 };
 
-const DEFAULT_CATEGORIES: Record<StepStatus, CategoryDefinition> = {
-	completed: new CategoryDefinition({
-		color: 'green',
-		icon: Check,
-	}),
-	pending: new CategoryDefinition({
-		color: 'gray',
-		icon: Clock,
-	}),
-	in_progress: new CategoryDefinition({
-		color: 'yellow',
-		icon: Loader,
-	}),
-	failed: new CategoryDefinition({
-		color: 'red',
-		icon: X,
-	}),
-};
-
-export class StatusColumn extends Column {
-	categories: Record<StepStatus, CategoryDefinition>;
-	constructor(config: StatusColumnConfig) {
+export class CategoryColumn extends Column {
+	// categories: StatusConfigs;
+	constructor(config: CategoryColumnConfig) {
 		const fullConfig: ColumnConfig = {
 			title: config.title,
 			type: 'text',
 			width: config.width ?? DEFAULT_WIDTH,
-			data: `${config.statusPath}.value`,
+			data: `step.${config.stepId}.label`,
 			description: config.description,
 			hotProps: {
-				statusPath: config.statusPath,
+				categoryValuePath: `step.${config.stepId}`,
 			},
 			readOnly: true,
-			renderer: StatusRenderer,
+			renderer: CategoryRenderer,
 			filter: config.filter ?? true,
 			sort: config.sort ?? true,
 		};
 		super(fullConfig);
-		this.categories = {...DEFAULT_CATEGORIES, ...config.categories};
+		// this.categories = getStatusConfig(config.stepId);
 	}
 
 	toHotColumn() {
 		const hotColumn = super.toHotColumn();
-		hotColumn.categories = {...DEFAULT_CATEGORIES, ...this.categories};
+		// hotColumn.categories = this.categories;
 		return hotColumn;
 	}
 }

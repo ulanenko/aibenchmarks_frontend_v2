@@ -1,11 +1,5 @@
 import {HelpSheet} from '@/components/layout/helpsheet/help-sheet';
-
-interface Step {
-	number: number;
-	label: string;
-	isActive: boolean;
-	isCompleted: boolean;
-}
+import {BENCHMARK_STEPS} from '@/config/steps';
 
 interface StepsHeaderProps {
 	currentStep: number;
@@ -13,32 +7,11 @@ interface StepsHeaderProps {
 }
 
 export function StepsHeader({currentStep, className = ''}: StepsHeaderProps) {
-	const steps: Step[] = [
-		{
-			number: 1,
-			label: 'Upload Data',
-			isActive: currentStep === 1,
-			isCompleted: currentStep > 1,
-		},
-		{
-			number: 2,
-			label: 'Web Search',
-			isActive: currentStep === 2,
-			isCompleted: currentStep > 2,
-		},
-		{
-			number: 3,
-			label: 'Accept/Reject',
-			isActive: currentStep === 3,
-			isCompleted: currentStep > 3,
-		},
-		{
-			number: 4,
-			label: 'Human Review',
-			isActive: currentStep === 4,
-			isCompleted: currentStep > 4,
-		},
-	];
+	const steps = BENCHMARK_STEPS.map((step) => ({
+		...step,
+		isActive: currentStep === step.number,
+		isCompleted: currentStep > step.number,
+	}));
 
 	return (
 		<div className={`border-b ${className}`}>
@@ -51,7 +24,7 @@ export function StepsHeader({currentStep, className = ''}: StepsHeaderProps) {
 					<div className="overflow-x-auto no-scrollbar">
 						<div className="flex items-center gap-4">
 							{steps.map((step, index) => (
-								<div key={step.number} className="flex items-center shrink-0">
+								<div key={step.id} className="flex items-center shrink-0">
 									{index > 0 && <div className="w-4 h-px bg-gray-200 mx-2 shrink-0" />}
 									<div
 										className={`flex items-center gap-2 ${
@@ -86,24 +59,13 @@ export function StepsHeader({currentStep, className = ''}: StepsHeaderProps) {
 					<HelpSheet title="Benchmark Steps">
 						<div className="prose prose-sm">
 							<h3>Overview</h3>
-							<p>The benchmark process consists of 4 main steps:</p>
+							<p>The benchmark process consists of {steps.length} main steps:</p>
 							<ol>
-								<li>
-									<strong>Upload Data</strong> - Upload your company data in Excel format. The system will validate and
-									process your data.
-								</li>
-								<li>
-									<strong>Web Search</strong> - The system will automatically search for additional company information
-									from reliable web sources.
-								</li>
-								<li>
-									<strong>Accept/Reject</strong> - Review the found data and accept or reject the matches for each
-									company.
-								</li>
-								<li>
-									<strong>Human Review</strong> - Perform a final review of the data and make any necessary manual
-									adjustments.
-								</li>
+								{steps.map((step) => (
+									<li key={step.id}>
+										<strong>{step.label}</strong> - {step.description}
+									</li>
+								))}
 							</ol>
 							<p>
 								You can track your progress through the steps using the progress bar above. Each step must be completed
