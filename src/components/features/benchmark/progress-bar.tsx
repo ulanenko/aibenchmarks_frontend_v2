@@ -15,7 +15,7 @@ interface ProgressBarProps {
 export function ProgressBar({companies, categoryColumn}: ProgressBarProps) {
 	const segments = useMemo(() => {
 		if (companies.length === 0) return [];
-		const companiesByCategory = getObjectsByCategory(companies, categoryColumn.getCategoryKey());
+		const companiesByCategory = getObjectsByCategory(companies, categoryColumn.getCategoryKeyPath());
 		const categoryKeys = Object.keys(companiesByCategory);
 		const total = companies.length;
 		const categories = categoryKeys.map((categoryKey) => {

@@ -126,9 +126,13 @@ export class CategoryColumn extends Column {
 		// this.categories = getStatusConfig(config.stepId);
 	}
 
-	getCategoryKey() {
+	getCategoryKeyPath() {
 		return `${CATEGORY_VALUES_PREFIX}.${this.valuePath}.categoryKey`;
 	}
+	getCategoryValuePath() {
+		return `${CATEGORY_VALUES_PREFIX}.${this.valuePath}`;
+	}
+
 	categorize(company: Company) {
 		try {
 			const categoryValue = companyCategorizer(company, this.categorizer);

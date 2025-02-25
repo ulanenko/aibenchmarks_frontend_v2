@@ -3,6 +3,8 @@ import Handsontable from 'handsontable';
 import {getValueForPath, setValueForPath} from '@/lib/object-utils';
 import {getObjectsByCategory, getUniqueValuesForPath} from '@/lib/company';
 import {CategoryValue} from '@/types/category';
+import {CategoryDefinition} from '@/lib/category-definition';
+import {CategoryColumn} from '@/lib/column-definition';
 // A wrapper component that renders a Badge which opens a dialogue on click.
 
 export const CategoryRenderer = (
@@ -47,8 +49,8 @@ export const CategoryRenderer = (
 	td.style.padding = '0.25rem';
 
 	// Render our interactive BadgeWithDialogue component
-	const hotFilter = createHOTFilter(instance, col, categoryValuePath, rowData);
-	const isFiltered = getValueForPath(instance, `categoryFilters.${categoryValuePath}`) == true;
+	const hotFilter = createHOTFilter(instance, categoryValuePath, category, col);
+	const isFiltered = getValueForPath(instance, `categoryFilters.${category.categoryKey}`) == true;
 	const badge = category.createBadge(label, description, hotFilter, isFiltered);
 	root.render(badge);
 
@@ -57,34 +59,45 @@ export const CategoryRenderer = (
 
 function createHOTFilter(
 	hotInstance: Handsontable,
-	colIndex: number,
-	categoryKeyPath: string,
-	rowData: {[key: string]: any},
+	categoryColumnOrCategoryKeyPath: CategoryColumn | string,
+	category: CategoryDefinition,
+	colIndexProp?: number,
 ) {
-	// const colIndex = hotInstance.getSettings().columns.findIndex((col) => col.key == category.columnKey);
+	let categoryValuePath: string;
+	let colIndex: number;
+	if (categoryColumnOrCategoryKeyPath instanceof CategoryColumn) {
+		const catColumn = categoryColumnOrCategoryKeyPath;
+		// @ts-ignore
+		const physicalCol = hotInstance!.getSettings().columns.findIndex((col) => col.data == catColumn.data);
+		colIndex = hotInstance.toVisualColumn(physicalCol);
+		categoryValuePath = catColumn.getCategoryValuePath();
+	} else {
+		categoryValuePath = categoryColumnOrCategoryKeyPath;
+		if (colIndexProp !== undefined) {
+			colIndex = colIndexProp;
+		} else {
+			throw new Error('colIndexProp is required when categoryColumnOrCategoryKeyPath is a string');
+		}
+	}
 
 	const filterPlugin = hotInstance.getPlugin('filters');
 
 	return function hotFilter() {
-		const {category, categoryKey} = getValueForPath(rowData, categoryKeyPath) as CategoryValue;
-		if (!category) {
-			return;
-		}
 		const companies = hotInstance.getSourceData();
-		const objectByCategory = getObjectsByCategory(companies, `${categoryKeyPath}.categoryKey`);
+		const objectByCategory = getObjectsByCategory(companies, `${categoryValuePath}.categoryKey`);
 		console.log('objectByCategory', objectByCategory);
-		const otherObjectsWithSameCategory = objectByCategory[categoryKey];
-		const uniqueValues = getUniqueValuesForPath(otherObjectsWithSameCategory, `${categoryKeyPath}.label`);
-		const isFilterApplied = getValueForPath(hotInstance, `categoryFilters.${categoryKeyPath}`) == true;
+		const otherObjectsWithSameCategory = objectByCategory[category.categoryKey];
+		const uniqueValues = getUniqueValuesForPath(otherObjectsWithSameCategory, `${categoryValuePath}.label`);
+		const isFilterApplied = getValueForPath(hotInstance, `categoryFilters.${category.categoryKey}`) == true;
 
 		if (isFilterApplied) {
 			filterPlugin.removeConditions(colIndex);
-			setValueForPath(hotInstance, `categoryFilters.${categoryKeyPath}`, false);
+			setValueForPath(hotInstance, `categoryFilters.${category.categoryKey}`, false);
 		} else {
 			uniqueValues.forEach((value) => {
 				filterPlugin.addCondition(colIndex, 'contains', [value], 'disjunction');
 			});
-			setValueForPath(hotInstance, `categoryFilters.${categoryKeyPath}`, true);
+			setValueForPath(hotInstance, `categoryFilters.${category.categoryKey}`, true);
 		}
 
 		filterPlugin.filter();
