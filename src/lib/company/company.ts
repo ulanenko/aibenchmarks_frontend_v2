@@ -1,8 +1,8 @@
 import {CompanyDTO, UpdateCompanyDTO} from './type';
-import {validateCompany} from './utils';
+import {updateCategories} from './utils';
 import {setValueForPath} from '../object-utils';
 import {isEmpty} from '../utils';
-import {CategoryValue} from '@/config/labeller';
+import {CategoryValue} from '@/types/category';
 import {CATEGORIES} from '@/config/categories';
 
 export class Company implements CompanyDTO {
@@ -33,14 +33,14 @@ export class Company implements CompanyDTO {
 	// a deep copy of the properties relevant for the hot table
 	// this is updated after validating the company to ensure that the hot table is updated
 	hotCopy: {[key: string]: any} = {};
-	step: {
-		input: CategoryValue;
+	categoryValues: {
+		[key: string]: CategoryValue;
 	} = {
 		input: {
 			category: CATEGORIES.INPUT.NEW,
 			label: '',
 			description: '',
-			categoryKey: CATEGORIES.INPUT.NEW.label,
+			categoryKey: CATEGORIES.INPUT.NEW.categoryKey,
 		},
 	};
 
@@ -75,7 +75,7 @@ export class Company implements CompanyDTO {
 		this.sourceData = data?.sourceData ?? null;
 		this.mappedSourceData = data?.mappedSourceData ?? null;
 		this.dataStatus = data?.dataStatus ?? null;
-		this.validate();
+		this.updateDependentValues();
 	}
 
 	private static getNextTempId(): number {
@@ -98,11 +98,10 @@ export class Company implements CompanyDTO {
 		return true;
 	}
 
-	validate(): boolean {
-		const value = validateCompany(this);
+	updateDependentValues() {
+		updateCategories(this);
 		// update the hotCopy to ensure that the hot table is updated
 		this.updateHOTExport();
-		return value.length === 0;
 	}
 
 	// Helper method to check if the entity is new
@@ -113,9 +112,9 @@ export class Company implements CompanyDTO {
 	updateHOTExport() {
 		const copy = {...this} as any;
 		delete copy.changes;
-		const categories = this.step;
+		const categories = this.categoryValues;
 		this.hotCopy = JSON.parse(JSON.stringify(copy));
-		this.hotCopy.step = categories;
+		this.hotCopy.categoryValues = categories;
 	}
 
 	// Method to update company data
@@ -129,7 +128,7 @@ export class Company implements CompanyDTO {
 				this.changes[key] = {value, oldValue: this.changes[key]?.value ?? value};
 			}
 		});
-		this.validate();
+		this.updateDependentValues();
 	}
 
 	// Convert to plain object (DTO)

@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import * as companyService from '@/services/api/companies';
-import {Company, validateCompany} from '@/lib/company';
+import {Company, updateCategories} from '@/lib/company';
 import {setValueForPath} from '@/lib/object-utils';
 import {toast} from '@/hooks/use-toast';
 

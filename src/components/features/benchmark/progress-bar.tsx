@@ -5,24 +5,25 @@ import {getValueForPath} from '@/lib/object-utils';
 import {CATEGORIES} from '@/config/categories';
 import {CategoryColor} from '@/types/category';
 import {CategoryDefinition} from '@/lib/category-definition';
+import {CategoryColumn} from '@/lib/column-definition';
 interface ProgressBarProps {
 	companies: Company[];
-	categoryPath: string;
+	categoryColumn: CategoryColumn;
 	className?: string;
 }
 
-export function ProgressBar({companies, categoryPath}: ProgressBarProps) {
+export function ProgressBar({companies, categoryColumn}: ProgressBarProps) {
 	const segments = useMemo(() => {
 		if (companies.length === 0) return [];
-		const companiesByCategory = getObjectsByCategory(companies, `step.${categoryPath}.categoryKey`);
+		const companiesByCategory = getObjectsByCategory(companies, categoryColumn.getCategoryKey());
 		const categoryKeys = Object.keys(companiesByCategory);
 		const total = companies.length;
-		const categories = categoryKeys.map((key) => {
-			const category = getValueForPath(CATEGORIES, key.replace('CATEGORIES.', '')) as CategoryDefinition;
+		const categories = categoryKeys.map((categoryKey) => {
+			const category = getValueForPath(CATEGORIES, categoryKey) as CategoryDefinition;
 			if (!category) {
-				throw new Error(`Category not found for key: ${key}`);
+				throw new Error(`Category not found for key: ${categoryKey}`);
 			}
-			const count = companiesByCategory[key].length;
+			const count = companiesByCategory[categoryKey].length;
 			return {
 				key: category.label,
 				label: `${category.label} (${count})`,
@@ -32,7 +33,7 @@ export function ProgressBar({companies, categoryPath}: ProgressBarProps) {
 			};
 		});
 		return categories;
-	}, [companies, categoryPath]);
+	}, [companies, categoryColumn]);
 
 	if (companies.length === 0) {
 		return <div className="flex items-center gap-2 text-sm text-muted-foreground">No companies added yet</div>;

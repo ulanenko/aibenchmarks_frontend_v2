@@ -2,13 +2,15 @@ import {BaseRenderer} from 'handsontable/renderers';
 import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer} from '@/components/hot/renderers';
+import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
 
 // Column definitions
 export const companyColumns = {
 	inputStatus: new CategoryColumn({
 		title: 'Status',
-		stepId: 'input',
 		description: 'Validation status of the company entry',
+		valuePath: 'input',
+		categorizer: InputLabelsDescriptions,
 	}),
 	name: new Column({
 		title: 'Company Name',

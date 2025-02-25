@@ -10,7 +10,7 @@ import {ActionsFooter} from '@/components/features/benchmark/actions-footer';
 import {CompanyTable} from '@/components/features/benchmark/company-table';
 import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
 import {useShallow} from 'zustand/react/shallow';
-import {defaultColumns, inputColumns} from '@/lib/company/company-columns';
+import {companyColumns, defaultColumns, inputColumns} from '@/lib/company/company-columns';
 
 interface Props {
 	params: Promise<{
@@ -90,7 +90,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 				onNext={handleNext}
 				isSaving={isSaving}
 				companies={companies}
-				categoryPath="input"
+				categoryColumn={companyColumns.inputStatus}
 				className="border-t flex-none"
 			/>
 		</div>

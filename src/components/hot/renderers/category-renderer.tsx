@@ -24,9 +24,8 @@ export const CategoryRenderer = (
 	}
 
 	const {categoryValuePath} = cellProperties;
-
-	const {category, label, description, categoryKey} =
-		(getValueForPath(rowData, categoryValuePath) as CategoryValue) ?? {};
+	const categoryValue = getValueForPath(rowData, categoryValuePath) as CategoryValue;
+	const {category, label, description, categoryKey} = categoryValue ?? {};
 	// Center the content in the cell
 	if (!category || !categoryKey) {
 		td.innerHTML = '';

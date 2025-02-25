@@ -1,8 +1,10 @@
 import {BaseRenderer} from 'handsontable/renderers';
 import {HotColumnProps} from '@handsontable/react';
 import {ValidatorCallback} from '@/types/handsontable';
-import {StepId} from '@/config/steps';
 import {CategoryRenderer} from '@/components/hot/renderers';
+import {Categorizer} from '@/types/category';
+import {Company} from './company/company';
+import {companyCategorizer} from './company/categorizer';
 
 export type ColumnConfig = {
 	title: string;
@@ -92,29 +94,48 @@ export class Column {
 }
 
 export type CategoryColumnConfig = Omit<ColumnConfig, 'data' | 'type' | 'renderer' | 'readOnly' | 'hotProps'> & {
-	stepId: StepId;
+	valuePath: string;
+	categorizer: Categorizer;
 	// categories: StatusConfigs;
 };
+const CATEGORY_VALUES_PREFIX = 'categoryValues';
 
 export class CategoryColumn extends Column {
 	// categories: StatusConfigs;
+	valuePath: string;
+	categorizer: Categorizer;
 	constructor(config: CategoryColumnConfig) {
 		const fullConfig: ColumnConfig = {
 			title: config.title,
 			type: 'text',
 			width: config.width ?? DEFAULT_WIDTH,
-			data: `step.${config.stepId}.label`,
+			data: `${CATEGORY_VALUES_PREFIX}.${config.valuePath}.label`,
 			description: config.description,
 			hotProps: {
-				categoryValuePath: `step.${config.stepId}`,
+				categoryValuePath: `${CATEGORY_VALUES_PREFIX}.${config.valuePath}`,
 			},
 			readOnly: true,
 			renderer: CategoryRenderer,
 			filter: config.filter ?? true,
 			sort: config.sort ?? true,
 		};
+
 		super(fullConfig);
+		this.valuePath = config.valuePath;
+		this.categorizer = config.categorizer;
 		// this.categories = getStatusConfig(config.stepId);
+	}
+
+	getCategoryKey() {
+		return `${CATEGORY_VALUES_PREFIX}.${this.valuePath}.categoryKey`;
+	}
+	categorize(company: Company) {
+		try {
+			const categoryValue = companyCategorizer(company, this.categorizer);
+			company.categoryValues[this.valuePath] = categoryValue;
+		} catch (error) {
+			throw new Error(`Could not categorize ${this.valuePath} for ${company.name}`);
+		}
 	}
 
 	toHotColumn() {

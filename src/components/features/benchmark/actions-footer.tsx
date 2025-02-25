@@ -1,17 +1,25 @@
 import {Button} from '@/components/ui/button';
 import {ProgressBar} from '@/components/features/benchmark/progress-bar';
 import {Company} from '@/lib/company/company';
+import {CategoryColumn} from '@/lib/column-definition';
 
 interface ActionsFooterProps {
 	onSave: () => void;
 	onNext: () => void;
 	isSaving: boolean;
 	companies: Company[];
-	categoryPath: string;
+	categoryColumn: CategoryColumn;
 	className?: string;
 }
 
-export function ActionsFooter({onSave, onNext, isSaving, companies, categoryPath, className = ''}: ActionsFooterProps) {
+export function ActionsFooter({
+	onSave,
+	onNext,
+	isSaving,
+	companies,
+	categoryColumn,
+	className = '',
+}: ActionsFooterProps) {
 	const onValidate = () => {
 		console.log('validate');
 	};
@@ -19,7 +27,7 @@ export function ActionsFooter({onSave, onNext, isSaving, companies, categoryPath
 		<div className={`bg-background py-4 px-4 ${className}`}>
 			<div className="flex items-center justify-between gap-4">
 				<div className="flex-grow">
-					<ProgressBar companies={companies} categoryPath={categoryPath} />
+					<ProgressBar companies={companies} categoryColumn={categoryColumn} />
 				</div>
 				<div className="flex items-center gap-2">
 					<Button variant="outline" onClick={onValidate} size="sm">

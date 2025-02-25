@@ -24,7 +24,7 @@ export class CategoryDefinition {
 	tooltipText?: string;
 	status?: StepStatus;
 	label: string;
-
+	categoryKey: string;
 	constructor(config: CategoryConfig) {
 		this.color = config.color;
 		this.icon = config.icon;
@@ -32,6 +32,7 @@ export class CategoryDefinition {
 		this.onclick = config.onclick;
 		this.tooltipText = config.onclickTooltip;
 		this.label = config.label;
+		this.categoryKey = config.categoryKey;
 	}
 
 	getColorClass() {

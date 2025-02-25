@@ -2,16 +2,13 @@ import {getValueForPath, setValueForPath} from '@/lib/object-utils';
 import {Company} from './company';
 import {companyCategorizer} from './categorizer';
 import {CategoryValue} from '@/types/category';
+import {companyColumns} from './company-columns';
 // Legacy function for backward compatibility
 // Legacy function for backward compatibility
-export const validateCompany = (company: Company): CategoryValue[] => {
+export const updateCategories = (company: Company) => {
 	// step 1
-	const stepName = 'input';
-	const step1 = companyCategorizer(company, stepName);
-	company.step[stepName] = step1;
+	companyColumns.inputStatus.categorize(company);
 	// step 2
-
-	return [step1];
 };
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {

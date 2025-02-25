@@ -1,12 +1,15 @@
 import {StepStatus} from '@/db/schema';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {LucideIcon} from 'lucide-react';
+import {Company} from '@/lib/company/company';
 
 type CategoryColor = 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'pink' | 'gray' | 'orange';
+type Categorizer = ((company: Company) => CategoryValue | false)[];
 
 interface CategoryConfig {
 	label: string;
 	color: CategoryColor;
+	categoryKey: string;
 	icon: LucideIcon;
 	onclick?: () => void;
 	onclickTooltip?: string;
@@ -22,4 +25,4 @@ type CategoryValue = {
 	description?: string;
 };
 
-export type {CategoryValue, CategoryConfig, CategoryColor};
+export type {CategoryValue, CategoryConfig, CategoryColor, Categorizer};
