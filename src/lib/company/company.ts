@@ -5,15 +5,8 @@ import {isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES} from '@/config/categories';
 
-export class Company implements CompanyDTO {
-	private static tempIdCounter = -1;
-
-	id: number;
+export interface InputValues {
 	name: string;
-	createdAt: Date;
-	updatedAt: Date | null;
-	benchmarkId: number;
-	databaseId: string | null;
 	country: string | null;
 	url: string | null;
 	streetAndNumber: string | null;
@@ -27,9 +20,23 @@ export class Company implements CompanyDTO {
 	tradeDescriptionOriginal: string | null;
 	mainActivity: string | null;
 	mainProductsAndServices: string | null;
+}
+
+export class Company {
+	private static tempIdCounter = -1;
+
+	id: number;
+	createdAt: Date;
+	updatedAt: Date | null;
+	benchmarkId: number;
+	databaseId: string | null;
 	sourceData: any;
-	mappedSourceData: any;
 	dataStatus: string | null;
+
+	mappedSourceData: Partial<InputValues>;
+	// User-inputted values moved to a nested object
+	inputValues: InputValues;
+
 	// a deep copy of the properties relevant for the hot table
 	// this is updated after validating the company to ensure that the hot table is updated
 	hotCopy: {[key: string]: any} = {};
@@ -54,27 +61,32 @@ export class Company implements CompanyDTO {
 
 	constructor(data?: CompanyDTO) {
 		this.id = data && 'id' in data ? data.id : Company.getNextTempId();
-		this.name = data?.name ?? '';
 		this.createdAt = data && 'createdAt' in data ? data.createdAt : new Date();
 		this.updatedAt = data && 'updatedAt' in data ? data.updatedAt : null;
 		this.benchmarkId = data?.benchmarkId ?? 0;
 		this.databaseId = data?.databaseId ?? null;
-		this.country = data?.country ?? null;
-		this.url = data?.url ?? null;
-		this.streetAndNumber = data?.streetAndNumber ?? null;
-		this.addressLine1 = data?.addressLine1 ?? null;
-		this.consolidationCode = data?.consolidationCode ?? null;
-		this.independenceIndicator = data?.independenceIndicator ?? null;
-		this.naceRev2 = data?.naceRev2 ?? null;
-		this.fullOverview = data?.fullOverview ?? null;
-		this.fullOverviewManual = data?.fullOverviewManual ?? null;
-		this.tradeDescriptionEnglish = data?.tradeDescriptionEnglish ?? null;
-		this.tradeDescriptionOriginal = data?.tradeDescriptionOriginal ?? null;
-		this.mainActivity = data?.mainActivity ?? null;
-		this.mainProductsAndServices = data?.mainProductsAndServices ?? null;
 		this.sourceData = data?.sourceData ?? null;
 		this.mappedSourceData = data?.mappedSourceData ?? null;
 		this.dataStatus = data?.dataStatus ?? null;
+
+		// Initialize inputValues
+		this.inputValues = {
+			name: data?.name ?? '',
+			country: data?.country ?? null,
+			url: data?.url ?? null,
+			streetAndNumber: data?.streetAndNumber ?? null,
+			addressLine1: data?.addressLine1 ?? null,
+			consolidationCode: data?.consolidationCode ?? null,
+			independenceIndicator: data?.independenceIndicator ?? null,
+			naceRev2: data?.naceRev2 ?? null,
+			fullOverview: data?.fullOverview ?? null,
+			fullOverviewManual: data?.fullOverviewManual ?? null,
+			tradeDescriptionEnglish: data?.tradeDescriptionEnglish ?? null,
+			tradeDescriptionOriginal: data?.tradeDescriptionOriginal ?? null,
+			mainActivity: data?.mainActivity ?? null,
+			mainProductsAndServices: data?.mainProductsAndServices ?? null,
+		};
+
 		this.updateDependentValues();
 	}
 
@@ -82,17 +94,27 @@ export class Company implements CompanyDTO {
 		return this.tempIdCounter--;
 	}
 
-	isEmpty(): boolean {
-		return [this.name, this.country, this.url].every(isEmpty);
+	// Getters to maintain compatibility with CompanyDTO interface
+	get name(): string {
+		return this.inputValues.name;
 	}
+
+	get url(): string | null {
+		return this.inputValues.url;
+	}
+
+	isEmpty(): boolean {
+		return [this.inputValues.name, this.inputValues.country, this.inputValues.url].every(isEmpty);
+	}
+
 	isCompleted(): string | true {
-		if (isEmpty(this.name)) {
+		if (isEmpty(this.inputValues.name)) {
 			return 'name';
 		}
-		if (isEmpty(this.country)) {
+		if (isEmpty(this.inputValues.country)) {
 			return 'country';
 		}
-		if (isEmpty(this.url)) {
+		if (isEmpty(this.inputValues.url)) {
 			return 'url';
 		}
 		return true;
@@ -110,11 +132,12 @@ export class Company implements CompanyDTO {
 	}
 
 	updateHOTExport() {
-		const copy = {...this} as any;
-		delete copy.changes;
-		const categories = this.categoryValues;
-		this.hotCopy = JSON.parse(JSON.stringify(copy));
-		this.hotCopy.categoryValues = categories;
+		// const copy = {...this} as any;
+		// delete copy.changes;
+		// const categories = this.categoryValues;
+		this.hotCopy = {};
+		this.hotCopy.inputValues = {...this.inputValues};
+		this.hotCopy.categoryValues = this.categoryValues;
 	}
 
 	// Method to update company data
@@ -134,9 +157,24 @@ export class Company implements CompanyDTO {
 	// Convert to plain object (DTO)
 	getUpdateDTO(): UpdateCompanyDTO | null {
 		if (Object.keys(this.changes).length > 0) {
-			const copy: UpdateCompanyDTO = {...this} as UpdateCompanyDTO;
-			const changedKeys = [...Object.keys(this.changes), 'id'];
-			const objectKeys = Object.keys(this);
+			// Create a flattened copy for the DTO
+			const copy: UpdateCompanyDTO = {
+				id: this.id,
+				// Include all inputValues properties
+				...this.inputValues,
+				// Include other properties
+				benchmarkId: this.benchmarkId,
+				databaseId: this.databaseId,
+				sourceData: this.sourceData,
+				mappedSourceData: this.mappedSourceData,
+				dataStatus: this.dataStatus,
+				updatedAt: this.updatedAt,
+				createdAt: this.createdAt,
+			} as UpdateCompanyDTO;
+
+			//
+			const changedKeys = [...Object.keys(this.changes), 'id'].map((key) => key.replace('inputValues.', ''));
+			const objectKeys = Object.keys(copy);
 			const keysToRemove = objectKeys.filter((key) => !changedKeys.includes(key));
 			keysToRemove.forEach((key) => {
 				delete copy[key as keyof UpdateCompanyDTO];

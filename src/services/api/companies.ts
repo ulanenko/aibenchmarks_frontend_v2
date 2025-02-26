@@ -3,7 +3,7 @@ import {Company} from '@/lib/company/company';
 
 const BASE_URL = (benchmarkId: number) => `/api/benchmarks/${benchmarkId}/companies`;
 
-export async function getCompanies(benchmarkId: number): Promise<Company[]> {
+export async function getCompanies(benchmarkId: number): Promise<CompanyDTO[]> {
 	const response = await fetch(BASE_URL(benchmarkId));
 	const data = await response.json();
 

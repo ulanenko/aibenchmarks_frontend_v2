@@ -16,25 +16,19 @@ export const companyColumns = {
 		title: 'Company Name',
 		type: 'text',
 		width: 200,
-		data: 'name',
+		data: 'inputValues.name',
 		required: true,
 		validator: (value: string, callback: ValidatorCallback) => {
 			callback(!!value?.trim());
 		},
 		description: 'Name of the company',
 	}),
-	databaseId: new Column({
-		title: 'Database ID',
-		type: 'text',
-		width: 120,
-		data: 'databaseId',
-		description: 'Unique database identifier',
-	}),
+
 	country: new Column({
 		title: 'Country',
 		type: 'text',
 		width: 120,
-		data: 'country',
+		data: 'inputValues.country',
 		required: true,
 		validator: (value: string, callback: ValidatorCallback) => {
 			callback(!!value?.trim());
@@ -45,7 +39,7 @@ export const companyColumns = {
 		title: 'Website',
 		type: 'text',
 		width: 200,
-		data: 'url',
+		data: 'inputValues.url',
 		renderer: urlRenderer,
 		description: 'Website of the company',
 	}),
@@ -53,42 +47,42 @@ export const companyColumns = {
 		title: 'Street & Number',
 		type: 'text',
 		width: 150,
-		data: 'streetAndNumber',
+		data: 'inputValues.streetAndNumber',
 		description: 'Street and number of the company',
 	}),
 	addressLine1: new Column({
 		title: 'Address Line 1',
 		type: 'text',
 		width: 150,
-		data: 'addressLine1',
+		data: 'inputValues.addressLine1',
 		description: 'First address line of the company',
 	}),
 	consolidationCode: new Column({
 		title: 'Consolidation Code',
 		type: 'text',
 		width: 150,
-		data: 'consolidationCode',
+		data: 'inputValues.consolidationCode',
 		description: 'Consolidation code of the company',
 	}),
 	independenceIndicator: new Column({
 		title: 'Independence Indicator',
 		type: 'text',
 		width: 150,
-		data: 'independenceIndicator',
+		data: 'inputValues.independenceIndicator',
 		description: 'Independence indicator of the company',
 	}),
 	naceRev2: new Column({
 		title: 'NACE Rev.2',
 		type: 'text',
 		width: 120,
-		data: 'naceRev2',
+		data: 'inputValues.naceRev2',
 		description: 'NACE revision 2 code of the company',
 	}),
 	mainActivity: new Column({
 		title: 'Main Activity',
 		type: 'text',
 		width: 200,
-		data: 'mainActivity',
+		data: 'inputValues.mainActivity',
 		description: 'Main activity of the company',
 	}),
 };
@@ -106,7 +100,7 @@ export const defaultColumns: ColumnConfig[] = [
 ];
 
 export const inputColumns: ColumnConfig[] = [
-	{column: companyColumns.databaseId, show: 'always'},
+	// {column: companyColumns.databaseId, show: 'always'},
 	{column: companyColumns.streetAndNumber, show: 'yes'},
 	{column: companyColumns.addressLine1, show: 'yes'},
 	{column: companyColumns.consolidationCode, show: 'no'},
