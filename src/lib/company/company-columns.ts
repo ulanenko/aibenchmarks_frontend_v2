@@ -78,12 +78,41 @@ export const companyColumns = {
 		data: 'inputValues.naceRev2',
 		description: 'NACE revision 2 code of the company',
 	}),
+	fullOverview: new Column({
+		title: 'Full Overview',
+		type: 'text',
+		width: 200,
+		data: 'inputValues.fullOverview',
+		description: 'Complete overview of the company',
+	}),
+
+	tradeDescriptionEnglish: new Column({
+		title: 'Trade Description (English)',
+		type: 'text',
+		width: 200,
+		data: 'inputValues.tradeDescriptionEnglish',
+		description: 'English description of the company trade',
+	}),
+	tradeDescriptionOriginal: new Column({
+		title: 'Trade Description (Original)',
+		type: 'text',
+		width: 200,
+		data: 'inputValues.tradeDescriptionOriginal',
+		description: 'Original language description of the company trade',
+	}),
 	mainActivity: new Column({
 		title: 'Main Activity',
 		type: 'text',
 		width: 200,
 		data: 'inputValues.mainActivity',
 		description: 'Main activity of the company',
+	}),
+	mainProductsAndServices: new Column({
+		title: 'Main Products & Services',
+		type: 'text',
+		width: 200,
+		data: 'inputValues.mainProductsAndServices',
+		description: 'Main products and services offered by the company',
 	}),
 };
 
@@ -106,5 +135,9 @@ export const inputColumns: ColumnConfig[] = [
 	{column: companyColumns.consolidationCode, show: 'no'},
 	{column: companyColumns.independenceIndicator, show: 'no'},
 	{column: companyColumns.naceRev2, show: 'yes'},
+	{column: companyColumns.fullOverview, show: 'yes'},
+	{column: companyColumns.tradeDescriptionEnglish, show: 'yes'},
+	{column: companyColumns.tradeDescriptionOriginal, show: 'no'},
 	{column: companyColumns.mainActivity, show: 'yes'},
+	{column: companyColumns.mainProductsAndServices, show: 'yes'},
 ];

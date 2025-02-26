@@ -11,13 +11,16 @@ import {supportedDatabases, DatabaseConfig} from '@/lib/excel/excel-parser';
 import {Label} from '@/components/ui/label';
 import {TableBody, TableCell, Table, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {LoadingButton} from '@/components/ui/loading-button';
+import {mapColumnsWithAI} from '@/app/actions/ai-mapper-actions';
+import {toast} from 'sonner';
+import {SourceColumn, TargetColumn, ColumnMapping} from '@/app/actions/dto/mapper-types';
 
-// Define our local ColumnMapping interface
+// Local column mapping used in the UI
 interface LocalColumnMapping {
 	targetColumn: string;
 	sourceColumn: string | null;
 	required: boolean;
-	title: string; // Add title field to store the display name
+	title: string;
 }
 
 // Use a constant for the "none" value to ensure consistency
@@ -73,11 +76,13 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 		// Update the state with the mappings - convert to the expected format
 		setProcesses({...processes, loading: true});
 
-		// Convert mappings and update state
-		const columnMappings = mappings.map((mapping) => ({
-			targetColumn: mapping.targetColumn,
-			sourceColumn: mapping.sourceColumn || '', // Convert null to empty string
-		}));
+		// Convert mappings and update state - ensure sourceColumn is never null
+		const columnMappings: ColumnMapping[] = mappings
+			.filter((mapping) => mapping.sourceColumn !== null)
+			.map((mapping) => ({
+				targetColumn: mapping.targetColumn,
+				sourceColumn: mapping.sourceColumn as string, // We've filtered out null values
+			}));
 
 		updateState({columnMappings});
 
@@ -88,63 +93,47 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 		}, 100);
 	};
 
-	const handleAiMapping = () => {
-		setProcesses({...processes, aiMapping: true});
+	const handleAiMapping = async () => {
+		try {
+			setProcesses({...processes, aiMapping: true});
+			setError(null);
 
-		// Simulate AI mapping with a timeout
-		// setTimeout(() => {
-		// This is where you would implement actual AI mapping logic
-		// For now, we'll just make some educated guesses based on column names
+			// Prepare source and target columns
+			const sourceColumns: SourceColumn[] = sourceColumnHeaders.map((column) => ({
+				key: column,
+				title: column,
+				sample: sourceRowSample[column],
+			}));
 
-		const aiMappings = [...mappings];
+			const targetColumns: TargetColumn[] = mappings.map((mapping) => ({
+				key: mapping.targetColumn,
+				title: mapping.title,
+				required: mapping.required,
+			}));
 
-		// Simple mapping logic based on column name similarity
-		sourceColumnHeaders.forEach((column) => {
-			const lowerColumn = column.toLowerCase();
+			// Call the server action to get AI mappings
+			const result = await mapColumnsWithAI(sourceColumns, targetColumns);
 
-			// Try to find a matching target column
-			for (const mapping of aiMappings) {
-				const lowerTitle = mapping.title.toLowerCase();
-				const lowerTarget = mapping.targetColumn.toLowerCase();
-
-				// Skip if already mapped
-				if (mapping.sourceColumn) continue;
-
-				// Check for common patterns
-				if (
-					(lowerColumn.includes('company') || lowerColumn.includes('name')) &&
-					(lowerTitle.includes('company') || lowerTarget === 'name')
-				) {
-					mapping.sourceColumn = column;
-					break;
-				} else if (lowerColumn.includes('country') && (lowerTitle.includes('country') || lowerTarget === 'country')) {
-					mapping.sourceColumn = column;
-					break;
-				} else if (
-					(lowerColumn.includes('web') || lowerColumn.includes('url') || lowerColumn.includes('site')) &&
-					(lowerTitle.includes('website') || lowerTarget === 'url')
-				) {
-					mapping.sourceColumn = column;
-					break;
-				} else if (
-					(lowerColumn.includes('street') || lowerColumn.includes('address')) &&
-					(lowerTitle.includes('street') || lowerTarget === 'streetAndNumber')
-				) {
-					mapping.sourceColumn = column;
-					break;
-				} else if (lowerColumn.includes('nace') && (lowerTitle.includes('nace') || lowerTarget === 'naceRev2')) {
-					mapping.sourceColumn = column;
-					break;
-				}
+			if (!result?.success || !result?.mappings) {
+				toast.error('AI mapping failed. Please try mapping columns manually.');
+				return;
 			}
-		});
 
-		setMappings(aiMappings);
-		setProcesses({...processes, aiMapping: false});
-		// }, 1500);
+			// Apply the AI mappings to our local state
+			const updatedMappings = mappings.map((mapping) => {
+				const sourceColumn = result.mappings?.[mapping.targetColumn] || null;
+				return sourceColumn ? {...mapping, sourceColumn} : mapping;
+			});
+
+			setMappings(updatedMappings);
+			toast.success('AI mapping completed successfully!');
+		} catch (error) {
+			console.error('Error during AI mapping:', error);
+			toast.error('Error during AI mapping. Please try mapping columns manually.');
+		} finally {
+			setProcesses({...processes, aiMapping: false});
+		}
 	};
-
-	// Calculate required fields status
 
 	return (
 		<div className="grid gap-6 py-4">
@@ -261,7 +250,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 									onClick={handleAiMapping}
 									disabled={sourceColumnHeaders.length === 0}
 									isLoading={processes.aiMapping}
-									loadingText="Mapping..."
+									loadingText="AI Mapping..."
 									loadingIcon={<Loader2 className="h-4 w-4 mr-2 animate-spin" />}
 								>
 									<Wand2 className="h-4 w-4 mr-2" />
