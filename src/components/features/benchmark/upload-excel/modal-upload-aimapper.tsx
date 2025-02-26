@@ -46,7 +46,7 @@ const STEPS_CONFIG = [
 	},
 ];
 
-export function UploadExcelModal({open, onOpenChange, onUploadComplete}: UploadExcelModalProps) {
+export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: UploadExcelModalProps) {
 	const {toast} = useToast();
 	const [state, setState] = useState<UploadState>({
 		file: null,

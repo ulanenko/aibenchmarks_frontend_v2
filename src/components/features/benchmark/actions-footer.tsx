@@ -4,9 +4,9 @@ import {Company} from '@/lib/company/company';
 import {CategoryColumn} from '@/lib/column-definition';
 import Handsontable from 'handsontable';
 import {useState} from 'react';
-import {UploadExcelModal} from './upload-excel/upload-excel-modal';
 import {FileUpIcon, Loader2} from 'lucide-react';
 import {toast} from '@/hooks/use-toast';
+import {ModalUploadAimapper} from './upload-excel/modal-upload-aimapper';
 
 interface ActionsFooterProps {
 	onSave: () => void;
@@ -91,7 +91,7 @@ export function ActionsFooter({
 				</div>
 			</div>
 
-			<UploadExcelModal
+			<ModalUploadAimapper
 				open={isUploadModalOpen}
 				onOpenChange={setIsUploadModalOpen}
 				onUploadComplete={handleUploadComplete}
