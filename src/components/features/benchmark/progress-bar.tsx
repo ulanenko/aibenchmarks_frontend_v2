@@ -30,7 +30,7 @@ export function ProgressBar({companies, categoryColumn, hotInstance}: ProgressBa
 		hotInstance.addHook('afterFilter', afterFilter);
 		// Clean up event listeners
 		return () => {
-			hotInstance.removeHook('afterFilter', afterFilter);
+			hotInstance?.removeHook('afterFilter', afterFilter);
 		};
 	}, [hotInstance]);
 
