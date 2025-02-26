@@ -23,12 +23,16 @@ interface LocalColumnMapping {
 // Use a constant for the "none" value to ensure consistency
 const NONE_VALUE = '__none__';
 
+const REQUIRED_FIELDS = ['name', 'country'];
+const COLUMN_MAPPING_FIELDS = Object.keys(companyColumns).filter((key) => key !== 'inputStatus');
+
 function createColumnMapping(): LocalColumnMapping[] {
-	return Object.entries(companyColumns).map(([key, column]) => {
+	return COLUMN_MAPPING_FIELDS.map((key) => {
+		const column = companyColumns[key as keyof typeof companyColumns];
 		return {
 			targetColumn: key,
 			sourceColumn: null,
-			required: column.required || false,
+			required: REQUIRED_FIELDS.includes(key),
 			title: column.title,
 		};
 	});
@@ -36,8 +40,8 @@ function createColumnMapping(): LocalColumnMapping[] {
 
 export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProps) {
 	// const [availableColumns, setAvailableColumns] = useState<string[]>(state.extractedData?.headers || []);
-	const sampleData = state.extractedData?.jsonData?.[0] || {};
-	const availableColumns = state.extractedData?.headers || [];
+	const sourceRowSample = state.extractedData?.jsonData?.[0] || {};
+	const sourceColumnHeaders = state.extractedData?.headers || [];
 	// const [sampleData, setSampleData] = useState<Record<string, any>>(state.extractedData?.jsonData?.[0] || {});
 	const [mappings, setMappings] = useState<LocalColumnMapping[]>(createColumnMapping());
 	const [processes, setProcesses] = useState({
@@ -95,7 +99,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 		const aiMappings = [...mappings];
 
 		// Simple mapping logic based on column name similarity
-		availableColumns.forEach((column) => {
+		sourceColumnHeaders.forEach((column) => {
 			const lowerColumn = column.toLowerCase();
 
 			// Try to find a matching target column
@@ -172,12 +176,12 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 							<div className="max-h-[calc(70vh-220px)] overflow-y-auto pr-2">
 								<Table>
 									<TableBody>
-										{availableColumns.map((column) => (
+										{sourceColumnHeaders.map((column) => (
 											<TableRow key={column} className="hover:bg-transparent">
 												<TableCell className="align-top p-3">
 													<div className="font-medium">{column}</div>
 													<div className="text-sm text-muted-foreground truncate max-w-[300px]">
-														{sampleData[column] ? String(sampleData[column]) : 'No sample data'}
+														{sourceRowSample[column] ? String(sourceRowSample[column]) : 'No sample data'}
 													</div>
 												</TableCell>
 												<TableCell className=" p-3">
@@ -255,7 +259,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 									variant="default"
 									size="sm"
 									onClick={handleAiMapping}
-									disabled={availableColumns.length === 0}
+									disabled={sourceColumnHeaders.length === 0}
 									isLoading={processes.aiMapping}
 									loadingText="Mapping..."
 									loadingIcon={<Loader2 className="h-4 w-4 mr-2 animate-spin" />}
