@@ -6,10 +6,11 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {FileUpIcon, Loader2} from 'lucide-react';
+import {FileUpIcon, Loader2, HelpCircle} from 'lucide-react';
 import {StepProps} from './types';
 import {readExcelFileAsJson, supportedDatabases, extractDbTableFromSheet} from '@/lib/excel/excel-parser';
 import {LoadingButton} from '@/components/ui/loading-button';
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 
 export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -142,83 +143,112 @@ export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 	};
 
 	return (
-		<div className="grid gap-6 py-4 px-2">
+		<div className=" px-2  ">
 			{state.error && <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">{state.error}</div>}
 
-			<div className="grid gap-2">
-				<Label htmlFor="file">Selected File:</Label>
-				<div className="flex items-center gap-2">
-					<Input
-						id="file"
-						type="file"
-						accept=".xlsx,.xls"
-						onChange={handleFileChange}
-						ref={fileInputRef}
-						className="flex-1"
-						disabled={state.isLoading || state.isProcessing}
-					/>
-					<LoadingButton
-						variant="outline"
-						onClick={() => fileInputRef.current?.click()}
-						type="button"
-						disabled={state.isProcessing}
-						isLoading={state.isLoading}
-						loadingText="Loading..."
-						loadingIcon={<Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-					>
-						<FileUpIcon className="h-4 w-4 mr-2" />
-						Choose file
-					</LoadingButton>
+			<div className="max-w-2xl mx-auto mb-12 mt-6 grid gap-6">
+				<div className="grid gap-2">
+					<Label htmlFor="file">Selected File:</Label>
+					<div className="flex items-center gap-2">
+						<Input
+							id="file"
+							type="file"
+							accept=".xlsx,.xls"
+							onChange={handleFileChange}
+							ref={fileInputRef}
+							className="flex-1"
+							disabled={state.isLoading || state.isProcessing}
+						/>
+						<LoadingButton
+							variant="outline"
+							onClick={() => fileInputRef.current?.click()}
+							type="button"
+							disabled={state.isProcessing}
+							isLoading={state.isLoading}
+							loadingText="Loading..."
+							loadingIcon={<Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+						>
+							<FileUpIcon className="h-4 w-4 mr-2" />
+							Choose file
+						</LoadingButton>
+					</div>
+					{state.file && <p className="text-sm text-muted-foreground">{state.file.name}</p>}
 				</div>
-				{state.file && <p className="text-sm text-muted-foreground">{state.file.name}</p>}
+
+				<div className="grid gap-2">
+					<Label htmlFor="database" className="flex items-center">
+						Select File Type:
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<HelpCircle className="ml-1 h-4 w-4 text-muted-foreground cursor-help" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>
+										Select the type of file you are uploading (database). This will help us determine the correct format
+										for your data.
+									</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</Label>
+					<Select
+						value={state.database}
+						onValueChange={handleDatabaseChange}
+						disabled={state.isLoading || state.isProcessing}
+					>
+						<SelectTrigger id="database">
+							<SelectValue placeholder="Select database" />
+						</SelectTrigger>
+						<SelectContent>
+							{Object.entries(supportedDatabases).map(([key, config]) => (
+								<SelectItem key={key} value={key}>
+									{config.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+
+				<div className="grid gap-2">
+					<Label htmlFor="sheet" className="flex items-center">
+						Select Sheet:
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<HelpCircle className="ml-1 h-4 w-4 text-muted-foreground cursor-help" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Sheet of your file from which the data will be taken.</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</Label>
+					<Select
+						value={state.sheet}
+						onValueChange={handleSheetChange}
+						disabled={!state.file || state.isLoading || state.isProcessing || state.sheets.length === 0}
+					>
+						<SelectTrigger id="sheet">
+							<SelectValue placeholder={state.sheets.length === 0 ? 'No sheets available' : 'Select a sheet'} />
+						</SelectTrigger>
+						<SelectContent>
+							{state.sheets.map((sheetName) => (
+								<SelectItem key={sheetName} value={sheetName}>
+									{sheetName}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					{state.sheets.length > 0 && (
+						<p className="text-sm text-muted-foreground">
+							{state.sheets.length} sheet{state.sheets.length !== 1 ? 's' : ''} found in the Excel file.
+						</p>
+					)}
+				</div>
 			</div>
 
-			<div className="grid gap-2">
-				<Label htmlFor="database">Select File Type:</Label>
-				<Select
-					value={state.database}
-					onValueChange={handleDatabaseChange}
-					disabled={state.isLoading || state.isProcessing}
-				>
-					<SelectTrigger id="database">
-						<SelectValue placeholder="Select database" />
-					</SelectTrigger>
-					<SelectContent>
-						{Object.entries(supportedDatabases).map(([key, config]) => (
-							<SelectItem key={key} value={key}>
-								{config.name}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
-
-			<div className="grid gap-2">
-				<Label htmlFor="sheet">Select Sheet:</Label>
-				<Select
-					value={state.sheet}
-					onValueChange={handleSheetChange}
-					disabled={!state.file || state.isLoading || state.isProcessing || state.sheets.length === 0}
-				>
-					<SelectTrigger id="sheet">
-						<SelectValue placeholder={state.sheets.length === 0 ? 'No sheets available' : 'Select a sheet'} />
-					</SelectTrigger>
-					<SelectContent>
-						{state.sheets.map((sheetName) => (
-							<SelectItem key={sheetName} value={sheetName}>
-								{sheetName}
-							</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-				{state.sheets.length > 0 && (
-					<p className="text-sm text-muted-foreground">
-						{state.sheets.length} sheet{state.sheets.length !== 1 ? 's' : ''} found in the Excel file.
-					</p>
-				)}
-			</div>
-
-			<div className="flex justify-end mt-4">
+			<div className="flex justify-end mt-4 border-t pt-4">
 				<LoadingButton
 					onClick={handleNext}
 					disabled={!state.file || !state.sheet || !state.database || state.isLoading || state.isProcessing}

@@ -27,9 +27,10 @@ export async function GET(
 
 export async function POST(
 	request: NextRequest,
-	{params}: {params: {id: string}},
+	context: RouteContext,
 ): Promise<NextResponse<{error: string} | {companies: CompanyDTO[]}>> {
 	try {
+		const params = await context.params;
 		const benchmarkId = parseInt(params.id);
 
 		if (isNaN(benchmarkId)) {
