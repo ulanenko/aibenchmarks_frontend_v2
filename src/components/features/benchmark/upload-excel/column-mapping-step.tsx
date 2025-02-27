@@ -29,12 +29,13 @@ const NONE_VALUE = '__none__';
 const REQUIRED_FIELDS = ['name', 'country'];
 const COLUMN_MAPPING_FIELDS = Object.keys(companyColumns).filter((key) => key !== 'inputStatus');
 
-function createColumnMapping(): LocalColumnMapping[] {
+function createColumnMapping(columnMappings?: {[key: string]: string}): LocalColumnMapping[] {
 	return COLUMN_MAPPING_FIELDS.map((key) => {
 		const column = companyColumns[key as keyof typeof companyColumns];
+		const sourceColumn = Object.entries(columnMappings || {}).find(([_, value]) => value === key)?.[0] || null;
 		return {
 			targetColumn: key,
-			sourceColumn: null,
+			sourceColumn,
 			required: REQUIRED_FIELDS.includes(key),
 			title: column.title,
 		};
@@ -46,12 +47,22 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 	const sourceRowSample = state.extractedData?.jsonData?.[0] || {};
 	const sourceColumnHeaders = state.extractedData?.headers || [];
 	// const [sampleData, setSampleData] = useState<Record<string, any>>(state.extractedData?.jsonData?.[0] || {});
-	const [mappings, setMappings] = useState<LocalColumnMapping[]>(createColumnMapping());
+	const [mappings, setMappings] = useState<LocalColumnMapping[]>(createColumnMapping(state.columnMappings));
 	const [processes, setProcesses] = useState({
 		aiMapping: false,
 		loading: false,
 	});
 	const [error, setError] = useState<string | null>(null);
+
+	useMemo(() => {
+		const simpleMapping = mappings.reduce((acc, mapping) => {
+			if (mapping.sourceColumn) {
+				acc[mapping.sourceColumn] = mapping.targetColumn;
+			}
+			return acc;
+		}, {} as {[key: string]: string});
+		updateState({columnMappings: simpleMapping});
+	}, [mappings]);
 
 	const handleMappingChange = (targetColumn: string, sourceColumn: string) => {
 		// Convert the NONE_VALUE back to null
@@ -72,25 +83,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 			setError(`Please map all required fields: ${missingRequiredMappings.map((m) => m.title).join(', ')}`);
 			return;
 		}
-
-		// Update the state with the mappings - convert to the expected format
-		setProcesses({...processes, loading: true});
-
-		// Convert mappings and update state - ensure sourceColumn is never null
-		const columnMappings: ColumnMapping[] = mappings
-			.filter((mapping) => mapping.sourceColumn !== null)
-			.map((mapping) => ({
-				targetColumn: mapping.targetColumn,
-				sourceColumn: mapping.sourceColumn as string, // We've filtered out null values
-			}));
-
-		updateState({columnMappings});
-
-		// Use setTimeout to allow the UI to update before proceeding
-		setTimeout(() => {
-			onNext();
-			setProcesses({...processes, loading: false});
-		}, 100);
+		onNext();
 	};
 
 	const handleAiMapping = async () => {

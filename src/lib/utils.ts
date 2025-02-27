@@ -6,7 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function isEmpty(value: any) {
-	return value === '' || value === null || value === undefined;
+	if (typeof value === 'string') {
+		return value.trim() === '';
+	}
+	return value === null || value === undefined;
 }
 
 export function checkIfValidUrl(url: string | null) {

@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import {isEmpty} from '../utils';
 
 export interface DatabaseConfig {
 	name: string;
@@ -118,7 +119,11 @@ export function extractDbTableFromSheet(
 	let headers: string[] = [];
 	for (let i = 0; i < headerRows; i++) {
 		if (i === 0) {
-			headers = (data[i] || []) as string[];
+			// Create a dense array with no holes
+			headers = Array.from({length: (data[i] || []).length}, (_, index) => {
+				// If the index exists in data[i], use that value, otherwise undefined
+				return data[i] && index in data[i] ? data[i][index] : undefined;
+			});
 		} else {
 			headers = headers.map((header, index) => {
 				const cell = data[i]?.[index];
@@ -130,7 +135,16 @@ export function extractDbTableFromSheet(
 			});
 		}
 	}
-	const headerIsYear = headers.map((header) => pattern.test(header));
+
+	// Create a new dense array with no holes, using the original isEmpty function
+	const headersEmptyReplaced = headers.map((header, index) => {
+		if (isEmpty(header)) {
+			return `Column ${index + 1}`;
+		}
+		return header;
+	});
+
+	const headerIsYear = headersEmptyReplaced.map((header) => pattern.test(header));
 
 	// Drop the header rows to get the content rows
 	let contentRows = data.slice(headerRows);
@@ -138,7 +152,7 @@ export function extractDbTableFromSheet(
 	contentRows = contentRows.map((row) => {
 		return row.filter((cell, index) => !headerIsYear[index]);
 	});
-	headers = headers.filter((header, index) => !headerIsYear[index]);
+	headers = headersEmptyReplaced.filter((header, index) => !headerIsYear[index]);
 	// Return the result as an object with 'header' and 'content' keys
 
 	return {

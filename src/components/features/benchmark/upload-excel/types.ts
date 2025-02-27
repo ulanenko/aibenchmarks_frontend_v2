@@ -2,11 +2,6 @@
 
 export type UploadStep = 'file-selection' | 'column-mapping' | 'preview';
 
-export interface ColumnMapping {
-	sourceColumn: string;
-	targetColumn: string;
-}
-
 export interface ExtractedTableData {
 	headers: string[];
 	content: any[][];
@@ -22,7 +17,7 @@ export interface UploadState {
 	isLoading: boolean;
 	isProcessing: boolean;
 	error: string | null;
-	columnMappings?: ColumnMapping[];
+	columnMappings?: {[key: string]: string};
 	extractedData?: ExtractedTableData;
 }
 
