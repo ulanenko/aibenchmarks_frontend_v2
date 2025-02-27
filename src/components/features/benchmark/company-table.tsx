@@ -55,40 +55,38 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 		const hot = hotRef.current?.hotInstance as Handsontable;
 
 		const newRows: Record<number, number> = {};
-		let newRowKey = -1;
-		const lastRowIndex = hot?.countRows() - 1;
+		let newRowIndex = -1;
+		const spareRowCount = hot.getSettings().minSpareRows ?? 0;
+		const lastRowIndex = hot?.countRows() - spareRowCount;
 
 		// Group changes by row for the store to the updates and added companies
 		const updatesByRow: Record<number, UpdateCompanyDTO> = {};
-		const newCompanies: UpdateCompanyDTO[] = [];
+		const newCompanies: Record<number, UpdateCompanyDTO> = {};
 
 		changes.forEach((change) => {
 			if (!change) return;
 			const [row, prop, , value] = change;
 
 			// Get the physical row index
-			let physicalRow = newRows[row] ?? hot?.toPhysicalRow(row);
-			const isSpareRow = physicalRow === lastRowIndex && newRows[row] === undefined && hot.isEmptyRow(row);
+			// let physicalRow = newRows[row] ??
+			const isNewRow = row > lastRowIndex;
 
 			// Handle new rows (spare row or manually added row)
-			if (typeof physicalRow !== 'number' || isSpareRow) {
-				physicalRow = newRowKey;
-				newRows[row] = newRowKey;
-				newRowKey--;
-
-				// Create a new company DTO for this row if it doesn't exist
-				if (!newCompanies.find((c) => c.id === physicalRow)) {
-					newCompanies.push({id: physicalRow} as UpdateCompanyDTO);
+			if (isNewRow) {
+				let idForNewCompany = newRows[row];
+				if (!idForNewCompany) {
+					idForNewCompany = newRowIndex;
+					newRows[row] = newRowIndex;
+					newCompanies[idForNewCompany] = {id: idForNewCompany} as UpdateCompanyDTO;
+					newRowIndex--;
 				}
 
 				// Get the property path and set the value
 				const propPath = prop.toString();
 				const propName = propPath.replace('inputValues.', '');
-				const companyIndex = newCompanies.findIndex((c) => c.id === physicalRow);
-				if (companyIndex !== -1) {
-					newCompanies[companyIndex][propName as keyof UpdateCompanyDTO] = value;
-				}
+				newCompanies[idForNewCompany][propName as keyof UpdateCompanyDTO] = value;
 			} else {
+				const physicalRow = hot?.toPhysicalRow(row);
 				// Handle existing rows
 				if (!updatesByRow[physicalRow]) {
 					updatesByRow[physicalRow] = {
@@ -108,9 +106,10 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 			row: parseInt(rowIndex),
 			dto,
 		}));
+		console.log('updates', newCompanies);
 
 		// Add new companies and update existing ones
-		updateCompaniesWithDTO(updates, newCompanies);
+		updateCompaniesWithDTO(updates, Object.values(newCompanies));
 		return false;
 	};
 
