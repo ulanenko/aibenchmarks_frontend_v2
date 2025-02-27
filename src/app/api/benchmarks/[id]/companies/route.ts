@@ -37,13 +37,25 @@ export async function POST(
 			return NextResponse.json({error: 'Invalid benchmark ID'}, {status: 400});
 		}
 
-		const {companies} = (await request.json()) as {companies: (UpdateCompanyDTO | CreateCompanyDTO)[]};
+		const {companies, replace = false} = (await request.json()) as {
+			companies: (UpdateCompanyDTO | CreateCompanyDTO)[];
+			replace?: boolean;
+		};
 
 		if (!Array.isArray(companies) || companies.length === 0) {
 			return NextResponse.json({error: 'No companies provided'}, {status: 400});
 		}
 
-		const savedCompanies = await companyService.saveCompanies(benchmarkId, companies);
+		let savedCompanies: CompanyDBType[];
+
+		if (replace) {
+			// Use the server service to replace all companies
+			savedCompanies = await companyService.replaceCompanies(benchmarkId, companies);
+		} else {
+			// Normal save without replacing
+			savedCompanies = await companyService.saveCompanies(benchmarkId, companies);
+		}
+
 		return NextResponse.json({companies: savedCompanies as CompanyDTO[]}, {status: 201});
 	} catch (error) {
 		console.error('Error processing companies:', error);

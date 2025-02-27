@@ -76,16 +76,16 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 			if (isEmpty(benchmarkId)) {
 				throw new Error('Benchmark ID is not set');
 			}
-			const savedCompanies = await companyService.saveCompanies(benchmarkId!, mappedSourceData);
+
+			// Use the saveCompanies function with replace flag set to true
+			const savedCompanies = await companyService.saveCompanies(benchmarkId!, mappedSourceData, {replace: true});
 			const companies = savedCompanies.map((dto) => new Company(dto));
+
+			// Set the companies array with only the new companies, effectively replacing all existing ones
 			get().setCompanies(companies);
 		} catch (error) {
 			console.error('Error adding mapped source data:', error);
-			toast({
-				variant: 'destructive',
-				title: 'Error adding mapped source data',
-				description: error instanceof Error ? error.message : 'Failed to add mapped source data',
-			});
+			throw error;
 		} finally {
 			set({isSaving: false});
 		}

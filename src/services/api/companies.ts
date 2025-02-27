@@ -17,11 +17,15 @@ export async function getCompanies(benchmarkId: number): Promise<CompanyDTO[]> {
 export async function saveCompanies(
 	benchmarkId: number,
 	companies: (UpdateCompanyDTO | CreateCompanyDTO)[],
+	options?: {replace?: boolean},
 ): Promise<CompanyDTO[]> {
 	const response = await fetch(BASE_URL(benchmarkId), {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},
-		body: JSON.stringify({companies}),
+		body: JSON.stringify({
+			companies,
+			replace: options?.replace || false,
+		}),
 	});
 
 	const data = await response.json();

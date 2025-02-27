@@ -16,6 +16,42 @@ function sanitizeCompanyData(data: UpdateCompanyDTO | CreateCompanyDTO): Company
 	return sanitized as CompanyInsert;
 }
 
+/**
+ * Replace all companies for a benchmark with new ones
+ * @param benchmarkId The benchmark ID
+ * @param companies The new companies to add
+ * @returns The saved companies
+ */
+export async function replaceCompanies(
+	benchmarkId: number,
+	companies: (UpdateCompanyDTO | CreateCompanyDTO)[],
+): Promise<CompanyDBType[]> {
+	// Use a transaction to delete all existing companies and add new ones
+	return await db.transaction(async (tx) => {
+		// Delete all existing companies for this benchmark
+		await tx.delete(company).where(eq(company.benchmarkId, benchmarkId));
+
+		// If no new companies to add, return empty array
+		if (companies.length === 0) {
+			return [];
+		}
+
+		// Process the companies to add
+		const companiesToAdd = companies.map((company) => {
+			const sanitizedData = sanitizeCompanyData(company);
+			return {
+				...sanitizedData,
+				benchmarkId,
+				name: company.name ?? null,
+			};
+		});
+
+		// Insert all new companies
+		const insertedCompanies = await tx.insert(company).values(companiesToAdd).returning();
+		return insertedCompanies;
+	});
+}
+
 export async function saveCompanies(
 	benchmarkId: number,
 	companies: (UpdateCompanyDTO | CreateCompanyDTO)[],
