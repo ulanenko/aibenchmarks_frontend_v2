@@ -95,7 +95,7 @@ export const company = pgTable('bm_company', {
 	sourceData: json('source_data'),
 	mappedSourceData: json('mapped_source_data'),
 	// Status tracking
-	dataStatus: stepStatusEnum('data_status'),
+	// dataStatus: stepStatusEnum('data_status'),
 });
 
 export interface BaseFields {

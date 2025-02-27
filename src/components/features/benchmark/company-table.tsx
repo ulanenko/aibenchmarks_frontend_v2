@@ -9,6 +9,7 @@ import {CellChange, ChangeSource} from 'handsontable/common';
 import Handsontable from 'handsontable';
 import {useSettingsStore} from '@/stores/use-settings-store';
 import {useShallow} from 'zustand/react/shallow';
+import {UpdateCompanyDTO} from '@/lib/company/type';
 
 // Register all Handsontable modules
 registerAllModules();
@@ -21,9 +22,9 @@ interface CompanyTableProps {
 
 export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: CompanyTableProps) {
 	const hotRef = useRef<any>(null);
-	const {updateCompanyProperties, hotCopyCompanies} = useCompanyStore(
+	const {updateCompaniesWithDTO, hotCopyCompanies} = useCompanyStore(
 		useShallow((state) => ({
-			updateCompanyProperties: state.updateCompanyProperties,
+			updateCompaniesWithDTO: state.updateCompaniesWithDTO,
 			hotCopyCompanies: state.hotCopyCompanies,
 		})),
 	);
@@ -58,39 +59,58 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 		const lastRowIndex = hot?.countRows() - 1;
 
 		// Group changes by row for the store to the updates and added companies
-		// updating the store triggers a re-render of the table
-		const changesByRow = changes.reduce((acc, change) => {
-			if (!change) return acc;
+		const updatesByRow: Record<number, UpdateCompanyDTO> = {};
+		const newCompanies: UpdateCompanyDTO[] = [];
+
+		changes.forEach((change) => {
+			if (!change) return;
 			const [row, prop, , value] = change;
-			// we first check if the row is already in the newRows object, if not we get the physical row
-			// this is done because the sapre row has phyiscalrow, but we cannot use this
-			// as we need to add a new company in the store for this row
+
+			// Get the physical row index
 			let physicalRow = newRows[row] ?? hot?.toPhysicalRow(row);
 			const isSpareRow = physicalRow === lastRowIndex && newRows[row] === undefined && hot.isEmptyRow(row);
 
-			// first we create a negative temporary row key for the new row or spare ro
-			// the store creates a new company with a negative id, so we need to make sure that the row key is negative
+			// Handle new rows (spare row or manually added row)
 			if (typeof physicalRow !== 'number' || isSpareRow) {
 				physicalRow = newRowKey;
 				newRows[row] = newRowKey;
 				newRowKey--;
+
+				// Create a new company DTO for this row if it doesn't exist
+				if (!newCompanies.find((c) => c.id === physicalRow)) {
+					newCompanies.push({id: physicalRow} as UpdateCompanyDTO);
+				}
+
+				// Get the property path and set the value
+				const propPath = prop.toString();
+				const propName = propPath.replace('inputValues.', '');
+				const companyIndex = newCompanies.findIndex((c) => c.id === physicalRow);
+				if (companyIndex !== -1) {
+					newCompanies[companyIndex][propName as keyof UpdateCompanyDTO] = value;
+				}
+			} else {
+				// Handle existing rows
+				if (!updatesByRow[physicalRow]) {
+					updatesByRow[physicalRow] = {
+						id: hotCopyCompanies[physicalRow]?.id || physicalRow,
+					} as UpdateCompanyDTO;
+				}
+
+				// Get the property path and set the value
+				const propPath = prop.toString();
+				const propName = propPath.replace('inputValues.', '');
+				updatesByRow[physicalRow][propName as keyof UpdateCompanyDTO] = value;
 			}
+		});
 
-			if (!acc[physicalRow]) {
-				acc[physicalRow] = {
-					row: physicalRow,
-					changes: {},
-				};
-			}
-			acc[physicalRow].changes[prop.toString()] = value;
-			return acc;
-		}, {} as Record<number, {row: number; changes: Record<string, any>}>);
+		// Update existing companies
+		const updates = Object.entries(updatesByRow).map(([rowIndex, dto]) => ({
+			row: parseInt(rowIndex),
+			dto,
+		}));
 
-		// Convert to array of updates
-		const updates = Object.values(changesByRow);
-
-		// Update the store with the changes
-		updateCompanyProperties(updates);
+		// Add new companies and update existing ones
+		updateCompaniesWithDTO(updates, newCompanies);
 		return false;
 	};
 
@@ -197,6 +217,9 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				beforeChange={handleBeforeChange}
 				afterColumnResize={handleAfterColumnResize}
 				afterColumnMove={handleAfterColumnMove}
+				afterGetRowHeader={(row, TH) => {
+					TH.className = 'htMiddle';
+				}}
 				className="htMiddle"
 				hiddenColumns={{
 					columns: hiddenColumnIndices,

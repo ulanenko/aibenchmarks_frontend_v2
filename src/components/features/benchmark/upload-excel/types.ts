@@ -1,5 +1,7 @@
 // Common types for the upload Excel components
 
+import {CreateCompanyDTO} from '@/lib/company';
+
 export type UploadStep = 'file-selection' | 'column-mapping' | 'preview';
 
 export interface ExtractedTableData {
@@ -17,7 +19,7 @@ export interface UploadState {
 	isLoading: boolean;
 	isProcessing: boolean;
 	error: string | null;
-	columnMappings?: {[key: string]: string};
+	columnMappings?: {[key: string]: keyof CreateCompanyDTO};
 	extractedData?: ExtractedTableData;
 }
 

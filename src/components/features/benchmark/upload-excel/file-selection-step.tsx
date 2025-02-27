@@ -30,8 +30,12 @@ export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 				updateState({sheets: sheetNames});
 
 				// Auto-select the first sheet if available
-				if (sheetNames.length > 0) {
+				if (sheetNames.length === 1) {
 					updateState({sheet: sheetNames[0]});
+				} else if (sheetNames.length > 1) {
+					// if sheet name exists use it, otherwise set to undefined
+					const sheetName = sheetNames.find((name) => name.toLowerCase().includes('sheet')) || undefined;
+					updateState({sheet: sheetName});
 				}
 			} catch (err) {
 				console.error('Error reading Excel file:', err);

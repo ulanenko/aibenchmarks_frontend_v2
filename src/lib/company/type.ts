@@ -29,7 +29,7 @@ export type CompanyDTO = {
 };
 
 // Type for company creation - omit auto-generated fields
-export type CreateCompanyDTO = Omit<CompanyDTO, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreateCompanyDTO = Partial<Omit<CompanyDTO, 'id' | 'createdAt' | 'updatedAt' | 'benchmarkId'>>;
 
 // Type for company update
 export type UpdateCompanyDTO = Partial<Omit<CompanyDTO, 'id'>> & {id: number};

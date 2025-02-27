@@ -1,18 +1,25 @@
 import {create} from 'zustand';
 import * as companyService from '@/services/api/companies';
-import {Company, updateCategories} from '@/lib/company';
+import {Company} from '@/lib/company';
+import {CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
 import {setValueForPath} from '@/lib/object-utils';
 import {toast} from '@/hooks/use-toast';
+import {isEmpty} from '@/lib/utils';
 
 interface CompanyStore {
 	companies: Company[];
 	hotCopyCompanies: {[key: string]: any}[];
 	isLoading: boolean;
 	isSaving: boolean;
+	benchmarkId: number | null;
 	setCompanies: (companies: Company[]) => void;
 	// addCompany: (company: Company) => void;
 	// updateCompany: (id: number, company: Partial<Company>) => void;
-	updateCompanyProperties: (updates: Array<{row: number; changes: Record<string, any>}>) => void;
+	updateCompaniesWithDTO: (
+		updates: Array<{row: number; dto: UpdateCompanyDTO}>,
+		newCompanies?: UpdateCompanyDTO[],
+	) => void;
+	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	removeCompany: (id: number) => void;
 	loadCompanies: (benchmarkId: number) => Promise<void>;
 	saveChanges: (benchmarkId: number) => Promise<void>;
@@ -21,6 +28,7 @@ interface CompanyStore {
 export const useCompanyStore = create<CompanyStore>((set, get) => ({
 	companies: [],
 	isLoading: true,
+	benchmarkId: null,
 	isSaving: false,
 	hotCopyCompanies: [],
 	setCompanies: (companies: Company[]) => {
@@ -39,19 +47,48 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 	// 		companies: state.companies.map((c) => (c.id === id ? {...c, ...company} : c)),
 	// 	})),
 
-	updateCompanyProperties: (updates) => {
-		const newCompanies = [...get().companies];
-		updates.forEach(({row, changes}) => {
-			const isNew = row < 0;
-			let company = isNew ? new Company() : newCompanies[row];
-			company.update(changes);
-			if (isNew) {
-				newCompanies.push(company);
-			} else {
-				newCompanies[row] = company;
+	updateCompaniesWithDTO: (updates, newCompanies = []) => {
+		const currentCompanies = [...get().companies];
+
+		// Update existing companies
+		updates.forEach(({row, dto}) => {
+			if (row >= 0 && row < currentCompanies.length) {
+				const company = currentCompanies[row];
+				company.updateFromDTO(dto);
+				currentCompanies[row] = company;
 			}
 		});
-		get().setCompanies(newCompanies);
+
+		// Add new companies
+		newCompanies.forEach((dto) => {
+			const company = new Company();
+			company.updateFromDTO(dto);
+			currentCompanies.push(company);
+		});
+
+		get().setCompanies(currentCompanies);
+	},
+
+	addMappedSourceData: async (mappedSourceData: CreateCompanyDTO[]) => {
+		set({isSaving: true});
+		try {
+			const benchmarkId = get().benchmarkId;
+			if (isEmpty(benchmarkId)) {
+				throw new Error('Benchmark ID is not set');
+			}
+			const savedCompanies = await companyService.saveCompanies(benchmarkId!, mappedSourceData);
+			const companies = savedCompanies.map((dto) => new Company(dto));
+			get().setCompanies(companies);
+		} catch (error) {
+			console.error('Error adding mapped source data:', error);
+			toast({
+				variant: 'destructive',
+				title: 'Error adding mapped source data',
+				description: error instanceof Error ? error.message : 'Failed to add mapped source data',
+			});
+		} finally {
+			set({isSaving: false});
+		}
 	},
 
 	removeCompany: (id) =>
@@ -61,9 +98,15 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 
 	loadCompanies: async (benchmarkId) => {
 		set({isLoading: true});
+		set({benchmarkId});
 		try {
 			const companyDTOs = await companyService.getCompanies(benchmarkId);
-			const companies = companyDTOs.map((dto) => new Company(dto));
+			const companies = companyDTOs.map((dto) => {
+				const company = new Company(dto);
+				// Ensure original values are set to the loaded values
+				company.resetOriginalValues();
+				return company;
+			});
 			get().setCompanies(companies);
 		} catch (error) {
 			console.error('Error loading companies:', error);
@@ -81,16 +124,21 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 	saveChanges: async (benchmarkId) => {
 		set({isSaving: true});
 		try {
-			const changedCompanies = get()
-				.companies.map((c) => c.getUpdateDTO())
-				.filter((v) => v !== null);
-			if (changedCompanies.length === 0) {
+			// Filter companies that have changes
+			const companiesWithChanges = get().companies.filter((company) => company.hasChanges());
+
+			if (companiesWithChanges.length === 0) {
 				toast({
 					title: 'No changes to save',
 					description: 'No modifications were made to any companies.',
 				});
 				return;
 			}
+
+			// Get DTOs for changed companies
+			const changedCompanies = companiesWithChanges
+				.map((c) => c.getUpdateDTO())
+				.filter((dto) => dto !== null) as UpdateCompanyDTO[];
 
 			toast({
 				title: 'Saving changes',
@@ -101,10 +149,15 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 			const newCompanies = get().companies.map((c) => {
 				const changedCompanyIndex = changedCompanies.findIndex((sc) => sc.id === c.id);
 				if (changedCompanyIndex !== -1) {
-					return new Company(savedCompanies[changedCompanyIndex]);
+					const company = new Company(savedCompanies[changedCompanyIndex]);
+					return company;
 				}
 				return c;
 			});
+
+			// Reset original values for all companies after saving
+			newCompanies.forEach((company) => company.resetOriginalValues());
+
 			get().setCompanies(newCompanies);
 
 			toast({

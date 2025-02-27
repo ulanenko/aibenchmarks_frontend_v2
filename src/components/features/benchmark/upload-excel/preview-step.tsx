@@ -6,9 +6,13 @@ import {Button} from '@/components/ui/button';
 import {Loader2} from 'lucide-react';
 import {StepProps} from './types';
 import {Company} from '@/lib/company/company';
-import {CompanyDTO} from '@/lib/company/type';
+import {CompanyDTO, CreateCompanyDTO} from '@/lib/company/type';
+import {useCompanyStore} from '@/stores/use-company-store';
+import {useToast} from '@/hooks/use-toast';
 
 export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
+	const {toast} = useToast();
+	const {addMappedSourceData} = useCompanyStore();
 	const [previewCount, setPreviewCount] = useState(5); // Number of rows to preview
 	const {columnMappings} = state;
 	const companiesMapped =
@@ -19,13 +23,44 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 					acc[mappedKey] = value;
 				}
 				return acc;
-			}, {} as Record<string, any>);
+			}, {} as CreateCompanyDTO);
 		}) || [];
 
 	console.log(companiesMapped);
 
-	const handleImport = () => {
-		onNext();
+	const handleImport = async () => {
+		updateState({isProcessing: true});
+
+		try {
+			// Save the mapped companies using the company store
+			if (companiesMapped.length > 0) {
+				await addMappedSourceData(companiesMapped);
+
+				toast({
+					title: 'Upload Successful',
+					description: `Successfully imported ${companiesMapped.length} companies.`,
+				});
+			} else {
+				toast({
+					title: 'No companies to import',
+					description: 'No companies were found to import.',
+					variant: 'destructive',
+				});
+			}
+
+			// Continue to next step (which will close the modal)
+			onNext();
+		} catch (error) {
+			console.error('Error importing companies:', error);
+			toast({
+				title: 'Error importing companies',
+				description: error instanceof Error ? error.message : 'Failed to import companies',
+				variant: 'destructive',
+			});
+
+			// Reset processing state but stay on current step
+			updateState({isProcessing: false});
+		}
 	};
 
 	if (state.isLoading) {

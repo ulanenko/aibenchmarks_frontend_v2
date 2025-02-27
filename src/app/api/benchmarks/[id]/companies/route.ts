@@ -1,7 +1,7 @@
 'use server';
 
 import {NextRequest, NextResponse} from 'next/server';
-import type {CompanyDBType, CompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
+import type {CompanyDBType, CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
 import * as companyService from '@/services/server/company-service.server';
 
 type RouteParams = {id: string};
@@ -27,12 +27,16 @@ export async function GET(
 
 export async function POST(
 	request: NextRequest,
-	context: RouteContext,
+	{params}: {params: {id: string}},
 ): Promise<NextResponse<{error: string} | {companies: CompanyDTO[]}>> {
 	try {
-		const params = await context.params;
-		const {companies} = (await request.json()) as {companies: UpdateCompanyDTO[]};
 		const benchmarkId = parseInt(params.id);
+
+		if (isNaN(benchmarkId)) {
+			return NextResponse.json({error: 'Invalid benchmark ID'}, {status: 400});
+		}
+
+		const {companies} = (await request.json()) as {companies: (UpdateCompanyDTO | CreateCompanyDTO)[]};
 
 		if (!Array.isArray(companies) || companies.length === 0) {
 			return NextResponse.json({error: 'No companies provided'}, {status: 400});

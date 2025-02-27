@@ -16,7 +16,6 @@ import {ColumnMappingStep} from './column-mapping-step';
 import {PreviewStep} from './preview-step';
 import {UploadState, UploadStep} from './types';
 import {useToast} from '@/hooks/use-toast';
-import {supportedDatabases} from '@/lib/excel/excel-parser';
 
 interface UploadExcelModalProps {
 	open: boolean;
@@ -81,12 +80,9 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 		updateState({step: prevStep, error: null});
 	};
 
-	const handleComplete = () => {
-		toast({
-			title: 'Upload Successful',
-			description: 'Your Excel data has been successfully imported.',
-			variant: 'default',
-		});
+	const handleComplete = async () => {
+		// The actual import is now handled in the PreviewStep
+		// Just reset the state and close the modal
 
 		// Reset state and close modal
 		updateState({

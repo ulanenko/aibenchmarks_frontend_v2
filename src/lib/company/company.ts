@@ -1,4 +1,4 @@
-import {CompanyDTO, UpdateCompanyDTO} from './type';
+import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from './type';
 import {updateCategories} from './utils';
 import {setValueForPath} from '../object-utils';
 import {isEmpty} from '../utils';
@@ -37,6 +37,12 @@ export class Company {
 	// User-inputted values moved to a nested object
 	inputValues: InputValues;
 
+	// Store original input values for change tracking
+	private originalInputValues: InputValues;
+
+	// Track which fields have been changed
+	private changedFields: Set<string> = new Set();
+
 	// a deep copy of the properties relevant for the hot table
 	// this is updated after validating the company to ensure that the hot table is updated
 	hotCopy: {[key: string]: any} = {};
@@ -51,19 +57,11 @@ export class Company {
 		},
 	};
 
-	changes: Record<
-		string,
-		{
-			value: any;
-			oldValue: any;
-		}
-	> = {};
-
-	constructor(data?: CompanyDTO) {
+	constructor(data?: CompanyDTO | CreateCompanyDTO) {
 		this.id = data && 'id' in data ? data.id : Company.getNextTempId();
 		this.createdAt = data && 'createdAt' in data ? data.createdAt : new Date();
 		this.updatedAt = data && 'updatedAt' in data ? data.updatedAt : null;
-		this.benchmarkId = data?.benchmarkId ?? 0;
+		this.benchmarkId = data && 'benchmarkId' in data ? data.benchmarkId : -1;
 		this.databaseId = data?.databaseId ?? null;
 		this.sourceData = data?.sourceData ?? null;
 		this.mappedSourceData = data?.mappedSourceData ?? null;
@@ -86,6 +84,12 @@ export class Company {
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
 		};
+
+		// Store a deep copy of the original input values
+		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
+
+		// Initialize changedFields as empty (no changes yet)
+		this.changedFields = new Set();
 
 		this.updateDependentValues();
 	}
@@ -140,52 +144,107 @@ export class Company {
 		this.hotCopy.categoryValues = this.categoryValues;
 	}
 
-	// Method to update company data
-	update(changes: Record<string, any>) {
+	// Method to update company data from a DTO
+	updateFromDTO(dto: Partial<UpdateCompanyDTO>) {
 		this.updatedAt = new Date();
-		Object.entries(changes).forEach(([key, value]) => {
-			setValueForPath(this, key, value);
-			if (this.changes[key]?.oldValue === value) {
-				delete this.changes[key];
-			} else {
-				this.changes[key] = {value, oldValue: this.changes[key]?.value ?? value};
+
+		// Apply changes directly to the appropriate properties
+		Object.entries(dto).forEach(([key, value]) => {
+			if (key !== 'id') {
+				// Update inputValues properties
+				if (key in this.inputValues) {
+					const originalValue = this.originalInputValues[key as keyof InputValues];
+					const newValue = value;
+
+					// Update the value
+					(this.inputValues as any)[key] = newValue;
+
+					// Check if the value has changed from the original
+					if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
+						this.changedFields.add(key);
+					} else {
+						// If the value is back to the original, remove it from changedFields
+						this.changedFields.delete(key);
+					}
+				} else {
+					// Update other properties
+					(this as any)[key] = value;
+				}
 			}
 		});
+
+		// Update dependent values and hot copy
 		this.updateDependentValues();
 	}
 
 	// Convert to plain object (DTO)
 	getUpdateDTO(): UpdateCompanyDTO | null {
-		if (Object.keys(this.changes).length > 0) {
-			// Create a flattened copy for the DTO
-			const copy: UpdateCompanyDTO = {
+		// For new entities, include all input values
+		if (this.isNew()) {
+			return {
 				id: this.id,
-				// Include all inputValues properties
 				...this.inputValues,
-				// Include other properties
 				benchmarkId: this.benchmarkId,
 				databaseId: this.databaseId,
 				sourceData: this.sourceData,
 				mappedSourceData: this.mappedSourceData,
 				dataStatus: this.dataStatus,
-				updatedAt: this.updatedAt,
-				createdAt: this.createdAt,
 			} as UpdateCompanyDTO;
-
-			//
-			const changedKeys = [...Object.keys(this.changes), 'id'].map((key) => key.replace('inputValues.', ''));
-			const objectKeys = Object.keys(copy);
-			const keysToRemove = objectKeys.filter((key) => !changedKeys.includes(key));
-			keysToRemove.forEach((key) => {
-				delete copy[key as keyof UpdateCompanyDTO];
-			});
-			return copy;
 		}
+
+		// For existing entities, only include changed fields
+		if (this.changedFields.size > 0) {
+			// Create a DTO with only the changed fields
+			const dto: UpdateCompanyDTO = {id: this.id};
+
+			// Add each changed field to the DTO
+			this.changedFields.forEach((field) => {
+				dto[field as keyof UpdateCompanyDTO] = this.inputValues[field as keyof InputValues];
+			});
+
+			return dto;
+		}
+
 		return null;
+	}
+
+	// Method to reset the original values after saving changes
+	resetOriginalValues(): void {
+		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
+		this.changedFields.clear();
 	}
 
 	// Static method to create from database type
 	static fromDB(data: CompanyDTO): Company {
 		return new Company(data);
+	}
+
+	// Check if the company has any changes
+	hasChanges(): boolean {
+		// New companies always need to be saved
+		if (this.isNew()) {
+			return true;
+		}
+
+		// Check if any fields have been changed
+		return this.changedFields.size > 0;
+	}
+
+	// Get the number of changes
+	getChangeCount(): number {
+		return this.changedFields.size;
+	}
+
+	// Alias for hasChanges for better readability in some contexts
+	isDirty(): boolean {
+		return this.hasChanges();
+	}
+
+	// Get a summary of changes for display purposes
+	getChangesSummary(): {count: number; fields: string[]} {
+		return {
+			count: this.changedFields.size,
+			fields: Array.from(this.changedFields),
+		};
 	}
 }

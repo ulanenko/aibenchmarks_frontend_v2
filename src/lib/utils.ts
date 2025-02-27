@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export function isEmpty(value: any) {
+export function isEmpty(value: any): boolean {
 	if (typeof value === 'string') {
 		return value.trim() === '';
 	}

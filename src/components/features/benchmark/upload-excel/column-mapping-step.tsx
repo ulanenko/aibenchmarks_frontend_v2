@@ -14,10 +14,10 @@ import {LoadingButton} from '@/components/ui/loading-button';
 import {mapColumnsWithAI} from '@/app/actions/ai-mapper-actions';
 import {toast} from 'sonner';
 import {SourceColumn, TargetColumn, ColumnMapping} from '@/app/actions/dto/mapper-types';
-
+import {CreateCompanyDTO} from '@/lib/company/type';
 // Local column mapping used in the UI
 interface LocalColumnMapping {
-	targetColumn: string;
+	targetColumn: keyof CreateCompanyDTO;
 	sourceColumn: string | null;
 	required: boolean;
 	title: string;
@@ -34,7 +34,7 @@ function createColumnMapping(columnMappings?: {[key: string]: string}): LocalCol
 		const column = companyColumns[key as keyof typeof companyColumns];
 		const sourceColumn = Object.entries(columnMappings || {}).find(([_, value]) => value === key)?.[0] || null;
 		return {
-			targetColumn: key,
+			targetColumn: key as keyof CreateCompanyDTO,
 			sourceColumn,
 			required: REQUIRED_FIELDS.includes(key),
 			title: column.title,
@@ -60,7 +60,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 				acc[mapping.sourceColumn] = mapping.targetColumn;
 			}
 			return acc;
-		}, {} as {[key: string]: string});
+		}, {} as {[key: string]: keyof CreateCompanyDTO});
 		updateState({columnMappings: simpleMapping});
 	}, [mappings]);
 

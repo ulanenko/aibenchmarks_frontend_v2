@@ -16,42 +16,50 @@ export const CategoryRenderer = (
 	value: any,
 	cellProperties: Handsontable.CellProperties,
 ) => {
+	// Clear the cell content first
+	Handsontable.dom.empty(td);
+
 	// Get the correct row data when filtering is active
 	const physicalRow = instance.toPhysicalRow(row);
 	const rowData = instance.getSourceDataAtRow(physicalRow);
 
 	if (!rowData) {
-		td.innerHTML = '';
 		return td;
 	}
 
 	const {categoryValuePath} = cellProperties;
 	const categoryValue = getValueForPath(rowData, categoryValuePath) as CategoryValue;
 	const {category, label, description, categoryKey} = categoryValue ?? {};
-	// Center the content in the cell
+
 	if (!category || !categoryKey) {
-		td.innerHTML = '';
 		return td;
 	}
 
-	// Reuse the existing React root, if any, to avoid multiple mounts.
-	let root: Root;
-	if ((td as any)._reactRoot) {
-		root = (td as any)._reactRoot;
-	} else {
-		root = createRoot(td);
-		(td as any)._reactRoot = root;
-	}
-	// td.classList.add('htCenter', 'htMiddle');
-	td.style.display = 'flex';
-	td.style.alignItems = 'center';
-	td.style.justifyContent = 'center';
+	// Create a container div for the React component
+	const container = document.createElement('div');
+	// container.className = 'category-badge-container';
+	container.style.width = '100%';
+	container.style.height = '100%';
+	container.style.display = 'flex';
+	container.style.justifyContent = 'center';
+	container.style.alignItems = 'center';
+	container.style.inset = '0';
+	container.style.position = 'absolute';
+
+	// Ensure the td has position relative for absolute positioning of the container
+	td.style.position = 'relative';
 	td.style.padding = '0.25rem';
+	td.appendChild(container);
+
+	// Create a new root for each render
+	const root = createRoot(container);
 
 	// Render our interactive BadgeWithDialogue component
 	const hotFilter = createHOTFilter(instance, categoryValuePath, category, col);
 	const isFiltered = getValueForPath(instance, `categoryFilters.${category.categoryKey}`) == true;
 	const badge = category.createBadge(label, description, hotFilter, isFiltered);
+
+	// Render the badge
 	root.render(badge);
 
 	return td;

@@ -10,7 +10,10 @@ export const urlRenderer = (
 	cellProperties: Handsontable.CellProperties,
 ) => {
 	// Clear the cell content
-	td.innerHTML = '';
+	// td.innerHTML = '';
+	// use default renderer
+	// empty the cell
+	Handsontable.dom.empty(td);
 
 	if (!value) {
 		return td;
@@ -21,7 +24,6 @@ export const urlRenderer = (
 	link.target = '_blank';
 	link.rel = 'noopener noreferrer';
 	link.textContent = value;
-
 	// Style the link
 	link.style.color = '#2563eb'; // Blue color
 	link.style.textDecoration = 'none';
@@ -38,6 +40,7 @@ export const urlRenderer = (
 	link.addEventListener('mouseout', () => {
 		link.style.textDecoration = 'none';
 	});
+	td.classList.add('htMiddle');
 
 	// Append the link to the cell
 	td.appendChild(link);

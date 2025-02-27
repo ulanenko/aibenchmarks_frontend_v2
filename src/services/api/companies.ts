@@ -1,4 +1,4 @@
-import {CompanyDTO, UpdateCompanyDTO} from '@/lib/company';
+import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company';
 import {Company} from '@/lib/company/company';
 
 const BASE_URL = (benchmarkId: number) => `/api/benchmarks/${benchmarkId}/companies`;
@@ -14,7 +14,10 @@ export async function getCompanies(benchmarkId: number): Promise<CompanyDTO[]> {
 	return data.companies;
 }
 
-export async function saveCompanies(benchmarkId: number, companies: UpdateCompanyDTO[]): Promise<CompanyDTO[]> {
+export async function saveCompanies(
+	benchmarkId: number,
+	companies: (UpdateCompanyDTO | CreateCompanyDTO)[],
+): Promise<CompanyDTO[]> {
 	const response = await fetch(BASE_URL(benchmarkId), {
 		method: 'POST',
 		headers: {'Content-Type': 'application/json'},

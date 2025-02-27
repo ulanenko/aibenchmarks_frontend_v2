@@ -3,28 +3,27 @@
 import {db} from '@/db';
 import {company, StepStatus} from '@/db/schema';
 import {eq, and, inArray, sql} from 'drizzle-orm';
-import type {CompanyDBType, UpdateCompanyDTO} from '@/lib/company/type';
+import type {CompanyDBType, UpdateCompanyDTO, CreateCompanyDTO} from '@/lib/company/type';
 
 type CompanyInsert = Omit<CompanyDBType, 'id' | 'createdAt' | 'updatedAt'>;
 
-function sanitizeCompanyData(data: UpdateCompanyDTO): CompanyInsert {
-	const {id, createdAt, updatedAt, dataStatus, ...rest} = data;
+function sanitizeCompanyData(data: UpdateCompanyDTO | CreateCompanyDTO): CompanyInsert {
+	const {id, createdAt, updatedAt, dataStatus, ...rest} = data as any;
 	const sanitized: Partial<CompanyInsert> = {
 		...rest,
-		dataStatus:
-			dataStatus && ['pending', 'in_progress', 'completed', 'failed'].includes(dataStatus)
-				? (dataStatus as StepStatus)
-				: null,
 	};
 
 	return sanitized as CompanyInsert;
 }
 
-export async function saveCompanies(benchmarkId: number, companies: UpdateCompanyDTO[]): Promise<CompanyDBType[]> {
+export async function saveCompanies(
+	benchmarkId: number,
+	companies: (UpdateCompanyDTO | CreateCompanyDTO)[],
+): Promise<CompanyDBType[]> {
 	// Separate new companies from updates
 	const [newCompanies, existingCompanies] = companies.reduce<[CompanyInsert[], UpdateCompanyDTO[]]>(
 		(acc, company) => {
-			if (company.id < 0) {
+			if (!('id' in company) || company.id < 0) {
 				// Remove temp ID and add to new companies
 				const sanitizedData = sanitizeCompanyData(company);
 				acc[0].push({
