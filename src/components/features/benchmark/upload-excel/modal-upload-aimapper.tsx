@@ -124,7 +124,7 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[1100px] max-h-[90vh] overflow-hidden">
+			<DialogContent className="sm:max-w-[1100px] max-h-[90vh] flex flex-col">
 				<DialogHeader>
 					<DialogTitle>{currentStep.title}</DialogTitle>
 				</DialogHeader>
@@ -153,8 +153,8 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 					</Stepper>
 				</div>
 
-				<div className="overflow-y-auto pr-2">
-					{/* Render the appropriate step component based on current step */}
+				{/* Fixed: Made scrollable container take up remaining height */}
+				<div className="flex-1 flex flex-col min-h-0">
 					{STEPS_CONFIG.map((step) => state.step === step.id && <step.component key={step.id} {...stepProps} />)}
 				</div>
 			</DialogContent>

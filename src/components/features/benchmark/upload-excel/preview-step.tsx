@@ -73,51 +73,51 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 	}
 
 	return (
-		<div className="grid gap-6 py-4">
-			{state.error && <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">{state.error}</div>}
+		<div className="flex flex-col flex-1 min-h-0">
+			{state.error && (
+				<div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm mb-4">{state.error}</div>
+			)}
 
-			<div className="space-y-4">
-				<h3 className="text-lg font-medium">Preview Data</h3>
+			<div className="mb-4">
+				<h3 className="text-lg font-medium mb-2">Preview Data</h3>
 				<p className="text-sm text-muted-foreground">
 					Review the data before importing. Showing {Math.min(previewCount, companiesMapped.length)} of{' '}
 					{companiesMapped.length} rows.
 				</p>
 			</div>
 
-			<div className="border rounded-md overflow-hidden">
-				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
-						<thead>
-							<tr className="bg-muted">
-								<th className="px-4 py-2 text-left font-medium">Company Name</th>
-								<th className="px-4 py-2 text-left font-medium">Country</th>
-								<th className="px-4 py-2 text-left font-medium">Website</th>
+			<div className="flex-1 min-h-0 border rounded-md mb-4 overflow-y-auto">
+				<table className="w-full text-sm">
+					<thead className="sticky top-0 bg-muted z-10">
+						<tr>
+							<th className="px-4 py-2 text-left font-medium">Company Name</th>
+							<th className="px-4 py-2 text-left font-medium">Country</th>
+							<th className="px-4 py-2 text-left font-medium">Website</th>
+						</tr>
+					</thead>
+					<tbody>
+						{companiesMapped.slice(0, previewCount).map((company, index) => (
+							<tr key={index} className="border-t">
+								<td className="px-4 py-2">{company.name}</td>
+								<td className="px-4 py-2">{company.country}</td>
+								<td className="px-4 py-2">{company.url}</td>
 							</tr>
-						</thead>
-						<tbody>
-							{companiesMapped.slice(0, previewCount).map((company, index) => (
-								<tr key={index} className="border-t">
-									<td className="px-4 py-2">{company.name}</td>
-									<td className="px-4 py-2">{company.country}</td>
-									<td className="px-4 py-2">{company.url}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+						))}
+					</tbody>
+				</table>
 			</div>
 
 			{companiesMapped.length > previewCount && (
 				<Button
 					variant="outline"
 					onClick={() => setPreviewCount((prev) => Math.min(prev + 5, companiesMapped.length))}
-					className="w-full"
+					className="w-full mb-4"
 				>
 					Show more rows
 				</Button>
 			)}
 
-			<div className="flex justify-between mt-4">
+			<div className="flex justify-between mt-auto pt-4 border-t">
 				<Button variant="outline" onClick={onBack} disabled={state.isProcessing}>
 					← Back
 				</Button>
@@ -128,7 +128,7 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 							Importing...
 						</>
 					) : (
-						<>Import Data</>
+						'Import Data'
 					)}
 				</Button>
 			</div>

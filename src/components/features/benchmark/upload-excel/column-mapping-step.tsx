@@ -129,93 +129,88 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 	};
 
 	return (
-		<div className="grid gap-6 py-4">
-			{error && <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">{error}</div>}
+		<div className="flex flex-col min-h-0 h-full">
+			{error && <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm mb-4">{error}</div>}
 
 			{state.isLoading ? (
-				<div className="flex justify-center items-center py-8">
+				<div className="flex justify-center items-center flex-1">
 					<Loader2 className="h-8 w-8 animate-spin text-primary" />
 				</div>
 			) : (
 				<>
-					<div className="text-sm text-muted-foreground">
+					<div className="text-sm text-muted-foreground mb-4">
 						Map columns from your Excel file to the required fields in our system. Required fields are marked with an
 						asterisk (*).
 					</div>
 
-					<div className="relative grid grid-cols-3 gap-6">
-						<div className="col-span-2 relative">
-							<div className="sticky top-0 bg-background z-10 shadow-sm pr-2">
-								<Table>
-									<TableHeader>
-										<TableRow className="hover:bg-transparent">
-											<TableHead className="w-1/2">Source Excel Column</TableHead>
-											<TableHead className="w-1/2 text-right">Target Field</TableHead>
-										</TableRow>
-									</TableHeader>
-								</Table>
-							</div>
-							<div className="max-h-[calc(70vh-220px)] overflow-y-auto pr-2">
-								<Table>
-									<TableBody>
-										{sourceColumnHeaders.map((column) => (
-											<TableRow key={column} className="hover:bg-transparent">
-												<TableCell className="align-top p-3">
-													<div className="font-medium">{column}</div>
-													<div className="text-sm text-muted-foreground truncate max-w-[300px]">
-														{sourceRowSample[column] ? String(sourceRowSample[column]) : 'No sample data'}
-													</div>
-												</TableCell>
-												<TableCell className=" p-3">
-													<div className="flex justify-end">
-														<Select
-															value={mappings.find((m) => m.sourceColumn === column)?.targetColumn || NONE_VALUE}
-															onValueChange={(value) => {
-																// First, clear any existing mapping for this source column
-																setMappings((prevMappings) =>
-																	prevMappings.map((mapping) =>
-																		mapping.sourceColumn === column ? {...mapping, sourceColumn: null} : mapping,
-																	),
-																);
+					{/* Main content area */}
+					<div className="flex gap-6 flex-1 min-h-0">
+						{/* Left column - mapping table */}
+						<div className="flex-1 min-h-0 border rounded-md overflow-y-auto">
+							<Table className="min-h-0">
+								<TableHeader>
+									<TableRow className="sticky top-0 bg-background z-10 border-b">
+										<TableHead>Source Excel Column</TableHead>
+										<TableHead className="text-right">Target Field</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{sourceColumnHeaders.map((column) => (
+										<TableRow key={column} className="hover:bg-transparent">
+											<TableCell className="align-top p-3">
+												<div className="font-medium">{column}</div>
+												<div className="text-sm text-muted-foreground truncate max-w-[300px]">
+													{sourceRowSample[column] ? String(sourceRowSample[column]) : 'No sample data'}
+												</div>
+											</TableCell>
+											<TableCell className="p-3">
+												<div className="flex justify-end">
+													<Select
+														value={mappings.find((m) => m.sourceColumn === column)?.targetColumn || NONE_VALUE}
+														onValueChange={(value) => {
+															setMappings((prevMappings) =>
+																prevMappings.map((mapping) =>
+																	mapping.sourceColumn === column ? {...mapping, sourceColumn: null} : mapping,
+																),
+															);
 
-																// Then, if a target was selected, update that target's source
-																if (value !== NONE_VALUE) {
-																	handleMappingChange(value, column);
-																}
-															}}
-														>
-															<SelectTrigger className="w-full min-w-[200px]">
-																<SelectValue placeholder="Not mapped" />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value={NONE_VALUE}>Not mapped</SelectItem>
-																{mappings.map((mapping) => (
-																	<SelectItem
-																		key={mapping.targetColumn}
-																		value={mapping.targetColumn}
-																		disabled={!!mapping.sourceColumn && mapping.sourceColumn !== column}
-																	>
-																		{mapping.title}
-																		{mapping.required && <span className="text-destructive ml-1">*</span>}
-																	</SelectItem>
-																))}
-															</SelectContent>
-														</Select>
-													</div>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							</div>
+															if (value !== NONE_VALUE) {
+																handleMappingChange(value, column);
+															}
+														}}
+													>
+														<SelectTrigger className="w-full min-w-[200px]">
+															<SelectValue placeholder="Not mapped" />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value={NONE_VALUE}>Not mapped</SelectItem>
+															{mappings.map((mapping) => (
+																<SelectItem
+																	key={mapping.targetColumn}
+																	value={mapping.targetColumn}
+																	disabled={!!mapping.sourceColumn && mapping.sourceColumn !== column}
+																>
+																	{mapping.title}
+																	{mapping.required && <span className="text-destructive ml-1">*</span>}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
 						</div>
 
-						<div className="sticky top-0 self-start">
-							<div className="border rounded-md p-4">
+						{/* Right column - AI Mapper */}
+						<div className="w-80 shrink-0">
+							<div className="border rounded-md p-4  flex flex-col">
 								<h3 className="text-lg font-medium mb-4 border-b pb-2">AI Mapper and checks</h3>
 
-								<div className=" max-h-[calc(70vh-250px)] overflow-y-auto pr-1">
-									{mappings.map((mapping, index) => {
+								<div className="flex-1">
+									{mappings.map((mapping) => {
 										const isMapped = !!mapping.sourceColumn;
 										return (
 											<div
@@ -237,7 +232,7 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 								</div>
 
 								<LoadingButton
-									className="w-full mt-6"
+									className="w-full mt-4"
 									variant="default"
 									size="sm"
 									onClick={handleAiMapping}
@@ -253,7 +248,8 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 						</div>
 					</div>
 
-					<div className="flex justify-between mt-4 sticky bottom-0 bg-background pt-4 pb-2 z-10 border-t-2 border-border/40">
+					{/* Bottom navigation */}
+					<div className="flex justify-between pt-4 mt-4 border-t">
 						<LoadingButton variant="outline" onClick={onBack} disabled={processes.loading}>
 							← Back
 						</LoadingButton>
