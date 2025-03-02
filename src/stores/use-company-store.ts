@@ -1,10 +1,12 @@
 import {create} from 'zustand';
-import * as companyService from '@/services/api/companies';
 import {Company} from '@/lib/company';
 import {CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
+import {MappingSettings} from '@/lib/benchmark/type';
 import {setValueForPath} from '@/lib/object-utils';
 import {toast} from '@/hooks/use-toast';
 import {isEmpty} from '@/lib/utils';
+import * as companyActions from '@/app/actions/company-actions';
+import * as benchmarkActions from '@/app/actions/benchmark-actions';
 
 interface CompanyStore {
 	companies: Company[];
@@ -20,6 +22,16 @@ interface CompanyStore {
 		newCompanies?: UpdateCompanyDTO[],
 	) => void;
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
+	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
+	loadMappingSettings: (benchmarkId: number) => Promise<{
+		settings: MappingSettings | null;
+		fileData?: {
+			data: ArrayBuffer | null;
+			fileName: string;
+			contentType: string;
+		} | null;
+		error: string | null;
+	}>;
 	removeCompany: (id: number) => void;
 	loadCompanies: (benchmarkId: number) => Promise<void>;
 	saveChanges: (benchmarkId: number) => Promise<void>;
@@ -77,12 +89,17 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 				throw new Error('Benchmark ID is not set');
 			}
 
-			// Use the saveCompanies function with replace flag set to true
-			const savedCompanies = await companyService.saveCompanies(benchmarkId!, mappedSourceData, {replace: true});
-			const companies = savedCompanies.map((dto) => new Company(dto));
+			// Use the server action to save companies
+			const {companies, error} = await companyActions.saveCompanies(benchmarkId as number, mappedSourceData, {
+				replace: true,
+			});
+
+			if (error) {
+				throw new Error(error);
+			}
 
 			// Set the companies array with only the new companies, effectively replacing all existing ones
-			get().setCompanies(companies);
+			get().setCompanies(companies.map((dto) => new Company(dto)));
 		} catch (error) {
 			console.error('Error adding mapped source data:', error);
 			throw error;
@@ -91,23 +108,79 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 		}
 	},
 
+	// New function to save mapping settings to the benchmark
+	saveMappingSettings: async (settings: MappingSettings) => {
+		try {
+			const benchmarkId = get().benchmarkId;
+			if (isEmpty(benchmarkId)) {
+				throw new Error('Benchmark ID is not set');
+			}
+
+			// Use the server action to save mapping settings
+			const {success, error} = await benchmarkActions.saveMappingSettings(benchmarkId as number, settings);
+
+			if (!success) {
+				throw new Error(error || 'Failed to save mapping settings');
+			}
+
+			toast({
+				title: 'Mapping settings saved',
+				description: 'Your mapping settings have been saved for future use.',
+			});
+		} catch (error) {
+			console.error('Error saving mapping settings:', error);
+			toast({
+				variant: 'destructive',
+				title: 'Error saving mapping settings',
+				description: error instanceof Error ? error.message : 'Failed to save mapping settings',
+			});
+			throw error;
+		}
+	},
+
+	// Load mapping settings and file data from the benchmark
+	loadMappingSettings: async (benchmarkId: number) => {
+		try {
+			// Use the server action to load mapping settings and file data
+			const result = await benchmarkActions.loadMappingSettings(benchmarkId);
+
+			if (result.error) {
+				console.warn('Warning loading benchmark data:', result.error);
+				// Don't throw here, as we might still have partial data
+			}
+
+			return result;
+		} catch (error) {
+			console.error('Error loading benchmark data:', error);
+			toast({
+				variant: 'destructive',
+				title: 'Error loading benchmark data',
+				description: error instanceof Error ? error.message : 'Failed to load benchmark data',
+			});
+			return {
+				settings: null,
+				fileData: null,
+				error: error instanceof Error ? error.message : 'Unknown error occurred',
+			};
+		}
+	},
+
 	removeCompany: (id) =>
 		set((state) => ({
 			companies: state.companies.filter((c) => c.id !== id),
 		})),
 
-	loadCompanies: async (benchmarkId) => {
-		set({isLoading: true});
-		set({benchmarkId});
+	loadCompanies: async (benchmarkId: number) => {
+		set({isLoading: true, benchmarkId});
 		try {
-			const companyDTOs = await companyService.getCompanies(benchmarkId);
-			const companies = companyDTOs.map((dto) => {
-				const company = new Company(dto);
-				// Ensure original values are set to the loaded values
-				company.resetOriginalValues();
-				return company;
-			});
-			get().setCompanies(companies);
+			// Use the server action to get companies
+			const {companies, error} = await companyActions.getCompanies(benchmarkId);
+
+			if (error) {
+				throw new Error(error);
+			}
+
+			get().setCompanies(companies.map((dto) => new Company(dto)));
 		} catch (error) {
 			console.error('Error loading companies:', error);
 			toast({
@@ -115,7 +188,6 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 				title: 'Error loading companies',
 				description: error instanceof Error ? error.message : 'Failed to load companies',
 			});
-			throw error;
 		} finally {
 			set({isLoading: false});
 		}
@@ -145,7 +217,13 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 				description: `Saving ${changedCompanies.length} companies...`,
 			});
 
-			const savedCompanies = await companyService.saveCompanies(benchmarkId, changedCompanies);
+			// Use the server action to save companies
+			const {companies: savedCompanies, error} = await companyActions.saveCompanies(benchmarkId, changedCompanies);
+
+			if (error) {
+				throw new Error(error);
+			}
+
 			const newCompanies = get().companies.map((c) => {
 				const changedCompanyIndex = changedCompanies.findIndex((sc) => sc.id === c.id);
 				if (changedCompanyIndex !== -1) {

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {useEffect, useMemo, useState} from 'react';
+import {use, useEffect, useMemo, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {CheckCircle2, Circle, Loader2, Wand2} from 'lucide-react';
@@ -54,25 +54,32 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 	});
 	const [error, setError] = useState<string | null>(null);
 
-	useMemo(() => {
-		const simpleMapping = mappings.reduce((acc, mapping) => {
-			if (mapping.sourceColumn) {
-				acc[mapping.sourceColumn] = mapping.targetColumn;
-			}
-			return acc;
-		}, {} as {[key: string]: keyof CreateCompanyDTO});
-		updateState({columnMappings: simpleMapping});
-	}, [mappings]);
+	// When state.columnMappings changes (e.g., when loaded from saved settings), update the local mappings
+	useEffect(() => {
+		if (state.columnMappings && Object.keys(state.columnMappings).length > 0) {
+			setMappings(createColumnMapping(state.columnMappings));
+		}
+	}, [state.columnMappings]);
 
 	const handleMappingChange = (targetColumn: string, sourceColumn: string) => {
 		// Convert the NONE_VALUE back to null
 		const actualValue = sourceColumn === NONE_VALUE ? null : sourceColumn;
 
-		setMappings((prevMappings) =>
-			prevMappings.map((mapping) =>
-				mapping.targetColumn === targetColumn ? {...mapping, sourceColumn: actualValue} : mapping,
-			),
+		// Update local state
+		const updatedMappings = mappings.map((mapping) =>
+			mapping.targetColumn === targetColumn ? {...mapping, sourceColumn: actualValue} : mapping,
 		);
+		setMappings(updatedMappings);
+
+		// Update parent state directly with the new mapping
+		const simpleMapping = updatedMappings.reduce((acc, mapping) => {
+			if (mapping.sourceColumn) {
+				acc[mapping.sourceColumn] = mapping.targetColumn;
+			}
+			return acc;
+		}, {} as {[key: string]: keyof CreateCompanyDTO});
+
+		updateState({columnMappings: simpleMapping});
 	};
 
 	const handleNext = () => {
@@ -118,7 +125,19 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 				return sourceColumn ? {...mapping, sourceColumn} : mapping;
 			});
 
+			// Update local state
 			setMappings(updatedMappings);
+
+			// Update parent state directly with the new mapping
+			const simpleMapping = updatedMappings.reduce((acc, mapping) => {
+				if (mapping.sourceColumn) {
+					acc[mapping.sourceColumn] = mapping.targetColumn;
+				}
+				return acc;
+			}, {} as {[key: string]: keyof CreateCompanyDTO});
+
+			updateState({columnMappings: simpleMapping});
+
 			toast.success('AI mapping completed successfully!');
 		} catch (error) {
 			console.error('Error during AI mapping:', error);

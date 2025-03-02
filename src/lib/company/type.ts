@@ -25,7 +25,6 @@ export type CompanyDTO = {
 	mainProductsAndServices: string | null;
 	sourceData: any;
 	mappedSourceData: any;
-	dataStatus: string | null;
 };
 
 // Type for company creation - omit auto-generated fields

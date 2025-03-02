@@ -2,7 +2,7 @@ import {create} from 'zustand';
 import {Benchmark} from '@/lib/benchmark/benchmark';
 import {CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
 import {toast} from '@/hooks/use-toast';
-import * as benchmarkService from '@/services/api/benchmarks';
+import * as benchmarkActions from '@/app/actions/benchmark-actions';
 
 interface BenchmarkListStore {
 	benchmarks: Benchmark[];
@@ -21,7 +21,12 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 	loadBenchmarks: async () => {
 		set({isLoading: true});
 		try {
-			const benchmarkDTOs = await benchmarkService.getAllBenchmarks();
+			const {benchmarks: benchmarkDTOs, error} = await benchmarkActions.getAllBenchmarks();
+
+			if (error) {
+				throw new Error(error);
+			}
+
 			const benchmarks = benchmarkDTOs.map((dto) => new Benchmark(dto));
 			get().setBenchmarks(benchmarks);
 		} catch (error) {
@@ -36,16 +41,22 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 		}
 	},
 	addBenchmark: async (data) => {
-		// set({isLoading: true});
 		try {
-			const newBenchmark = await benchmarkService.createBenchmark(data);
-			const benchmark = new Benchmark(newBenchmark);
-			get().setBenchmarks([...get().benchmarks, benchmark]);
+			const {benchmark: newBenchmark, error} = await benchmarkActions.createBenchmark(data);
 
-			toast({
-				title: 'Success',
-				description: 'Benchmark created successfully',
-			});
+			if (error) {
+				throw new Error(error);
+			}
+
+			if (newBenchmark) {
+				const benchmark = new Benchmark(newBenchmark);
+				get().setBenchmarks([...get().benchmarks, benchmark]);
+
+				toast({
+					title: 'Success',
+					description: 'Benchmark created successfully',
+				});
+			}
 		} catch (error) {
 			console.error('Error creating benchmark:', error);
 			toast({
@@ -53,23 +64,28 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 				title: 'Error',
 				description: error instanceof Error ? error.message : 'Failed to create benchmark',
 			});
-		} finally {
-			// set({isLoading: false});
 		}
 	},
 	editBenchmark: async (updateBenchmarkDTO: UpdateBenchmarkDTO) => {
 		set({isLoading: true});
 		try {
-			const updatedBenchmark = await benchmarkService.updateBenchmark(updateBenchmarkDTO);
-			const benchmarks = get().benchmarks.map((benchmark) =>
-				benchmark.id === updateBenchmarkDTO.id ? new Benchmark(updatedBenchmark) : benchmark,
-			);
-			get().setBenchmarks(benchmarks);
+			const {benchmark: updatedBenchmark, error} = await benchmarkActions.updateBenchmark(updateBenchmarkDTO);
 
-			toast({
-				title: 'Success',
-				description: 'Benchmark updated successfully',
-			});
+			if (error) {
+				throw new Error(error);
+			}
+
+			if (updatedBenchmark) {
+				const benchmarks = get().benchmarks.map((benchmark) =>
+					benchmark.id === updateBenchmarkDTO.id ? new Benchmark(updatedBenchmark) : benchmark,
+				);
+				get().setBenchmarks(benchmarks);
+
+				toast({
+					title: 'Success',
+					description: 'Benchmark updated successfully',
+				});
+			}
 		} catch (error) {
 			console.error('Error updating benchmark:', error);
 			toast({
@@ -84,15 +100,22 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 	deleteBenchmark: async (id) => {
 		set({isLoading: true});
 		try {
-			await benchmarkService.deleteBenchmark(id);
-			set((state) => ({
-				benchmarks: state.benchmarks.filter((benchmark) => benchmark.id !== id),
-			}));
+			const {success, error} = await benchmarkActions.deleteBenchmark(id);
 
-			toast({
-				title: 'Success',
-				description: 'Benchmark deleted successfully',
-			});
+			if (error) {
+				throw new Error(error);
+			}
+
+			if (success) {
+				set((state) => ({
+					benchmarks: state.benchmarks.filter((benchmark) => benchmark.id !== id),
+				}));
+
+				toast({
+					title: 'Success',
+					description: 'Benchmark deleted successfully',
+				});
+			}
 		} catch (error) {
 			console.error('Error deleting benchmark:', error);
 			toast({

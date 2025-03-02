@@ -1,4 +1,4 @@
-import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from './type';
+import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO, MappingSettings} from './type';
 import {benchmarkSchema, BenchmarkFields} from './schema-and-fields';
 
 export class Benchmark implements BenchmarkDTO {
@@ -14,6 +14,7 @@ export class Benchmark implements BenchmarkDTO {
 	lang: string | null;
 	clientName: string | null;
 	userName: string | null;
+	mappingSettings: MappingSettings | null;
 
 	// Track changes for optimistic updates
 	changes: Record<
@@ -35,6 +36,7 @@ export class Benchmark implements BenchmarkDTO {
 		this.lang = data?.lang ?? null;
 		this.clientName = data?.clientName ?? null;
 		this.userName = data?.userName ?? null;
+		this.mappingSettings = data?.mappingSettings ?? null;
 	}
 
 	private static getNextTempId(): number {

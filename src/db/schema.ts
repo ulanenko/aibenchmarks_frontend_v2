@@ -1,4 +1,4 @@
-import {pgTable, text, serial, timestamp, integer, boolean, json, pgEnum} from 'drizzle-orm/pg-core';
+import {pgTable, text, serial, timestamp, integer, boolean, json, jsonb, pgEnum} from 'drizzle-orm/pg-core';
 
 export type StepStatus =
 	| 'not_ready'
@@ -53,6 +53,7 @@ export const benchmark = pgTable('bm_benchmark', {
 		.notNull(),
 	year: integer('year').notNull(),
 	lang: text('lang'),
+	mappingSettings: jsonb('mapping_settings'),
 });
 
 export const client = pgTable('bm_client', {

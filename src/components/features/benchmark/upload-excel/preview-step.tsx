@@ -8,11 +8,13 @@ import {StepProps} from './types';
 import {Company} from '@/lib/company/company';
 import {CompanyDTO, CreateCompanyDTO} from '@/lib/company/type';
 import {useCompanyStore} from '@/stores/use-company-store';
+import {MappingSettings} from '@/lib/benchmark/type';
 import {useToast} from '@/hooks/use-toast';
+import {uploadBenchmarkFile} from '@/app/actions/upload-file';
 
 export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 	const {toast} = useToast();
-	const {addMappedSourceData} = useCompanyStore();
+	const {addMappedSourceData, saveMappingSettings, benchmarkId} = useCompanyStore();
 	const [previewCount, setPreviewCount] = useState(5); // Number of rows to preview
 	const {columnMappings} = state;
 	const companiesMapped =
@@ -35,6 +37,41 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 			// Save the mapped companies using the company store
 			if (companiesMapped.length > 0) {
 				await addMappedSourceData(companiesMapped);
+
+				// Save the mapping settings for future use
+				if (columnMappings && Object.keys(columnMappings).length > 0 && benchmarkId) {
+					// Create mapping settings object
+					const mappingSettings: MappingSettings = {
+						dbName: state.database,
+						sourceFileName: state.file?.name || '',
+						sourceSheet: state.sheet,
+						generalMapping: columnMappings,
+						financialMapping: {}, // Currently empty, can be populated in future
+					};
+
+					// Upload the file to Supabase if it exists
+					if (state.file) {
+						const fileName = `${Date.now()}_${state.file.name}`;
+						console.log('Attempting to upload file:', fileName);
+						const {path, error} = await uploadBenchmarkFile(benchmarkId, state.file, fileName);
+
+						if (error) {
+							console.error('File upload error details:', error);
+							toast({
+								title: 'File upload warning',
+								description: `The data was imported, but there was an issue uploading the file: ${error}`,
+								variant: 'destructive',
+							});
+						} else {
+							console.log('File uploaded successfully, path:', path);
+							// Add the file path to the mapping settings
+							mappingSettings.pathToFile = path;
+						}
+					}
+
+					// Save the mapping settings
+					await saveMappingSettings(mappingSettings);
+				}
 
 				toast({
 					title: 'Upload Successful',
@@ -83,6 +120,9 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 				<p className="text-sm text-muted-foreground">
 					Review the data before importing. Showing {Math.min(previewCount, companiesMapped.length)} of{' '}
 					{companiesMapped.length} rows.
+				</p>
+				<p className="text-sm text-muted-foreground mt-1">
+					<strong>Note:</strong> Your mapping settings and file will be saved with this benchmark for future use.
 				</p>
 			</div>
 

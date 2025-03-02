@@ -19,6 +19,7 @@ export const benchmarkSchema = z.object({
 		.max(new Date().getFullYear() + 10, 'Year cannot be too far in the future'),
 	clientId: z.number().min(1, 'Client is required'),
 	lang: z.string().optional(),
+	mappingSettings: z.any().optional(),
 });
 
 export const BenchmarkFields: Record<string, FieldDefinition> = {

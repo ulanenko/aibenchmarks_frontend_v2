@@ -2,84 +2,156 @@
 
 import {db} from '@/db';
 import {benchmark, client, user} from '@/db/schema';
-import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
+import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO, MappingSettings} from '@/lib/benchmark/type';
 import {eq} from 'drizzle-orm';
 
-const benchmarkQuery = db
-	.select({
-		benchmark,
-		clientName: client.name,
-		userName: user.name,
-	})
-	.from(benchmark)
-	.leftJoin(client, eq(benchmark.clientId, client.id))
-	.leftJoin(user, eq(benchmark.userId, user.id));
-
-interface QueryResult {
+// Define types for the query results
+type BenchmarkWithRelations = {
 	benchmark: typeof benchmark.$inferSelect;
 	clientName: string | null;
 	userName: string | null;
-}
+};
 
-const mapBenchmarkResult = (result: QueryResult): BenchmarkDTO => ({
+const mapBenchmarkResult = (result: BenchmarkWithRelations): BenchmarkDTO => ({
 	...result.benchmark,
 	clientName: result.clientName,
 	userName: result.userName,
+	mappingSettings: result.benchmark.mappingSettings as MappingSettings | null,
 });
 
 export async function getAllBenchmarks(): Promise<BenchmarkDTO[]> {
-	const benchmarks = await benchmarkQuery;
-	return benchmarks.map(mapBenchmarkResult);
-}
+	try {
+		// Use a simpler query that doesn't rely on complex joins
+		const benchmarks = await db
+			.select({
+				benchmark: benchmark,
+				clientName: client.name,
+				userName: user.name,
+			})
+			.from(benchmark)
+			.leftJoin(client, eq(benchmark.clientId, client.id))
+			.leftJoin(user, eq(benchmark.userId, user.id));
 
-export async function getBenchmarkWithClient(id: number): Promise<BenchmarkDTO | null> {
-	const result = await benchmarkQuery.where(eq(benchmark.id, id));
-	if (!result[0]) return null;
-	return mapBenchmarkResult(result[0]);
-}
-
-export async function getBenchmarksByUser(userId: number): Promise<BenchmarkDTO[]> {
-	const benchmarks = await benchmarkQuery.where(eq(benchmark.userId, userId));
-	return benchmarks.map(mapBenchmarkResult);
-}
-
-export async function updateBenchmark(id: number, data: UpdateBenchmarkDTO): Promise<BenchmarkDTO | null> {
-	const [updatedBenchmark] = await db
-		.update(benchmark)
-		.set({
-			...data,
-			updatedAt: new Date(),
-		})
-		.where(eq(benchmark.id, id))
-		.returning();
-
-	if (!updatedBenchmark) {
-		return null;
+		return benchmarks.map(mapBenchmarkResult);
+	} catch (error) {
+		console.error('Error getting all benchmarks:', error);
+		throw error;
 	}
-
-	return getBenchmarkWithClient(id);
 }
 
-export async function deleteBenchmark(id: number): Promise<BenchmarkDTO | null> {
-	const [deletedBenchmark] = await db.delete(benchmark).where(eq(benchmark.id, id)).returning();
+export async function getBenchmarkById(id: number): Promise<BenchmarkDTO | null> {
+	try {
+		const results = await db
+			.select({
+				benchmark: benchmark,
+				clientName: client.name,
+				userName: user.name,
+			})
+			.from(benchmark)
+			.leftJoin(client, eq(benchmark.clientId, client.id))
+			.leftJoin(user, eq(benchmark.userId, user.id))
+			.where(eq(benchmark.id, id));
 
-	if (!deletedBenchmark) return null;
+		if (results.length === 0) {
+			return null;
+		}
 
-	return getBenchmarkWithClient(id);
-}
-
-export async function createBenchmark(data: CreateBenchmarkDTO, userId: number): Promise<BenchmarkDTO | null> {
-	const [newBenchmark] = await db
-		.insert(benchmark)
-		.values({
-			...data,
-			userId,
-		})
-		.returning();
-
-	if (!newBenchmark) {
-		return null;
+		return mapBenchmarkResult(results[0]);
+	} catch (error) {
+		console.error(`Error getting benchmark with ID ${id}:`, error);
+		throw error;
 	}
+}
 
-	return getBenchmarkWithClient(newBenchmark.id);
+export async function createBenchmark(data: CreateBenchmarkDTO, userId: number): Promise<BenchmarkDTO> {
+	try {
+		const [result] = await db
+			.insert(benchmark)
+			.values({
+				name: data.name,
+				year: data.year,
+				clientId: data.clientId,
+				userId: userId,
+				lang: data.lang || null,
+				mappingSettings: data.mappingSettings || null,
+			})
+			.returning();
+
+		return {
+			...result,
+			clientName: null,
+			userName: null,
+			mappingSettings: result.mappingSettings as MappingSettings | null,
+		};
+	} catch (error) {
+		console.error('Error creating benchmark:', error);
+		throw error;
+	}
+}
+
+export async function updateBenchmark(id: number, data: UpdateBenchmarkDTO): Promise<BenchmarkDTO> {
+	try {
+		const [result] = await db
+			.update(benchmark)
+			.set({
+				...(data.name !== undefined && {name: data.name}),
+				...(data.year !== undefined && {year: data.year}),
+				...(data.clientId !== undefined && {clientId: data.clientId}),
+				...(data.lang !== undefined && {lang: data.lang}),
+				...(data.mappingSettings !== undefined && {mappingSettings: data.mappingSettings}),
+				updatedAt: new Date(),
+			})
+			.where(eq(benchmark.id, id))
+			.returning();
+
+		return {
+			...result,
+			clientName: null,
+			userName: null,
+			mappingSettings: result.mappingSettings as MappingSettings | null,
+		};
+	} catch (error) {
+		console.error(`Error updating benchmark with ID ${id}:`, error);
+		throw error;
+	}
+}
+
+export async function deleteBenchmark(id: number): Promise<void> {
+	try {
+		await db.delete(benchmark).where(eq(benchmark.id, id));
+	} catch (error) {
+		console.error(`Error deleting benchmark with ID ${id}:`, error);
+		throw error;
+	}
+}
+
+export async function saveMappingSettings(benchmarkId: number, settings: MappingSettings): Promise<void> {
+	try {
+		await db
+			.update(benchmark)
+			.set({
+				mappingSettings: settings,
+				updatedAt: new Date(),
+			})
+			.where(eq(benchmark.id, benchmarkId));
+	} catch (error) {
+		console.error(`Error saving mapping settings for benchmark ${benchmarkId}:`, error);
+		throw error;
+	}
+}
+
+export async function loadMappingSettings(benchmarkId: number): Promise<MappingSettings | null> {
+	try {
+		const result = await db.query.benchmark.findFirst({
+			where: eq(benchmark.id, benchmarkId),
+			columns: {
+				mappingSettings: true,
+			},
+		});
+
+		return (result?.mappingSettings as MappingSettings) || null;
+	} catch (error) {
+		console.error(`Error loading mapping settings for benchmark ${benchmarkId}:`, error);
+		throw error;
+	}
 }

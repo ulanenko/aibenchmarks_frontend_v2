@@ -22,15 +22,20 @@ export function ProgressBar({companies, categoryColumn, hotInstance}: ProgressBa
 
 	// Listen for filter changes in Handsontable
 	useEffect(() => {
-		if (!hotInstance) return;
+		if (!hotInstance || hotInstance.isDestroyed) return;
+
 		// Set up event listeners for filter changes
 		const afterFilter = () => {
 			setFilterVersion((prev) => prev + 1);
 		};
 		hotInstance.addHook('afterFilter', afterFilter);
+
 		// Clean up event listeners
 		return () => {
-			hotInstance?.removeHook('afterFilter', afterFilter);
+			// Check if hotInstance still exists and is not destroyed before removing the hook
+			if (hotInstance && !hotInstance.isDestroyed) {
+				hotInstance.removeHook('afterFilter', afterFilter);
+			}
 		};
 	}, [hotInstance]);
 
