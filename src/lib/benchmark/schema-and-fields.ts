@@ -8,7 +8,7 @@ import {
 	type RelationshipFieldDefinition,
 } from '@/lib/field-definition';
 import {z} from 'zod';
-import {getAllClients} from '@/services/api/clients';
+import {getAllClients} from '@/services/client/clients';
 import {ClientFormDialog} from '@/components/clients/client-form-dialog';
 
 export const benchmarkSchema = z.object({

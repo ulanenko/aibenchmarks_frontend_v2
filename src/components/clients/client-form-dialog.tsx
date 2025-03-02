@@ -18,7 +18,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {ClientFields, ClientSchemaType, clientSchema} from '@/lib/client';
 import {EntityDefinition} from '@/lib/field-definition';
 import {ArrowLeft} from 'lucide-react';
-import {createClient} from '@/services/api/clients';
+import {createClient} from '@/services/client/clients';
 import {useToast} from '@/hooks/use-toast';
 
 interface ClientFormDialogProps {

@@ -2,7 +2,7 @@ import {create} from 'zustand';
 import type {InferSelectModel} from 'drizzle-orm';
 import {test} from '@/db/schema';
 import {toast} from '@/hooks/use-toast';
-import * as testService from '@/services/api/tests';
+import * as testService from '@/services/client/tests';
 
 type Test = InferSelectModel<typeof test>;
 

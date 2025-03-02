@@ -28,8 +28,6 @@ export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 			}, {} as CreateCompanyDTO);
 		}) || [];
 
-	console.log(companiesMapped);
-
 	const handleImport = async () => {
 		updateState({isProcessing: true});
 

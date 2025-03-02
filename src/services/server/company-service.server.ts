@@ -2,14 +2,22 @@
 
 import {db} from '@/db';
 import {company} from '@/db/schema';
-import {eq} from 'drizzle-orm';
+import {eq, inArray, and} from 'drizzle-orm';
 import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
+import {SQL} from 'drizzle-orm';
 
 export async function getCompanies(benchmarkId: number): Promise<CompanyDTO[]> {
 	try {
-		const companies = await db.query.company.findMany({
+		const companiesFromDb = await db.query.company.findMany({
 			where: eq(company.benchmarkId, benchmarkId),
 		});
+
+		// Convert database results to match CompanyDTO type
+		const companies: CompanyDTO[] = companiesFromDb.map((item) => ({
+			...item,
+			// Ensure non-nullable fields in CompanyDTO have default values if null
+			name: item.name || '',
+		}));
 
 		return companies;
 	} catch (error) {
@@ -29,42 +37,118 @@ export async function saveCompanies(
 			await db.delete(company).where(eq(company.benchmarkId, benchmarkId));
 		}
 
-		const savedCompanies: CompanyDTO[] = [];
+		const savedCompanies: any[] = [];
 
-		// Process each company
+		// Separate companies into those to create and those to update
+		const companiesToCreate: CreateCompanyDTO[] = [];
+		const companiesToUpdate: UpdateCompanyDTO[] = [];
+
 		for (const companyData of companies) {
 			if ('id' in companyData && companyData.id > 0) {
-				// Update existing company
-				const [updated] = await db
-					.update(company)
-					.set({
-						...companyData,
-						benchmarkId,
-						updatedAt: new Date(),
-					})
-					.where(eq(company.id, companyData.id))
-					.returning();
-
-				if (updated) {
-					savedCompanies.push(updated);
-				}
+				companiesToUpdate.push(companyData as UpdateCompanyDTO);
 			} else {
-				// Create new company
-				const [created] = await db
-					.insert(company)
-					.values({
-						...companyData,
-						benchmarkId,
-					})
-					.returning();
-
-				if (created) {
-					savedCompanies.push(created);
-				}
+				companiesToCreate.push(companyData as CreateCompanyDTO);
 			}
 		}
 
-		return savedCompanies;
+		// Bulk insert new companies if any
+		if (companiesToCreate.length > 0) {
+			const created = await db
+				.insert(company)
+				.values(
+					companiesToCreate.map((data) => ({
+						...data,
+						benchmarkId,
+					})),
+				)
+				.returning();
+
+			savedCompanies.push(...created);
+		}
+
+		// Process updates efficiently
+		if (companiesToUpdate.length > 0) {
+			// Group companies by identical field values for bulk updates
+			const updateGroups = new Map<string, Map<string, UpdateCompanyDTO[]>>();
+
+			for (const updateData of companiesToUpdate) {
+				// Create a key based on the fields being updated (excluding id)
+				const {id, ...updateFields} = updateData;
+				const fieldsKey = Object.keys(updateFields).sort().join(',');
+
+				if (!updateGroups.has(fieldsKey)) {
+					updateGroups.set(fieldsKey, new Map());
+				}
+
+				// Create a value key based on the actual values of the fields
+				const valueKey = Object.keys(updateFields)
+					.sort()
+					.map((key) => `${key}:${JSON.stringify(updateData[key as keyof typeof updateData])}`)
+					.join('|');
+
+				const fieldGroup = updateGroups.get(fieldsKey)!;
+				if (!fieldGroup.has(valueKey)) {
+					fieldGroup.set(valueKey, []);
+				}
+
+				fieldGroup.get(valueKey)!.push(updateData);
+			}
+
+			// Process each group of updates
+			for (const [_, fieldGroups] of updateGroups.entries()) {
+				for (const [_, sameValueUpdates] of fieldGroups.entries()) {
+					// Process in batches to avoid excessive SQL statement size
+					const batchSize = 100; // Adjust based on your database capabilities
+
+					for (let i = 0; i < sameValueUpdates.length; i += batchSize) {
+						const batch = sameValueUpdates.slice(i, i + batchSize);
+						const companyIds = batch.map((item) => item.id);
+
+						if (batch.length > 0) {
+							// Extract update fields from the first item (they all have the same values)
+							const {id, ...updateFields} = batch[0];
+
+							// Add benchmarkId and updatedAt
+							const fieldsToUpdate = {
+								...updateFields,
+								updatedAt: new Date(),
+							};
+
+							// Perform bulk update for companies with the same field values
+							const updated = await db
+								.update(company)
+								.set(fieldsToUpdate)
+								.where(and(eq(company.benchmarkId, benchmarkId), inArray(company.id, companyIds)))
+								.returning();
+
+							savedCompanies.push(...updated);
+						}
+					}
+				}
+			}
+
+			// For any companies that weren't updated (due to no changes or other issues),
+			// fetch their current state to include in the response
+			const updatedIds = new Set(savedCompanies.map((item) => item.id));
+			const missingIds = companiesToUpdate.map((item) => item.id).filter((id) => !updatedIds.has(id));
+
+			if (missingIds.length > 0) {
+				const missingCompanies = await db.query.company.findMany({
+					where: and(eq(company.benchmarkId, benchmarkId), inArray(company.id, missingIds)),
+				});
+
+				savedCompanies.push(...missingCompanies);
+			}
+		}
+
+		// Convert the database results to the expected DTO format
+		const typedResults: CompanyDTO[] = savedCompanies.map((item) => ({
+			...item,
+			// Ensure non-nullable fields in CompanyDTO have default values if null
+			name: item.name || '',
+		}));
+
+		return typedResults;
 	} catch (error) {
 		console.error(`Error saving companies for benchmark ${benchmarkId}:`, error);
 		throw error;
