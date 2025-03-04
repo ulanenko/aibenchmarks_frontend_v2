@@ -35,6 +35,20 @@ export interface AIMapperResults {
 	ai_mapper_items: Record<string, AIMapperResultItem>;
 }
 
+// Website validation DTOs
+export interface DTO_ValidateAndFindWebsiteRequest {
+	company_name: string;
+	country: string;
+	database_url?: string;
+}
+
+export interface DTO_ValidateAndFindWebsiteResponse {
+	validation_passed: boolean;
+	official_url: string;
+	replaced: boolean;
+	finetuned: boolean;
+}
+
 // Zod schemas for validation
 export const sourceColumnSchema = z.object({
 	title: z.string(),

@@ -4,11 +4,11 @@ import {companyCategorizer} from './categorizer';
 import {CategoryValue} from '@/types/category';
 import {companyColumns} from './company-columns';
 // Legacy function for backward compatibility
-// Legacy function for backward compatibility
 export const updateCategories = (company: Company) => {
-	// step 1
+	// step 1 - Source status (website and description validation)
+	companyColumns.sourceStatus.categorize(company);
+	// step 2 - Input status
 	companyColumns.inputStatus.categorize(company);
-	// step 2
 };
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {

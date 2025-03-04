@@ -4,6 +4,7 @@ import {setValueForPath} from '../object-utils';
 import {isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES} from '@/config/categories';
+import {WebsiteValidationStatus, createInputSettings} from './website-validation';
 
 export interface InputValues {
 	name: string;
@@ -22,6 +23,14 @@ export interface InputValues {
 	mainProductsAndServices: string | null;
 }
 
+export type CompanyHotCopy = {
+	id: number;
+	inputValues: InputValues;
+	categoryValues: {
+		[key: string]: CategoryValue;
+	};
+};
+
 export class Company {
 	private static tempIdCounter = -1;
 
@@ -31,11 +40,13 @@ export class Company {
 	benchmarkId: number;
 	databaseId: string | null;
 	sourceData: any;
-	dataStatus: string | null;
 
 	mappedSourceData: Partial<InputValues>;
 	// User-inputted values moved to a nested object
 	inputValues: InputValues;
+
+	// Website validation status
+	websiteValidation: WebsiteValidationStatus | null = null;
 
 	// Store original input values for change tracking
 	private originalInputValues: InputValues;
@@ -65,7 +76,6 @@ export class Company {
 		this.databaseId = data?.databaseId ?? null;
 		this.sourceData = data?.sourceData ?? null;
 		this.mappedSourceData = data?.mappedSourceData ?? null;
-		this.dataStatus = data?.dataStatus ?? null;
 
 		// Initialize inputValues
 		this.inputValues = {
@@ -84,6 +94,15 @@ export class Company {
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
 		};
+
+		this.websiteValidation =
+			data && 'urlValidationUrl' in data && data.urlValidationUrl
+				? {
+						url_validated: data!.urlValidationUrl!,
+						input_settings: data!.urlValidationInput!,
+						url_validated_and_accessible: data!.urlValidationValid!,
+				  }
+				: null;
 
 		// Store a deep copy of the original input values
 		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
@@ -111,16 +130,16 @@ export class Company {
 		return [this.inputValues.name, this.inputValues.country, this.inputValues.url].every(isEmpty);
 	}
 
-	isCompleted(): string | true {
+	requiredInputProvided(): string | true {
 		if (isEmpty(this.inputValues.name)) {
 			return 'name';
 		}
 		if (isEmpty(this.inputValues.country)) {
 			return 'country';
 		}
-		if (isEmpty(this.inputValues.url)) {
-			return 'url';
-		}
+		// if (isEmpty(this.inputValues.url)) {
+		// 	return 'url';
+		// }
 		return true;
 	}
 
@@ -142,6 +161,7 @@ export class Company {
 		this.hotCopy = {};
 		this.hotCopy.inputValues = {...this.inputValues};
 		this.hotCopy.categoryValues = this.categoryValues;
+		this.hotCopy.id = this.id;
 	}
 
 	// Method to update company data from a DTO
@@ -166,6 +186,15 @@ export class Company {
 						// If the value is back to the original, remove it from changedFields
 						this.changedFields.delete(key);
 					}
+
+					// If the input values that affect website validation have changed,
+					// we need to check if the validation is still valid
+					if (key === 'name' || key === 'country' || key === 'url') {
+						this.checkWebsiteValidationStatus();
+					}
+				} else if (key === 'websiteValidation') {
+					// Handle websiteValidation property
+					this.websiteValidation = value as WebsiteValidationStatus;
 				} else {
 					// Update other properties
 					(this as any)[key] = value;
@@ -175,6 +204,30 @@ export class Company {
 
 		// Update dependent values and hot copy
 		this.updateDependentValues();
+	}
+
+	updateWebsiteValidation(websiteValidation: WebsiteValidationStatus) {
+		this.websiteValidation = websiteValidation;
+		this.updateDependentValues();
+	}
+
+	// Check if the website validation status is still valid
+	private checkWebsiteValidationStatus() {
+		if (!this.websiteValidation) return;
+
+		// Create the current input settings
+		const currentInputSettings = createInputSettings(
+			this.inputValues.name,
+			this.inputValues.country || '',
+			this.inputValues.url,
+		);
+
+		// If the input settings have changed, the validation is no longer valid
+		if (this.websiteValidation.input_settings !== currentInputSettings) {
+			// We could either clear the validation or mark it as outdated
+			// For now, we'll just clear it
+			this.websiteValidation = null;
+		}
 	}
 
 	// Convert to plain object (DTO)
@@ -188,7 +241,6 @@ export class Company {
 				databaseId: this.databaseId,
 				sourceData: this.sourceData,
 				mappedSourceData: this.mappedSourceData,
-				dataStatus: this.dataStatus,
 			} as UpdateCompanyDTO;
 		}
 

@@ -25,10 +25,18 @@ export type CompanyDTO = {
 	mainProductsAndServices: string | null;
 	sourceData: any;
 	mappedSourceData: any;
+	urlValidationUrl: string | null;
+	urlValidationInput: string | null;
+	urlValidationValid: boolean | null;
 };
 
 // Type for company creation - omit auto-generated fields
-export type CreateCompanyDTO = Partial<Omit<CompanyDTO, 'id' | 'createdAt' | 'updatedAt' | 'benchmarkId'>>;
+export type CreateCompanyDTO = Partial<
+	Omit<
+		CompanyDTO,
+		'id' | 'createdAt' | 'updatedAt' | 'benchmarkId' | 'urlValidationUrl' | 'urlValidationInput' | 'urlValidationValid'
+	>
+>;
 
 // Type for company update
 export type UpdateCompanyDTO = Partial<Omit<CompanyDTO, 'id'>> & {id: number};

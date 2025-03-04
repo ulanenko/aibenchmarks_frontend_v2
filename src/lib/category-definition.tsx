@@ -1,9 +1,10 @@
 import {Badge, badgeVariants} from '@/components/ui/badge';
-import {LucideIcon} from 'lucide-react';
+import {LucideIcon, Loader2} from 'lucide-react';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {VariantProps} from 'class-variance-authority';
-import {CategoryColor, CategoryConfig} from '@/types/category';
+import {CategoryColor, CategoryConfig, CategoryValue} from '@/types/category';
 import {StepStatus} from '@/db/schema';
+import {Button} from '@/components/ui/button';
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 const colorMap: Record<CategoryColor, string> = {
@@ -39,13 +40,26 @@ export class CategoryDefinition {
 		return colorMap[this.color];
 	}
 
+	createIconButton(onClick: () => void) {
+		const isLoader = this.icon === Loader2;
+		const iconClassName = `w-2 h-2 text-white ${isLoader ? 'animate-spin' : ''}`;
+
+		return (
+			<Button variant="outline" size="iconSm" className={this.getColorClass()} onClick={onClick}>
+				<this.icon className={iconClassName} />
+			</Button>
+		);
+	}
+
 	createBadge(value: string, tooltipText?: string, filterFunction?: () => void, isFiltered: boolean = true) {
 		const variant = `${this.color}-${isFiltered ? 'emphasized' : 'default'}` as BadgeVariant;
+		const isLoader = this.icon === Loader2;
+		const iconClassName = `w-3 h-3 ${isLoader ? 'animate-spin' : ''}`;
 
 		const badgeClickFunction = this.onclick ?? (() => filterFunction?.());
 		const badge = (
 			<Badge variant={variant} className="my-1 whitespace-nowrap cursor-pointer" onClick={badgeClickFunction}>
-				{this.icon && <this.icon className="w-3 h-3 " style={{marginRight: '0.35rem'}} />}
+				{this.icon && <this.icon className={iconClassName} style={{marginRight: '0.35rem'}} />}
 				{value}
 			</Badge>
 		);
@@ -62,6 +76,15 @@ export class CategoryDefinition {
 		}
 
 		return badge;
+	}
+
+	toCategoryValue({label, description}: {label?: string; description?: string} = {}): CategoryValue {
+		return {
+			category: this,
+			categoryKey: this.categoryKey,
+			label: label ?? this.label,
+			description: description ?? this.tooltipText,
+		};
 	}
 }
 

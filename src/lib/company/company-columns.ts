@@ -1,8 +1,9 @@
 import {BaseRenderer} from 'handsontable/renderers';
 import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
-import {urlRenderer} from '@/components/hot/renderers';
+import {urlRenderer, websiteValidationRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
+import {SourceCategorizer} from './categorizer/sourceCategorizere';
 
 // Column definitions
 export const companyColumns = {
@@ -42,6 +43,21 @@ export const companyColumns = {
 		data: 'inputValues.url',
 		renderer: urlRenderer,
 		description: 'Website of the company',
+	}),
+	websiteValidation: new Column({
+		title: 'Validate Website',
+		type: 'text',
+		width: 120,
+		data: 'websiteValidation',
+		renderer: websiteValidationRenderer,
+		readOnly: true,
+		description: 'Validate the company website',
+	}),
+	sourceStatus: new CategoryColumn({
+		title: 'Source Status',
+		description: 'Validation status of company sources (website and description)',
+		valuePath: 'source',
+		categorizer: SourceCategorizer,
 	}),
 	streetAndNumber: new Column({
 		title: 'Street & Number',
@@ -126,6 +142,8 @@ export const defaultColumns: ColumnConfig[] = [
 	{column: companyColumns.name, show: 'always'},
 	{column: companyColumns.country, show: 'yes'},
 	{column: companyColumns.url, show: 'yes'},
+	{column: companyColumns.websiteValidation, show: 'yes'},
+	// {column: companyColumns.sourceStatus, show: 'yes'},
 ];
 
 export const inputColumns: ColumnConfig[] = [

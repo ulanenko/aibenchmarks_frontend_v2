@@ -7,6 +7,7 @@ import {toast} from '@/hooks/use-toast';
 import {isEmpty} from '@/lib/utils';
 import * as companyActions from '@/app/actions/company-actions';
 import * as benchmarkActions from '@/app/actions/benchmark-actions';
+import {WebsiteValidationStatus} from '@/lib/company/website-validation';
 
 interface CompanyStore {
 	companies: Company[];
@@ -21,6 +22,7 @@ interface CompanyStore {
 		updates: Array<{row: number; dto: UpdateCompanyDTO}>,
 		newCompanies?: UpdateCompanyDTO[],
 	) => void;
+	updateWebsiteValidation: (companyId: number, websiteValidation: WebsiteValidationStatus) => void;
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
 	loadMappingSettings: (benchmarkId: number) => Promise<{
@@ -79,6 +81,15 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 		});
 
 		get().setCompanies(currentCompanies);
+	},
+
+	updateWebsiteValidation: (companyId: number, websiteValidation: WebsiteValidationStatus) => {
+		set((state) => {
+			const companies = [...state.companies];
+			const company = companies.find((c) => c.id === companyId);
+			company?.updateWebsiteValidation(websiteValidation);
+			return {companies};
+		});
 	},
 
 	addMappedSourceData: async (mappedSourceData: CreateCompanyDTO[]) => {

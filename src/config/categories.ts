@@ -1,7 +1,51 @@
 import {CategoryDefinition} from '@/lib/category-definition';
-import {PlayCircle, AlertCircle, CheckCircle, PlusCircle} from 'lucide-react';
+import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2} from 'lucide-react';
 
 const CATEGORIES = {
+	SOURCE: {
+		NOT_VALIDATED: new CategoryDefinition({
+			label: 'Not Validated',
+			color: 'blue',
+			icon: Globe,
+			status: 'ready',
+			categoryKey: 'SOURCE.NOT_VALIDATED',
+		}),
+		VALIDATING: new CategoryDefinition({
+			label: 'Validating',
+			color: 'yellow',
+			icon: Loader2,
+			status: 'in_progress',
+			categoryKey: 'SOURCE.VALIDATING',
+		}),
+		VALID_WEBSITE: new CategoryDefinition({
+			label: 'Valid Website',
+			color: 'green',
+			icon: Globe,
+			status: 'completed',
+			categoryKey: 'SOURCE.VALID_WEBSITE',
+		}),
+		VALID_DESCRIPTION: new CategoryDefinition({
+			label: 'Valid Description',
+			color: 'green',
+			icon: FileText,
+			status: 'completed',
+			categoryKey: 'SOURCE.VALID_DESCRIPTION',
+		}),
+		VALID_WEBSITE_AND_DESCRIPTION: new CategoryDefinition({
+			label: 'Valid Website and Description',
+			color: 'green',
+			icon: CheckCircle,
+			status: 'completed',
+			categoryKey: 'SOURCE.VALID_WEBSITE_AND_DESCRIPTION',
+		}),
+		REJECT_NO_SOURCE: new CategoryDefinition({
+			label: 'Reject: no source data',
+			color: 'red',
+			icon: X,
+			status: 'decision',
+			categoryKey: 'SOURCE.REJECT_NO_SOURCE',
+		}),
+	},
 	INPUT: {
 		NEW: new CategoryDefinition({
 			label: 'New',
@@ -26,7 +70,7 @@ const CATEGORIES = {
 		}),
 		READY: new CategoryDefinition({
 			label: 'Validate',
-			color: 'red',
+			color: 'blue',
 			icon: PlayCircle,
 			status: 'ready',
 			categoryKey: 'INPUT.READY',

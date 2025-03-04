@@ -8,6 +8,7 @@ export type StepStatus =
 	| 'pending'
 	| 'in_progress'
 	| 'completed'
+	| 'decision'
 	| 'failed';
 
 export const stepStatusEnum = pgEnum('step_status', [
@@ -97,6 +98,10 @@ export const company = pgTable('bm_company', {
 	mappedSourceData: json('mapped_source_data'),
 	// Status tracking
 	// dataStatus: stepStatusEnum('data_status'),
+
+	urlValidationUrl: text('url_validated'),
+	urlValidationInput: text('url_validated_input'),
+	urlValidationValid: boolean('url_validated_and_accessible'),
 });
 
 export interface BaseFields {
