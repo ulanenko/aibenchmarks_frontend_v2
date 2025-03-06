@@ -3,9 +3,10 @@ import {Company} from '@/lib/company/company';
 import {Categorizer, CategoryValue} from '@/types/category';
 import {getValidationStatus, isValidationUpToDate} from '../website-validation';
 import {CategoryDefinition} from '@/lib/category-definition';
+import {VALIDATION} from '@/config/validation';
 
 /**
- * Helper function to check if a description is valid (more than 100 words)
+ * Helper function to check if a description is valid (meets the minimum word count requirement)
  */
 function isValidDescription(company: Company): boolean {
 	const descriptions = [
@@ -14,11 +15,11 @@ function isValidDescription(company: Company): boolean {
 		company.inputValues.fullOverview,
 	];
 
-	// Check if any description has more than 100 words
+	// Check if any description meets the minimum word count requirement
 	return descriptions.some((description) => {
 		if (!description) return false;
 		const wordCount = description.trim().split(/\s+/).length;
-		return wordCount > 100;
+		return wordCount >= VALIDATION.COMPANY_DESCRIPTION_MIN_WORDS;
 	});
 }
 

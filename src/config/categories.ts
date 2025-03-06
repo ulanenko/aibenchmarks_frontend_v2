@@ -55,6 +55,11 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'DESCRIPTION.INVALID',
 			passed: false,
+			onclick: (company) => {
+				// We'll implement the modal opening logic in a separate hook
+				window.dispatchEvent(new CustomEvent('openDescriptionModal', {detail: {company}}));
+			},
+			onclickTooltip: 'Edit company description',
 		}),
 		VALID: new CategoryDefinition({
 			label: 'Valid',
@@ -63,6 +68,11 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'DESCRIPTION.VALID',
 			passed: true,
+			onclick: (company) => {
+				// We'll implement the modal opening logic in a separate hook
+				window.dispatchEvent(new CustomEvent('openDescriptionModal', {detail: {company}}));
+			},
+			onclickTooltip: 'View company description',
 		}),
 	},
 

@@ -47,7 +47,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 		if (isSaving) return;
 
 		try {
-			await saveChanges(benchmarkId);
+			await saveChanges();
 		} catch (error) {
 			console.error('Error details:', error);
 			toast.error(error instanceof Error ? error.message : 'Error saving companies');

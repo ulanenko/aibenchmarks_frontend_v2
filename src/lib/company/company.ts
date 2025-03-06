@@ -55,7 +55,7 @@ export class Company {
 	private dynamicInputValues: Partial<InputValues> = {};
 
 	// Track which fields have been changed
-	private changedFields: Set<string> = new Set();
+	changedFields: Partial<InputValues> = {};
 
 	// a deep copy of the properties relevant for the hot table
 	// this is updated after validating the company to ensure that the hot table is updated
@@ -111,7 +111,7 @@ export class Company {
 		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
 
 		// Initialize changedFields as empty (no changes yet)
-		this.changedFields = new Set();
+		this.changedFields = {};
 
 		this.updateDependentValues();
 	}
@@ -192,10 +192,10 @@ export class Company {
 
 					// Check if the value has changed from the original
 					if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
-						this.changedFields.add(key);
+						this.changedFields[key as keyof InputValues] = newValue;
 					} else {
 						// If the value is back to the original, remove it from changedFields
-						this.changedFields.delete(key);
+						delete this.changedFields[key as keyof InputValues];
 					}
 
 					// If the input values that affect website validation have changed,
@@ -256,14 +256,9 @@ export class Company {
 		}
 
 		// For existing entities, only include changed fields
-		if (this.changedFields.size > 0) {
+		if (Object.keys(this.changedFields).length > 0) {
 			// Create a DTO with only the changed fields
-			const dto: UpdateCompanyDTO = {id: this.id};
-
-			// Add each changed field to the DTO
-			this.changedFields.forEach((field) => {
-				dto[field as keyof UpdateCompanyDTO] = this.inputValues[field as keyof InputValues];
-			});
+			const dto: UpdateCompanyDTO = {id: this.id, ...this.changedFields};
 
 			return dto;
 		}
@@ -274,7 +269,7 @@ export class Company {
 	// Method to reset the original values after saving changes
 	resetOriginalValues(): void {
 		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
-		this.changedFields.clear();
+		this.changedFields = {};
 	}
 
 	// Static method to create from database type
@@ -290,12 +285,12 @@ export class Company {
 		}
 
 		// Check if any fields have been changed
-		return this.changedFields.size > 0;
+		return Object.keys(this.changedFields).length > 0;
 	}
 
 	// Get the number of changes
 	getChangeCount(): number {
-		return this.changedFields.size;
+		return Object.keys(this.changedFields).length;
 	}
 
 	// Alias for hasChanges for better readability in some contexts
@@ -306,8 +301,8 @@ export class Company {
 	// Get a summary of changes for display purposes
 	getChangesSummary(): {count: number; fields: string[]} {
 		return {
-			count: this.changedFields.size,
-			fields: Array.from(this.changedFields),
+			count: Object.keys(this.changedFields).length,
+			fields: Object.keys(this.changedFields),
 		};
 	}
 }

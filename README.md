@@ -90,6 +90,22 @@ export async function getResource(id: number): Promise<ResourceDTO> {
 
 	return data.resource;
 }
+
+// Company Update Service
+export async function updateCompany(
+	companyId: number,
+	updates: Partial<Omit<UpdateCompanyDTO, 'id'>>,
+): Promise<Company | null> {
+	try {
+		// Save to backend first
+		// Only update local store if save is successful
+		// Return updated company instance
+		return updatedCompany;
+	} catch (error) {
+		// Handle errors
+		return null;
+	}
+}
 ```
 
 ## Development Setup

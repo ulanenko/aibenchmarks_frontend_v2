@@ -36,7 +36,7 @@ interface CompanyStore {
 	}>;
 	removeCompany: (id: number) => void;
 	loadCompanies: (benchmarkId: number) => Promise<void>;
-	saveChanges: (benchmarkId: number) => Promise<void>;
+	saveChanges: () => Promise<void>;
 }
 
 export const useCompanyStore = create<CompanyStore>((set, get) => ({
@@ -202,9 +202,14 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 		}
 	},
 
-	saveChanges: async (benchmarkId) => {
+	saveChanges: async () => {
 		set({isSaving: true});
 		try {
+			const benchmarkId = get().benchmarkId;
+			if (benchmarkId === null) {
+				throw new Error('Benchmark ID is not set');
+			}
+
 			// Filter companies that have changes
 			const companiesWithChanges = get().companies.filter((company) => company.hasChanges());
 
