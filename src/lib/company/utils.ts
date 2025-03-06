@@ -1,12 +1,17 @@
 import {getValueForPath, setValueForPath} from '@/lib/object-utils';
-import {Company} from './company';
+import {Company, CompanyHotCopy} from './company';
 import {companyCategorizer} from './categorizer';
 import {CategoryValue} from '@/types/category';
 import {companyColumns} from './company-columns';
+import {CATEGORIES} from '@/config/categories';
 // Legacy function for backward compatibility
 export const updateCategories = (company: Company) => {
+	// @ts-ignore
+	company.categoryValues = {};
+
 	// step 1 - Source status (website and description validation)
-	companyColumns.sourceStatus.categorize(company);
+	companyColumns.descriptionStatus.categorize(company);
+	companyColumns.websiteStatus.categorize(company);
 	// step 2 - Input status
 	companyColumns.inputStatus.categorize(company);
 };

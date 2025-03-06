@@ -3,15 +3,27 @@ import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer, websiteValidationRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
-import {SourceCategorizer} from './categorizer/sourceCategorizere';
+import {DescriptionCategorizer, WebsiteCategorizer} from './categorizer/sourceCategorizere';
 
 // Column definitions
 export const companyColumns = {
 	inputStatus: new CategoryColumn({
 		title: 'Status',
 		description: 'Validation status of the company entry',
-		valuePath: 'input',
+		valuePath: 'INPUT',
 		categorizer: InputLabelsDescriptions,
+	}),
+	descriptionStatus: new CategoryColumn({
+		title: 'Description Status',
+		description: 'Validation status of the company description',
+		valuePath: 'DESCRIPTION',
+		categorizer: DescriptionCategorizer,
+	}),
+	websiteStatus: new CategoryColumn({
+		title: 'Website Status',
+		description: 'Validation status of the company website',
+		valuePath: 'WEBSITE',
+		categorizer: WebsiteCategorizer,
 	}),
 	name: new Column({
 		title: 'Company Name',
@@ -40,7 +52,8 @@ export const companyColumns = {
 		title: 'Website',
 		type: 'text',
 		width: 200,
-		data: 'inputValues.url',
+		// we use the dynamicInputValues.url to show the url from the source validation
+		data: 'dynamicInputValues.url',
 		renderer: urlRenderer,
 		description: 'Website of the company',
 	}),
@@ -53,12 +66,7 @@ export const companyColumns = {
 		readOnly: true,
 		description: 'Validate the company website',
 	}),
-	sourceStatus: new CategoryColumn({
-		title: 'Source Status',
-		description: 'Validation status of company sources (website and description)',
-		valuePath: 'source',
-		categorizer: SourceCategorizer,
-	}),
+
 	streetAndNumber: new Column({
 		title: 'Street & Number',
 		type: 'text',

@@ -14,6 +14,7 @@ interface CategoryConfig {
 	onclick?: () => void;
 	onclickTooltip?: string;
 	status?: StepStatus;
+	passed: boolean | undefined;
 }
 
 // this value is assigned to companies and is used by the column renderer

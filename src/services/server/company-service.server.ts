@@ -47,7 +47,14 @@ export async function saveCompanies(
 			if ('id' in companyData && companyData.id > 0) {
 				companiesToUpdate.push(companyData as UpdateCompanyDTO);
 			} else {
-				companiesToCreate.push(companyData as CreateCompanyDTO);
+				// For companies with temporary IDs (negative), remove the ID property
+				// to let the database generate a new ID
+				if ('id' in companyData && companyData.id < 0) {
+					const {id, ...dataWithoutId} = companyData;
+					companiesToCreate.push(dataWithoutId as CreateCompanyDTO);
+				} else {
+					companiesToCreate.push(companyData as CreateCompanyDTO);
+				}
 			}
 		}
 

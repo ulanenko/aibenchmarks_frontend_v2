@@ -5,7 +5,7 @@ import 'handsontable/dist/handsontable.full.min.css';
 import {ColumnConfig} from '@/lib/company/company-columns';
 import {useCompanyStore} from '@/stores/use-company-store';
 import {Company} from '@/lib/company';
-import {CellChange, ChangeSource} from 'handsontable/common';
+import {CellChange, ChangeSource, ColumnDataGetterSetterFunction} from 'handsontable/common';
 import Handsontable from 'handsontable';
 import {useSettingsStore} from '@/stores/use-settings-store';
 import {useShallow} from 'zustand/react/shallow';
@@ -63,13 +63,24 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 		const updatesByRow: Record<number, UpdateCompanyDTO> = {};
 		const newCompanies: Record<number, UpdateCompanyDTO> = {};
 
+		function updatePropInDto(
+			dto: UpdateCompanyDTO,
+			prop: string | number | ColumnDataGetterSetterFunction,
+			value: any,
+		) {
+			const propPath = prop.toString();
+			const propName = propPath.replace('inputValues.', '').replace('dynamicInputValues.', '');
+			dto[propName as keyof UpdateCompanyDTO] = value;
+			// validateAndFindWebsite(dto);
+		}
+
 		changes.forEach((change) => {
 			if (!change) return;
 			const [row, prop, , value] = change;
 
 			// Get the physical row index
 			// let physicalRow = newRows[row] ??
-			const isNewRow = row > lastRowIndex;
+			const isNewRow = row >= lastRowIndex;
 
 			// Handle new rows (spare row or manually added row)
 			if (isNewRow) {
@@ -82,9 +93,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				}
 
 				// Get the property path and set the value
-				const propPath = prop.toString();
-				const propName = propPath.replace('inputValues.', '');
-				newCompanies[idForNewCompany][propName as keyof UpdateCompanyDTO] = value;
+				updatePropInDto(newCompanies[idForNewCompany], prop, value);
 			} else {
 				const physicalRow = hot?.toPhysicalRow(row);
 				// Handle existing rows
@@ -93,11 +102,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 						id: hotCopyCompanies[physicalRow]?.id || physicalRow,
 					} as UpdateCompanyDTO;
 				}
-
-				// Get the property path and set the value
-				const propPath = prop.toString();
-				const propName = propPath.replace('inputValues.', '');
-				updatesByRow[physicalRow][propName as keyof UpdateCompanyDTO] = value;
+				updatePropInDto(updatesByRow[physicalRow], prop, value);
 			}
 		});
 

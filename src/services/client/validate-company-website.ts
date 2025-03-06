@@ -5,13 +5,13 @@ import {useCompanyStore} from '@/stores/use-company-store';
 
 export async function validateCompanyWebsite(hotCopy: CompanyHotCopy) {
 	const {inputValues, categoryValues} = hotCopy;
-	const {name, country, url} = inputValues;
 	if (!hotCopy.id) {
 		alert('Company is not saved');
 		return {result: null, error: 'Company is not saved'};
 	}
+	const {name, country, url} = inputValues!;
 
-	if (categoryValues.source.category.status === 'in_progress') {
+	if (categoryValues?.WEBSITE.category.status === 'in_progress') {
 		alert('Website is already being validated');
 		return {result: null, error: 'Website is already being validated'};
 	}

@@ -5,18 +5,8 @@ import {VariantProps} from 'class-variance-authority';
 import {CategoryColor, CategoryConfig, CategoryValue} from '@/types/category';
 import {StepStatus} from '@/db/schema';
 import {Button} from '@/components/ui/button';
+import {getColorClass} from '@/lib/colors';
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
-
-const colorMap: Record<CategoryColor, string> = {
-	green: 'bg-emerald-500',
-	red: 'bg-rose-500',
-	yellow: 'bg-amber-500',
-	blue: 'bg-blue-500',
-	purple: 'bg-purple-500',
-	pink: 'bg-pink-500',
-	gray: 'bg-slate-500',
-	orange: 'bg-orange-500',
-};
 
 export class CategoryDefinition {
 	color: CategoryColor;
@@ -25,6 +15,7 @@ export class CategoryDefinition {
 	tooltipText?: string;
 	status?: StepStatus;
 	label: string;
+	passed: boolean | undefined;
 	categoryKey: string;
 	constructor(config: CategoryConfig) {
 		this.color = config.color;
@@ -34,10 +25,15 @@ export class CategoryDefinition {
 		this.tooltipText = config.onclickTooltip;
 		this.label = config.label;
 		this.categoryKey = config.categoryKey;
+		this.passed = config.passed;
 	}
 
 	getColorClass() {
-		return colorMap[this.color];
+		return getColorClass(this.color, 'bg');
+	}
+
+	isDone() {
+		return this.status === 'completed' || this.status === 'decision';
 	}
 
 	createIconButton(onClick: () => void) {

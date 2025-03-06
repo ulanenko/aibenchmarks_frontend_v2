@@ -5,6 +5,7 @@ import {getObjectsByCategory, getUniqueValuesForPath} from '@/lib/company';
 import {CategoryValue} from '@/types/category';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CategoryColumn} from '@/lib/column-definition';
+import {CATEGORIES} from '@/config/categories';
 // A wrapper component that renders a Badge which opens a dialogue on click.
 
 export const CategoryRenderer = (
@@ -22,14 +23,21 @@ export const CategoryRenderer = (
 	// Get the correct row data when filtering is active
 	const physicalRow = instance.toPhysicalRow(row);
 	const rowData = instance.getSourceDataAtRow(physicalRow);
+	const isMainStatusCol = prop.toString().includes('input.label') == true;
 
-	if (!rowData) {
+	if (!rowData && !isMainStatusCol) {
 		return td;
 	}
 
 	const {categoryValuePath} = cellProperties;
 	const categoryValue = getValueForPath(rowData, categoryValuePath) as CategoryValue;
-	const {category, label, description, categoryKey} = categoryValue ?? {};
+	let {category, label, description, categoryKey} = categoryValue ?? {};
+
+	if (!categoryKey && isMainStatusCol) {
+		category = CATEGORIES.INPUT.NEW;
+		label = CATEGORIES.INPUT.NEW.label;
+		categoryKey = CATEGORIES.INPUT.NEW.categoryKey;
+	}
 
 	if (!category || !categoryKey) {
 		return td;

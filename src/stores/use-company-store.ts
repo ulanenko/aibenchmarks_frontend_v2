@@ -84,12 +84,10 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 	},
 
 	updateWebsiteValidation: (companyId: number, websiteValidation: WebsiteValidationStatus) => {
-		set((state) => {
-			const companies = [...state.companies];
-			const company = companies.find((c) => c.id === companyId);
-			company?.updateWebsiteValidation(websiteValidation);
-			return {companies};
-		});
+		const companies = [...get().companies];
+		const company = companies.find((c) => c.id === companyId);
+		company?.updateWebsiteValidation(websiteValidation);
+		get().setCompanies(companies);
 	},
 
 	addMappedSourceData: async (mappedSourceData: CreateCompanyDTO[]) => {

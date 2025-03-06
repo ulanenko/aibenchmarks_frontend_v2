@@ -27,11 +27,11 @@ export const websiteValidationRenderer = (
 	const physicalRow = instance.toPhysicalRow(row);
 	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
 
-	if (!rowData) {
+	if (!rowData || !rowData.categoryValues?.WEBSITE?.categoryKey) {
 		return td;
 	}
 
-	const categoryValue = rowData.categoryValues.source;
+	const categoryValue = rowData.categoryValues.WEBSITE;
 
 	// Create a container for the React component
 	const container = document.createElement('div');

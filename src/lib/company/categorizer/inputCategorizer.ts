@@ -34,28 +34,29 @@ const InputLabelsDescriptions: Categorizer = [
 		return false;
 	},
 	(company) => {
-		const sourceStatus = company.categoryValues.source;
-		const sourceCategory = sourceStatus.category;
+		const websiteStatus = company.categoryValues!.WEBSITE;
+		const websiteCategory = websiteStatus.category;
+		const INPUTCATEGORIES = CATEGORIES.INPUT;
 		// if sourceStatus is not valid, return false
-		if (
-			sourceCategory.status === 'decision' ||
-			sourceCategory.status === 'not_started' ||
-			sourceCategory.status === 'in_progress'
-		) {
-			return sourceStatus;
-		}
-		if (sourceCategory.status === 'completed') {
-			return {
-				category: CATEGORIES.INPUT.COMPLETED,
-				categoryKey: CATEGORIES.INPUT.COMPLETED.categoryKey,
-				label: CATEGORIES.INPUT.COMPLETED.label,
-				description: CATEGORIES.INPUT.COMPLETED.tooltipText,
-			};
-		} else {
-			return CATEGORIES.INPUT.READY.toCategoryValue();
+		// if sourceStatus is not valid, return false
+
+		// if the webite validation has not been run, the user should run the analysis
+		if (!websiteCategory?.isDone()) {
+			// chekc if it's in progress
+			if (websiteCategory.status === 'in_progress') {
+				return INPUTCATEGORIES.IN_PROGRESS.toCategoryValue();
+			}
+			return INPUTCATEGORIES.READY.toCategoryValue();
 		}
 
-		return false;
+		const descriptionStatus = company.categoryValues!.DESCRIPTION;
+		const descriptionCategory = descriptionStatus.category;
+		// if either the website or the description is valid (if the validation has been run), return the completed category
+		if (descriptionCategory.passed || websiteCategory.passed) {
+			return INPUTCATEGORIES.COMPLETED.toCategoryValue();
+		} else {
+			return INPUTCATEGORIES.REJECT_NO_SOURCE.toCategoryValue();
+		}
 	},
 ];
 

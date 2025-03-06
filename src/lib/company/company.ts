@@ -3,9 +3,8 @@ import {updateCategories} from './utils';
 import {setValueForPath} from '../object-utils';
 import {isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
-import {CATEGORIES} from '@/config/categories';
+import {CATEGORIES, CategoryType} from '@/config/categories';
 import {WebsiteValidationStatus, createInputSettings} from './website-validation';
-
 export interface InputValues {
 	name: string;
 	country: string | null;
@@ -24,11 +23,14 @@ export interface InputValues {
 }
 
 export type CompanyHotCopy = {
-	id: number;
-	inputValues: InputValues;
-	categoryValues: {
-		[key: string]: CategoryValue;
-	};
+	id: number | null;
+	inputValues: InputValues | null;
+	categoryValues:
+		| {
+				[key in CategoryType]: CategoryValue;
+		  }
+		| undefined;
+	dynamicInputValues: Partial<InputValues> | null;
 };
 
 export class Company {
@@ -50,23 +52,24 @@ export class Company {
 
 	// Store original input values for change tracking
 	private originalInputValues: InputValues;
+	private dynamicInputValues: Partial<InputValues> = {};
 
 	// Track which fields have been changed
 	private changedFields: Set<string> = new Set();
 
 	// a deep copy of the properties relevant for the hot table
 	// this is updated after validating the company to ensure that the hot table is updated
-	hotCopy: {[key: string]: any} = {};
-	categoryValues: {
-		[key: string]: CategoryValue;
-	} = {
-		input: {
-			category: CATEGORIES.INPUT.NEW,
-			label: '',
-			description: '',
-			categoryKey: CATEGORIES.INPUT.NEW.categoryKey,
-		},
+	hotCopy: CompanyHotCopy = {
+		id: null,
+		inputValues: null,
+		categoryValues: undefined,
+		dynamicInputValues: null,
 	};
+	categoryValues:
+		| {
+				[key in CategoryType]: CategoryValue;
+		  }
+		| undefined;
 
 	constructor(data?: CompanyDTO | CreateCompanyDTO) {
 		this.id = data && 'id' in data ? data.id : Company.getNextTempId();
@@ -145,6 +148,12 @@ export class Company {
 
 	updateDependentValues() {
 		updateCategories(this);
+		// source status
+		const websiteIsValid = this.categoryValues?.WEBSITE.category.passed === true;
+		this.dynamicInputValues = {
+			url: websiteIsValid ? this.websiteValidation?.url_validated : this.inputValues.url,
+		};
+
 		// update the hotCopy to ensure that the hot table is updated
 		this.updateHOTExport();
 	}
@@ -158,10 +167,12 @@ export class Company {
 		// const copy = {...this} as any;
 		// delete copy.changes;
 		// const categories = this.categoryValues;
-		this.hotCopy = {};
-		this.hotCopy.inputValues = {...this.inputValues};
-		this.hotCopy.categoryValues = this.categoryValues;
-		this.hotCopy.id = this.id;
+		this.hotCopy = {
+			id: this.id,
+			inputValues: {...this.inputValues},
+			dynamicInputValues: {...this.dynamicInputValues},
+			categoryValues: this.categoryValues,
+		};
 	}
 
 	// Method to update company data from a DTO

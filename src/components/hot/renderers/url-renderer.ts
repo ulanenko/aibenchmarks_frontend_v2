@@ -1,5 +1,103 @@
+import {getColorClass} from '@/lib/colors';
+import {CompanyHotCopy} from '@/lib/company/company';
+import {isEmpty} from '@/lib/utils';
+import {CategoryColor} from '@/types/category';
 import Handsontable from 'handsontable';
+import tippy from 'tippy.js';
+import 'tippy.js/dist/tippy.css';
+// Optional: Import a theme if you want to customize the appearance
+// import 'tippy.js/themes/light.css';
 
+/**
+ * Checks if a URL has been changed from its source
+ */
+function checkUrlChanged(value: string | null | undefined, sourceUrl: string | null | undefined) {
+	// if (!value || !sourceUrl) {
+	// 	return false;
+	// }
+	const normalizedValue = value?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
+	const normalizedSourceUrl = sourceUrl?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
+	return normalizedValue !== normalizedSourceUrl;
+}
+
+/**
+ * Creates a URL cell with appropriate styling and tooltip
+ */
+function createUrlCell(url: string, isValid?: boolean, isUpdated?: boolean, sourceUrl?: string | null): HTMLElement {
+	// Create container
+	const container = document.createElement('div');
+	container.className = 'w-full h-full relative';
+
+	// Determine text color class based on validation status
+
+	const textColorClass = isValid === false ? `!${getColorClass('red', 'text')}` : false;
+
+	// Create link element with hover effects using Tailwind
+	const link = document.createElement('a');
+	link.href = url;
+	link.textContent = isValid === false && isEmpty(url) ? 'N/A' : url;
+	if (isEmpty(url)) {
+		console.log('HOI HOI');
+	}
+	link.target = '_blank';
+	link.rel = 'noopener noreferrer';
+	link.className = `${textColorClass} inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap hover:underline`;
+
+	// Add border-bottom if URL has been replaced
+	if (isUpdated) {
+		const borderColorClass = getColorClass('red', 'border');
+		link.style.borderBottom = `1px dashed `;
+		link.classList.add(borderColorClass);
+	}
+
+	// Generate tooltip content
+	let tooltipContent = '';
+
+	if (isValid === undefined) {
+		tooltipContent = 'URL not validated';
+	} else if (isValid === false) {
+		tooltipContent = 'Invalid URL';
+	} else if (isValid === true) {
+		tooltipContent = 'Valid URL';
+	}
+
+	if (isUpdated) {
+		if (sourceUrl) {
+			tooltipContent += `<br>Replaced from: ${sourceUrl}`;
+		} else {
+			tooltipContent += `<br>No source url provided`;
+		}
+	}
+
+	// Create a tooltip content element
+	const tooltipElement = document.createElement('div');
+	tooltipElement.innerHTML = tooltipContent;
+	tooltipElement.className = 'text-sm p-1';
+
+	// Initialize Tippy.js tooltip with more options for better appearance
+	tippy(link, {
+		content: tooltipElement,
+		allowHTML: true,
+		placement: 'top',
+		arrow: true,
+		theme: 'light',
+		zIndex: 9999,
+		duration: [200, 0], // [show, hide] duration in ms
+		interactive: true, // Allow interaction with tooltip content
+		appendTo: document.body, // Append to body to avoid positioning issues
+		maxWidth: 300,
+		animation: 'scale',
+	});
+
+	// Append elements
+	container.appendChild(link);
+
+	return container;
+}
+
+/**
+ * Handsontable renderer for URL cells
+ */
 export const urlRenderer = (
 	instance: Handsontable.Core,
 	td: HTMLTableCellElement,
@@ -10,40 +108,23 @@ export const urlRenderer = (
 	cellProperties: Handsontable.CellProperties,
 ) => {
 	// Clear the cell content
-	// td.innerHTML = '';
-	// use default renderer
-	// empty the cell
 	Handsontable.dom.empty(td);
 
-	if (!value) {
+	if (instance.isEmptyRow(row)) {
 		return td;
 	}
-	// Create an anchor element
-	const link = document.createElement('a');
-	link.href = value;
-	link.target = '_blank';
-	link.rel = 'noopener noreferrer';
-	link.textContent = value;
-	// Style the link
-	link.style.color = '#2563eb'; // Blue color
-	link.style.textDecoration = 'none';
-	link.style.display = 'block';
-	link.style.width = '100%';
-	link.style.overflow = 'hidden';
-	link.style.textOverflow = 'ellipsis';
-	link.style.whiteSpace = 'nowrap';
 
-	// Add hover effect
-	link.addEventListener('mouseover', () => {
-		link.style.textDecoration = 'underline';
-	});
-	link.addEventListener('mouseout', () => {
-		link.style.textDecoration = 'none';
-	});
+	const physicalRow = instance.toPhysicalRow(row);
+	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
+	const sourceUrl = rowData?.inputValues?.url;
+	const urlIsValid = rowData?.categoryValues?.WEBSITE.category.passed;
+	const urlIsUpdated = urlIsValid && checkUrlChanged(value, sourceUrl);
+
+	// Create and append the URL cell
+	const urlCell = createUrlCell(value, urlIsValid, urlIsUpdated, sourceUrl);
+	td.appendChild(urlCell);
 	td.classList.add('htMiddle');
-
-	// Append the link to the cell
-	td.appendChild(link);
+	td.style.color = 'inherit'; // Reset any color Handsontable might be applying
 
 	return td;
 };

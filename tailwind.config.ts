@@ -18,6 +18,12 @@ const config = {
 		'bg-pink-500',
 		'bg-slate-500',
 		'bg-orange-500',
+		'!text-emerald-500',
+		'!text-rose-500',
+		'!text-amber-500',
+		'!text-blue-500',
+		'!text-purple-500',
+		'!text-pink-500',
 	],
 	prefix: '',
 	theme: {

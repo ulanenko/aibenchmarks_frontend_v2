@@ -2,50 +2,119 @@ import {CategoryDefinition} from '@/lib/category-definition';
 import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2} from 'lucide-react';
 
 const CATEGORIES = {
-	SOURCE: {
+	WEBSITE: {
+		NOT_READY: new CategoryDefinition({
+			label: 'Not Ready',
+			color: 'gray',
+			icon: Globe,
+			status: 'not_ready',
+			categoryKey: 'WEBSITE.NOT_READY',
+			passed: undefined,
+		}),
 		NOT_VALIDATED: new CategoryDefinition({
 			label: 'Not Validated',
 			color: 'blue',
 			icon: Globe,
 			status: 'ready',
-			categoryKey: 'SOURCE.NOT_VALIDATED',
+			categoryKey: 'WEBSITE.NOT_VALIDATED',
+			passed: undefined,
 		}),
 		VALIDATING: new CategoryDefinition({
 			label: 'Validating',
 			color: 'yellow',
 			icon: Loader2,
 			status: 'in_progress',
-			categoryKey: 'SOURCE.VALIDATING',
+			categoryKey: 'WEBSITE.VALIDATING',
+			passed: undefined,
 		}),
-		VALID_WEBSITE: new CategoryDefinition({
-			label: 'Valid Website',
+		VALID: new CategoryDefinition({
+			label: 'Valid',
 			color: 'green',
 			icon: Globe,
 			status: 'completed',
-			categoryKey: 'SOURCE.VALID_WEBSITE',
+			categoryKey: 'WEBSITE.VALID',
+			passed: true,
 		}),
-		VALID_DESCRIPTION: new CategoryDefinition({
-			label: 'Valid Description',
+		INVALID: new CategoryDefinition({
+			label: 'Invalid',
+			color: 'red',
+			icon: Globe,
+			status: 'completed',
+			categoryKey: 'WEBSITE.INVALID',
+			passed: false,
+		}),
+	},
+	DESCRIPTION: {
+		INVALID: new CategoryDefinition({
+			label: 'Insufficient',
+			color: 'red',
+			icon: FileText,
+			status: 'completed',
+			categoryKey: 'DESCRIPTION.INVALID',
+			passed: false,
+		}),
+		VALID: new CategoryDefinition({
+			label: 'Valid',
 			color: 'green',
 			icon: FileText,
 			status: 'completed',
-			categoryKey: 'SOURCE.VALID_DESCRIPTION',
-		}),
-		VALID_WEBSITE_AND_DESCRIPTION: new CategoryDefinition({
-			label: 'Valid Website and Description',
-			color: 'green',
-			icon: CheckCircle,
-			status: 'completed',
-			categoryKey: 'SOURCE.VALID_WEBSITE_AND_DESCRIPTION',
-		}),
-		REJECT_NO_SOURCE: new CategoryDefinition({
-			label: 'Reject: no source data',
-			color: 'red',
-			icon: X,
-			status: 'decision',
-			categoryKey: 'SOURCE.REJECT_NO_SOURCE',
+			categoryKey: 'DESCRIPTION.VALID',
+			passed: true,
 		}),
 	},
+
+	// SOURCE: {
+	// 	NOT_VALIDATED: new SourceCategoryDefinition({
+	// 		label: 'Not Validated',
+	// 		color: 'blue',
+	// 		icon: Globe,
+	// 		status: 'ready',
+	// 		categoryKey: 'SOURCE.NOT_VALIDATED',
+	// 	}),
+	// 	VALIDATING: new SourceCategoryDefinition({
+	// 		label: 'Validating',
+	// 		color: 'yellow',
+	// 		icon: Loader2,
+	// 		status: 'in_progress',
+	// 		categoryKey: 'SOURCE.VALIDATING',
+	// 	}),
+	// 	VALID_WEBSITE: new SourceCategoryDefinition({
+	// 		label: 'Valid Website',
+	// 		color: 'green',
+	// 		icon: Globe,
+	// 		status: 'completed',
+	// 		categoryKey: 'SOURCE.VALID_WEBSITE',
+	// 		websiteIsValid: true,
+	// 		descriptionIsValid: false,
+	// 	}),
+	// 	VALID_DESCRIPTION: new SourceCategoryDefinition({
+	// 		label: 'Valid Description',
+	// 		color: 'green',
+	// 		icon: FileText,
+	// 		status: 'completed',
+	// 		categoryKey: 'SOURCE.VALID_DESCRIPTION',
+	// 		websiteIsValid: false,
+	// 		descriptionIsValid: true,
+	// 	}),
+	// 	VALID_WEBSITE_AND_DESCRIPTION: new SourceCategoryDefinition({
+	// 		label: 'Valid Website and Description',
+	// 		color: 'green',
+	// 		icon: CheckCircle,
+	// 		status: 'completed',
+	// 		categoryKey: 'SOURCE.VALID_WEBSITE_AND_DESCRIPTION',
+	// 		websiteIsValid: true,
+	// 		descriptionIsValid: true,
+	// 	}),
+	// 	REJECT_NO_SOURCE: new SourceCategoryDefinition({
+	// 		label: 'Reject: no source data',
+	// 		color: 'red',
+	// 		icon: X,
+	// 		status: 'decision',
+	// 		categoryKey: 'SOURCE.REJECT_NO_SOURCE',
+	// 		websiteIsValid: false,
+	// 		descriptionIsValid: false,
+	// 	}),
+	// },
 	INPUT: {
 		NEW: new CategoryDefinition({
 			label: 'New',
@@ -53,6 +122,7 @@ const CATEGORIES = {
 			icon: PlusCircle,
 			status: 'not_started',
 			categoryKey: 'INPUT.NEW',
+			passed: undefined,
 		}),
 		INPUT_REQUIRED: new CategoryDefinition({
 			label: 'Input Required',
@@ -60,6 +130,7 @@ const CATEGORIES = {
 			icon: AlertCircle,
 			status: 'input_required',
 			categoryKey: 'INPUT.INPUT_REQUIRED',
+			passed: undefined,
 		}),
 		WEBSITE_INVALID: new CategoryDefinition({
 			label: 'Website Invalid',
@@ -67,6 +138,7 @@ const CATEGORIES = {
 			icon: AlertCircle,
 			status: 'input_required',
 			categoryKey: 'INPUT.WEBSITE_INVALID',
+			passed: undefined,
 		}),
 		READY: new CategoryDefinition({
 			label: 'Validate',
@@ -74,6 +146,23 @@ const CATEGORIES = {
 			icon: PlayCircle,
 			status: 'ready',
 			categoryKey: 'INPUT.READY',
+			passed: undefined,
+		}),
+		IN_PROGRESS: new CategoryDefinition({
+			label: 'In Progress',
+			color: 'yellow',
+			icon: Loader2,
+			status: 'in_progress',
+			categoryKey: 'INPUT.IN_PROGRESS',
+			passed: undefined,
+		}),
+		REJECT_NO_SOURCE: new CategoryDefinition({
+			label: 'Reject: no source data',
+			color: 'red',
+			icon: X,
+			status: 'decision',
+			categoryKey: 'INPUT.REJECT_NO_SOURCE',
+			passed: false,
 		}),
 		COMPLETED: new CategoryDefinition({
 			label: 'Validated',
@@ -81,6 +170,7 @@ const CATEGORIES = {
 			icon: CheckCircle,
 			status: 'completed',
 			categoryKey: 'INPUT.COMPLETED',
+			passed: true,
 		}),
 	},
 };
