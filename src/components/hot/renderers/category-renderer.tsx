@@ -23,7 +23,7 @@ export const CategoryRenderer = (
 	// Get the correct row data when filtering is active
 	const physicalRow = instance.toPhysicalRow(row);
 	const rowData = instance.getSourceDataAtRow(physicalRow);
-	const isMainStatusCol = prop.toString().includes('input.label') == true;
+	const isMainStatusCol = prop.toString().includes('INPUT.label') == true;
 
 	if (!rowData && !isMainStatusCol) {
 		return td;
