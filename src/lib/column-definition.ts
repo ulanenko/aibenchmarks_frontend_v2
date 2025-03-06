@@ -5,6 +5,7 @@ import {CategoryRenderer} from '@/components/hot/renderers';
 import {Categorizer} from '@/types/category';
 import {Company} from './company/company';
 import {companyCategorizer} from './company/categorizer';
+import {CategoryType} from '@/config/categories';
 
 export type ColumnConfig = {
 	title: string;
@@ -94,7 +95,7 @@ export class Column {
 }
 
 export type CategoryColumnConfig = Omit<ColumnConfig, 'data' | 'type' | 'renderer' | 'readOnly' | 'hotProps'> & {
-	valuePath: string;
+	valuePath: CategoryType;
 	categorizer: Categorizer;
 	// categories: StatusConfigs;
 };
@@ -102,7 +103,7 @@ const CATEGORY_VALUES_PREFIX = 'categoryValues';
 
 export class CategoryColumn extends Column {
 	// categories: StatusConfigs;
-	valuePath: string;
+	valuePath: CategoryType;
 	categorizer: Categorizer;
 	constructor(config: CategoryColumnConfig) {
 		const fullConfig: ColumnConfig = {
@@ -136,7 +137,7 @@ export class CategoryColumn extends Column {
 	categorize(company: Company) {
 		try {
 			const categoryValue = companyCategorizer(company, this.categorizer);
-			company.categoryValues[this.valuePath] = categoryValue;
+			company.categoryValues![this.valuePath] = categoryValue;
 		} catch (error) {
 			throw new Error(`Could not categorize ${this.valuePath} for ${company.name}`);
 		}
