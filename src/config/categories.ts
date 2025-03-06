@@ -149,7 +149,7 @@ const CATEGORIES = {
 			passed: undefined,
 		}),
 		IN_PROGRESS: new CategoryDefinition({
-			label: 'In Progress',
+			label: 'Validating',
 			color: 'yellow',
 			icon: Loader2,
 			status: 'in_progress',
