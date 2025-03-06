@@ -9,6 +9,7 @@ import {CategoryValue} from '@/types/category';
 import {CompanyHotCopy} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
 import {Button} from '@/components/ui/button';
+import {createReactCell} from '../react-cell';
 
 // The actual renderer for HandsOnTable
 export const websiteValidationRenderer = (
@@ -31,34 +32,23 @@ export const websiteValidationRenderer = (
 		return td;
 	}
 
-	const categoryValue = rowData.categoryValues.WEBSITE;
-
-	// Create a container for the React component
-	const container = document.createElement('div');
-	container.style.width = '100%';
-	container.style.height = '100%';
-	container.style.position = 'absolute';
-	container.style.inset = '0';
-	container.style.display = 'flex';
-	container.style.justifyContent = 'center';
-	container.style.alignItems = 'center';
-
-	// Ensure the td has position relative for absolute positioning
-	td.style.position = 'relative';
-	td.style.padding = '0';
-	td.appendChild(container);
-
-	// Create a root for React rendering
-	const root = createRoot(container);
+	const root = createReactCell(td);
 
 	// Function to handle validation
-	const handleValidate = async () => {
-		await validateCompanyWebsite(rowData);
-	};
-	const IconButton = categoryValue.category.createIconButton(handleValidate);
+
+	const websiteCategory = rowData.categoryValues.WEBSITE;
+	const descriptionCategory = rowData.categoryValues.DESCRIPTION;
+
+	const IconButton = websiteCategory.category.createIconButton(rowData);
+	const DescriptionButton = descriptionCategory.category.createIconButton(rowData);
 
 	// Render the button component
-	root.render(IconButton);
+	root.render(
+		<div className="flex flex-row gap-2">
+			{IconButton}
+			{DescriptionButton}
+		</div>,
+	);
 
 	return td;
 };

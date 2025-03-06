@@ -1,4 +1,6 @@
 import {CategoryDefinition} from '@/lib/category-definition';
+import {CompanyHotCopy} from '@/lib/company/company';
+import {validateCompanyWebsite} from '@/services/client/validate-company-website';
 import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2} from 'lucide-react';
 
 const CATEGORIES = {
@@ -16,6 +18,7 @@ const CATEGORIES = {
 			color: 'blue',
 			icon: Globe,
 			status: 'ready',
+			onclick: validateCompanyWebsite,
 			categoryKey: 'WEBSITE.NOT_VALIDATED',
 			passed: undefined,
 		}),
@@ -63,58 +66,6 @@ const CATEGORIES = {
 		}),
 	},
 
-	// SOURCE: {
-	// 	NOT_VALIDATED: new SourceCategoryDefinition({
-	// 		label: 'Not Validated',
-	// 		color: 'blue',
-	// 		icon: Globe,
-	// 		status: 'ready',
-	// 		categoryKey: 'SOURCE.NOT_VALIDATED',
-	// 	}),
-	// 	VALIDATING: new SourceCategoryDefinition({
-	// 		label: 'Validating',
-	// 		color: 'yellow',
-	// 		icon: Loader2,
-	// 		status: 'in_progress',
-	// 		categoryKey: 'SOURCE.VALIDATING',
-	// 	}),
-	// 	VALID_WEBSITE: new SourceCategoryDefinition({
-	// 		label: 'Valid Website',
-	// 		color: 'green',
-	// 		icon: Globe,
-	// 		status: 'completed',
-	// 		categoryKey: 'SOURCE.VALID_WEBSITE',
-	// 		websiteIsValid: true,
-	// 		descriptionIsValid: false,
-	// 	}),
-	// 	VALID_DESCRIPTION: new SourceCategoryDefinition({
-	// 		label: 'Valid Description',
-	// 		color: 'green',
-	// 		icon: FileText,
-	// 		status: 'completed',
-	// 		categoryKey: 'SOURCE.VALID_DESCRIPTION',
-	// 		websiteIsValid: false,
-	// 		descriptionIsValid: true,
-	// 	}),
-	// 	VALID_WEBSITE_AND_DESCRIPTION: new SourceCategoryDefinition({
-	// 		label: 'Valid Website and Description',
-	// 		color: 'green',
-	// 		icon: CheckCircle,
-	// 		status: 'completed',
-	// 		categoryKey: 'SOURCE.VALID_WEBSITE_AND_DESCRIPTION',
-	// 		websiteIsValid: true,
-	// 		descriptionIsValid: true,
-	// 	}),
-	// 	REJECT_NO_SOURCE: new SourceCategoryDefinition({
-	// 		label: 'Reject: no source data',
-	// 		color: 'red',
-	// 		icon: X,
-	// 		status: 'decision',
-	// 		categoryKey: 'SOURCE.REJECT_NO_SOURCE',
-	// 		websiteIsValid: false,
-	// 		descriptionIsValid: false,
-	// 	}),
-	// },
 	INPUT: {
 		NEW: new CategoryDefinition({
 			label: 'New',
@@ -145,6 +96,7 @@ const CATEGORIES = {
 			color: 'blue',
 			icon: PlayCircle,
 			status: 'ready',
+			onclick: validateCompanyWebsite,
 			categoryKey: 'INPUT.READY',
 			passed: undefined,
 		}),

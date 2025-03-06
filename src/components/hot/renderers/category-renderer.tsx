@@ -1,11 +1,12 @@
 import {createRoot, Root} from 'react-dom/client';
 import Handsontable from 'handsontable';
 import {getValueForPath, setValueForPath} from '@/lib/object-utils';
-import {getObjectsByCategory, getUniqueValuesForPath} from '@/lib/company';
+import {CompanyHotCopy, getObjectsByCategory, getUniqueValuesForPath} from '@/lib/company';
 import {CategoryValue} from '@/types/category';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CategoryColumn} from '@/lib/column-definition';
 import {CATEGORIES} from '@/config/categories';
+import {createReactCell} from '@/components/hot/react-cell';
 // A wrapper component that renders a Badge which opens a dialogue on click.
 
 export const CategoryRenderer = (
@@ -22,7 +23,7 @@ export const CategoryRenderer = (
 
 	// Get the correct row data when filtering is active
 	const physicalRow = instance.toPhysicalRow(row);
-	const rowData = instance.getSourceDataAtRow(physicalRow);
+	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
 	const isMainStatusCol = prop.toString().includes('INPUT.label') == true;
 
 	if (!rowData && !isMainStatusCol) {
@@ -43,29 +44,13 @@ export const CategoryRenderer = (
 		return td;
 	}
 
-	// Create a container div for the React component
-	const container = document.createElement('div');
-	// container.className = 'category-badge-container';
-	container.style.width = '100%';
-	container.style.height = '100%';
-	container.style.display = 'flex';
-	container.style.justifyContent = 'center';
-	container.style.alignItems = 'center';
-	container.style.inset = '0';
-	container.style.position = 'absolute';
-
-	// Ensure the td has position relative for absolute positioning of the container
-	td.style.position = 'relative';
-	td.style.padding = '0.25rem';
-	td.appendChild(container);
-
 	// Create a new root for each render
-	const root = createRoot(container);
+	const root = createReactCell(td);
 
 	// Render our interactive BadgeWithDialogue component
 	const hotFilter = createHOTFilter(instance, categoryValuePath, category, col);
 	const isFiltered = getValueForPath(instance, `categoryFilters.${category.categoryKey}`) == true;
-	const badge = category.createBadge(label, description, hotFilter, isFiltered);
+	const badge = category.createBadge(label, rowData, description, hotFilter, isFiltered);
 
 	// Render the badge
 	root.render(badge);

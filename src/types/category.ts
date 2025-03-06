@@ -1,7 +1,7 @@
 import {StepStatus} from '@/db/schema';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {LucideIcon} from 'lucide-react';
-import {Company} from '@/lib/company/company';
+import {Company, CompanyHotCopy} from '@/lib/company/company';
 
 type CategoryColor = 'green' | 'red' | 'yellow' | 'blue' | 'purple' | 'pink' | 'gray' | 'orange';
 type Categorizer = ((company: Company) => CategoryValue | false)[];
@@ -11,7 +11,7 @@ interface CategoryConfig {
 	color: CategoryColor;
 	categoryKey: string;
 	icon: LucideIcon;
-	onclick?: () => void;
+	onclick?: (company: Company | CompanyHotCopy) => void;
 	onclickTooltip?: string;
 	status?: StepStatus;
 	passed: boolean | undefined;

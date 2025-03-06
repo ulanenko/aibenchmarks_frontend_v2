@@ -6,12 +6,13 @@ import {CategoryColor, CategoryConfig, CategoryValue} from '@/types/category';
 import {StepStatus} from '@/db/schema';
 import {Button} from '@/components/ui/button';
 import {getColorClass} from '@/lib/colors';
+import {Company, CompanyHotCopy} from '@/lib/company/company';
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 export class CategoryDefinition {
 	color: CategoryColor;
 	icon: LucideIcon;
-	onclick?: () => void;
+	onclick?: (company: Company | CompanyHotCopy) => void;
 	tooltipText?: string;
 	status?: StepStatus;
 	label: string;
@@ -36,9 +37,10 @@ export class CategoryDefinition {
 		return this.status === 'completed' || this.status === 'decision';
 	}
 
-	createIconButton(onClick: () => void) {
+	createIconButton(rowData: Company | CompanyHotCopy) {
 		const isLoader = this.icon === Loader2;
 		const iconClassName = `w-2 h-2 text-white ${isLoader ? 'animate-spin' : ''}`;
+		const onClick = () => this.onclick?.(rowData);
 
 		return (
 			<Button variant="outline" size="iconSm" className={this.getColorClass()} onClick={onClick}>
@@ -47,14 +49,24 @@ export class CategoryDefinition {
 		);
 	}
 
-	createBadge(value: string, tooltipText?: string, filterFunction?: () => void, isFiltered: boolean = true) {
+	createBadge(
+		value: string,
+		rowData: Company | CompanyHotCopy,
+		tooltipText?: string,
+		filterFunction?: () => void,
+		isFiltered: boolean = true,
+	) {
 		const variant = `${this.color}-${isFiltered ? 'emphasized' : 'default'}` as BadgeVariant;
 		const isLoader = this.icon === Loader2;
 		const iconClassName = `w-3 h-3 ${isLoader ? 'animate-spin' : ''}`;
 
 		const badgeClickFunction = this.onclick ?? (() => filterFunction?.());
 		const badge = (
-			<Badge variant={variant} className="my-1 whitespace-nowrap cursor-pointer" onClick={badgeClickFunction}>
+			<Badge
+				variant={variant}
+				className="my-1 whitespace-nowrap cursor-pointer"
+				onClick={() => badgeClickFunction(rowData)}
+			>
 				{this.icon && <this.icon className={iconClassName} style={{marginRight: '0.35rem'}} />}
 				{value}
 			</Badge>

@@ -1,9 +1,9 @@
 import {validateAndFindWebsite, ValidateWebsiteDTO} from '@/app/actions/website-validation-actions';
-import {CompanyHotCopy} from '@/lib/company/company';
+import {Company, CompanyHotCopy} from '@/lib/company/company';
 import {WebsiteValidationStatus, createInputSettings} from '@/lib/company/website-validation';
 import {useCompanyStore} from '@/stores/use-company-store';
 
-export async function validateCompanyWebsite(hotCopy: CompanyHotCopy) {
+export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) {
 	const {inputValues, categoryValues} = hotCopy;
 	if (!hotCopy.id) {
 		alert('Company is not saved');
