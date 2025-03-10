@@ -1,6 +1,6 @@
 // Export the AI mapper service
 export {aiMapper} from './ai-mapper';
-export {validateAndFindWebsite} from './website-validator';
+export {validateAndFindWebsite, validateAndFindWebsiteBatch} from './website-validator';
 
 // Export types
 export type {
@@ -11,4 +11,6 @@ export type {
 	AIMapperResultItem,
 	DTO_ValidateAndFindWebsiteRequest,
 	DTO_ValidateAndFindWebsiteResponse,
+	DTO_ValidateAndFindWebsiteRequestBatch,
+	DTO_ValidateAndFindWebsiteResponseBatch,
 } from './types';

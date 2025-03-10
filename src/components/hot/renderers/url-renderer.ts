@@ -9,18 +9,6 @@ import 'tippy.js/dist/tippy.css';
 // import 'tippy.js/themes/light.css';
 
 /**
- * Checks if a URL has been changed from its source
- */
-function checkUrlChanged(value: string | null | undefined, sourceUrl: string | null | undefined) {
-	// if (!value || !sourceUrl) {
-	// 	return false;
-	// }
-	const normalizedValue = value?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
-	const normalizedSourceUrl = sourceUrl?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
-	return normalizedValue !== normalizedSourceUrl;
-}
-
-/**
  * Creates a URL cell with appropriate styling and tooltip
  */
 function createUrlCell(url: string, isValid?: boolean, isUpdated?: boolean, sourceUrl?: string | null): HTMLElement {
@@ -118,7 +106,7 @@ export const urlRenderer = (
 	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
 	const sourceUrl = rowData?.inputValues?.url;
 	const urlIsValid = rowData?.categoryValues?.WEBSITE.category.passed;
-	const urlIsUpdated = urlIsValid && checkUrlChanged(value, sourceUrl);
+	const urlIsUpdated = urlIsValid && rowData?.dynamicInputValues?.urlValidationStatus === 'updated';
 
 	// Create and append the URL cell
 	const urlCell = createUrlCell(value, urlIsValid, urlIsUpdated, sourceUrl);

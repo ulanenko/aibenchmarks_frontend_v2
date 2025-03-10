@@ -49,6 +49,10 @@ export interface DTO_ValidateAndFindWebsiteResponse {
 	finetuned: boolean;
 }
 
+// Batch website validation DTOs - simplified to be direct arrays
+export type DTO_ValidateAndFindWebsiteRequestBatch = DTO_ValidateAndFindWebsiteRequest[];
+export type DTO_ValidateAndFindWebsiteResponseBatch = DTO_ValidateAndFindWebsiteResponse[];
+
 // Zod schemas for validation
 export const sourceColumnSchema = z.object({
 	title: z.string(),

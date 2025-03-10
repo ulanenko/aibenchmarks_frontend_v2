@@ -1,7 +1,7 @@
 import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from './type';
 import {updateCategories} from './utils';
 import {setValueForPath} from '../object-utils';
-import {isEmpty} from '../utils';
+import {checkUrlChanged, isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES, CategoryType} from '@/config/categories';
 import {WebsiteValidationStatus, createInputSettings} from './website-validation';
@@ -22,6 +22,11 @@ export interface InputValues {
 	mainProductsAndServices: string | null;
 }
 
+export type DynamicInputValues = {
+	url: string | null | undefined;
+	urlValidationStatus: 'input' | 'updated' | 'fine-tuned' | 'correct' | 'invalid';
+};
+
 export type CompanyHotCopy = {
 	id: number | null;
 	inputValues: InputValues | null;
@@ -30,7 +35,7 @@ export type CompanyHotCopy = {
 				[key in CategoryType]: CategoryValue;
 		  }
 		| undefined;
-	dynamicInputValues: Partial<InputValues> | null;
+	dynamicInputValues: DynamicInputValues | null;
 };
 
 export class Company {
@@ -52,7 +57,10 @@ export class Company {
 
 	// Store original input values for change tracking
 	private originalInputValues: InputValues;
-	private dynamicInputValues: Partial<InputValues> = {};
+	dynamicInputValues: DynamicInputValues = {
+		url: null,
+		urlValidationStatus: 'input',
+	};
 
 	// Track which fields have been changed
 	changedFields: Partial<InputValues> = {};
@@ -149,9 +157,26 @@ export class Company {
 	updateDependentValues() {
 		updateCategories(this);
 		// source status
+		let urlValidationStatus: 'input' | 'updated' | 'fine-tuned' | 'correct' | 'invalid' = 'input';
 		const websiteIsValid = this.categoryValues?.WEBSITE.category.passed === true;
+		const websiteIsValidated = this.categoryValues?.WEBSITE.category.passed !== undefined;
+		if (websiteIsValidated) {
+			if (websiteIsValid) {
+				if (this.websiteValidation?.url_validated === this.inputValues.url) {
+					urlValidationStatus = 'correct';
+				} else {
+					urlValidationStatus = checkUrlChanged(this.websiteValidation?.url_validated, this.inputValues.url)
+						? 'updated'
+						: 'fine-tuned';
+				}
+			} else {
+				urlValidationStatus = 'invalid';
+			}
+		}
+
 		this.dynamicInputValues = {
 			url: websiteIsValid ? this.websiteValidation?.url_validated : this.inputValues.url,
+			urlValidationStatus,
 		};
 
 		// update the hotCopy to ensure that the hot table is updated
@@ -197,12 +222,6 @@ export class Company {
 						// If the value is back to the original, remove it from changedFields
 						delete this.changedFields[key as keyof InputValues];
 					}
-
-					// If the input values that affect website validation have changed,
-					// we need to check if the validation is still valid
-					if (key === 'name' || key === 'country' || key === 'url') {
-						this.checkWebsiteValidationStatus();
-					}
 				} else if (key === 'websiteValidation') {
 					// Handle websiteValidation property
 					this.websiteValidation = value as WebsiteValidationStatus;
@@ -220,25 +239,6 @@ export class Company {
 	updateWebsiteValidation(websiteValidation: WebsiteValidationStatus) {
 		this.websiteValidation = websiteValidation;
 		this.updateDependentValues();
-	}
-
-	// Check if the website validation status is still valid
-	private checkWebsiteValidationStatus() {
-		if (!this.websiteValidation) return;
-
-		// Create the current input settings
-		const currentInputSettings = createInputSettings(
-			this.inputValues.name,
-			this.inputValues.country || '',
-			this.inputValues.url,
-		);
-
-		// If the input settings have changed, the validation is no longer valid
-		if (this.websiteValidation.input_settings !== currentInputSettings) {
-			// We could either clear the validation or mark it as outdated
-			// For now, we'll just clear it
-			this.websiteValidation = null;
-		}
 	}
 
 	// Convert to plain object (DTO)

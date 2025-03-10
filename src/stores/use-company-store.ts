@@ -22,7 +22,10 @@ interface CompanyStore {
 		updates: Array<{row: number; dto: UpdateCompanyDTO}>,
 		newCompanies?: UpdateCompanyDTO[],
 	) => void;
-	updateWebsiteValidation: (companyId: number, websiteValidation: WebsiteValidationStatus) => void;
+	updateWebsiteValidation: (
+		companyId: number | number[],
+		websiteValidation: WebsiteValidationStatus | WebsiteValidationStatus[],
+	) => Company[];
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
 	loadMappingSettings: (benchmarkId: number) => Promise<{
@@ -83,11 +86,26 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 		get().setCompanies(currentCompanies);
 	},
 
-	updateWebsiteValidation: (companyId: number, websiteValidation: WebsiteValidationStatus) => {
+	updateWebsiteValidation: (
+		companyId: number | number[],
+		websiteValidation: WebsiteValidationStatus | WebsiteValidationStatus[],
+	): Company[] => {
 		const companies = [...get().companies];
-		const company = companies.find((c) => c.id === companyId);
-		company?.updateWebsiteValidation(websiteValidation);
+		const companyIds = Array.isArray(companyId) ? companyId : [companyId];
+		const websiteValidations = Array.isArray(websiteValidation) ? websiteValidation : [websiteValidation];
+		if (companyIds.length !== websiteValidations.length) {
+			throw new Error('Company IDs and website validations must have the same length');
+		}
+
+		companyIds.forEach((id, index) => {
+			const company = companies.find((c) => c.id === id);
+			if (company) {
+				company.updateWebsiteValidation(websiteValidations[index]);
+			}
+		});
+
 		get().setCompanies(companies);
+		return get().companies.filter((c) => companyIds.includes(c.id!));
 	},
 
 	addMappedSourceData: async (mappedSourceData: CreateCompanyDTO[]) => {

@@ -35,3 +35,15 @@ export function checkIfValidUrl(url: string | null) {
 	}
 	return true;
 }
+
+/**
+ * Checks if a URL has been changed from its source
+ */
+export function checkUrlChanged(value: string | null | undefined, sourceUrl: string | null | undefined) {
+	// if (!value || !sourceUrl) {
+	// 	return false;
+	// }
+	const normalizedValue = value?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
+	const normalizedSourceUrl = sourceUrl?.replace(/^(https?:\/\/)?(www\.)?/, '').toLowerCase();
+	return normalizedValue !== normalizedSourceUrl;
+}

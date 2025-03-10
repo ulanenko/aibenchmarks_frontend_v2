@@ -73,7 +73,9 @@ export default function BenchmarkStep1Page({params}: Props) {
 								<h2 className="text-lg font-semibold">Uploaded Companies</h2>
 								<p className="text-sm text-muted-foreground">Add, manage and validate companies here.</p>
 							</div>
-							<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />
+							<div className="flex items-center space-x-2">
+								<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />
+							</div>
 						</div>
 						<div className="flex-1 p-4 min-h-0">
 							{isLoading ? (
