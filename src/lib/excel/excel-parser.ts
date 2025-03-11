@@ -1,5 +1,7 @@
 import * as XLSX from 'xlsx';
 import {isEmpty} from '../utils';
+import {NumericParser, defaultParser} from './numeric-parser';
+import {numberFormatOptions} from '../formatters';
 
 export interface DatabaseConfig {
 	name: string;
@@ -84,6 +86,85 @@ export function readExcelFileAsJson(file: File): Promise<Record<string, any[][]>
 	});
 }
 
+function prepareHeader(header: any[][], copyRight: boolean): string[] {
+	if (copyRight) {
+		header = header.map((row, index) => {
+			for (let i = 0; i < row.length - 1; i++) {
+				if (i !== 0 && !row[i] && row[i - 1]) {
+					row[i] = row[i - 1];
+				}
+			}
+			return row;
+		});
+	}
+	// combine the header rows
+	let headersCombined: string[] = [];
+	for (let i = 0; i < header.length; i++) {
+		if (i === 0) {
+			// Create a dense array with no holes
+			headersCombined = Array.from({length: (header[i] || []).length}, (_, index) => {
+				// If the index exists in data[i], use that value, otherwise undefined
+				return header[i] && index in header[i] ? header[i][index] : undefined;
+			});
+		} else {
+			headersCombined = headersCombined.map((header, index) => {
+				const cell = header[i]?.[index];
+				if (cell === null || cell === undefined) {
+					return header;
+				}
+
+				return header !== null && header !== undefined ? header + ' ' + cell : cell;
+			});
+		}
+	}
+	// replace empty headers with 'Column {index + 1}'
+	const emptyReplaced = headersCombined.map((header, index) => {
+		if (isEmpty(header)) {
+			return `Column ${index + 1}`;
+		}
+		return header;
+	});
+
+	return emptyReplaced;
+}
+
+function extractHeaderItem(header: string, index: number, content: any[]): [string, HeaderGroupItem] {
+	const cleanedItem = header.replace(/\r?\n/g, ' ').trim();
+
+	const match = cleanedItem.match(pattern);
+	if (match) {
+		return [match[1], new HeaderGroupItem(cleanedItem, match[1], match[2], index, content)];
+	}
+	return [header, new HeaderGroupItem(cleanedItem, cleanedItem, null, index, content)];
+}
+
+function pivotContentRows(contentRows: any[][]): any[][] {
+	// If there are no rows, return an empty array
+	if (contentRows.length === 0) return [];
+
+	const pivoted: any[][] = [];
+
+	// Get the maximum length of any row to ensure all columns are accounted for
+	const maxColumns = contentRows[0].length;
+
+	// For each column index in the original data
+	for (let colIndex = 0; colIndex < maxColumns; colIndex++) {
+		// Create a new row in the pivoted data
+		const newRow: any[] = [];
+
+		// For each row in the original data
+		for (let rowIndex = 0; rowIndex < contentRows.length; rowIndex++) {
+			// Add the cell at the current column from the current row to the new row
+			newRow.push(contentRows[rowIndex][colIndex]);
+		}
+
+		// Add the new row to the pivoted data
+		pivoted.push(newRow);
+	}
+
+	return pivoted;
+}
+
 /**
  * Processes database data based on configuration
  * @param content The content of the database
@@ -97,194 +178,153 @@ export function extractDbTableFromSheet(
 	skipRows: number,
 	headerRows: number,
 	copyRight: boolean = false,
-): {headers: string[]; content: any[][]} {
+): HeaderGroup[] {
 	// Skip the specified number of rows
 	let data = content.slice(skipRows);
+	const headerRaw = data.slice(0, headerRows);
+	const headers = prepareHeader(headerRaw, copyRight);
 
-	// Optional: Fill empty header cells to the right with the value from the left
-	if (copyRight) {
-		data = data.map((row, index) => {
-			if (index < headerRows) {
-				for (let i = 0; i < row.length - 1; i++) {
-					if (i !== 0 && !row[i] && row[i - 1]) {
-						row[i] = row[i - 1];
-					}
-				}
-			}
-			return row;
-		});
-	}
+	const contentRows = data.slice(headerRows);
+	const contentRowsPivoted = pivotContentRows(contentRows);
 
-	// Combine header rows after copying data to the right
-	let headers: string[] = [];
-	for (let i = 0; i < headerRows; i++) {
-		if (i === 0) {
-			// Create a dense array with no holes
-			headers = Array.from({length: (data[i] || []).length}, (_, index) => {
-				// If the index exists in data[i], use that value, otherwise undefined
-				return data[i] && index in data[i] ? data[i][index] : undefined;
-			});
-		} else {
-			headers = headers.map((header, index) => {
-				const cell = data[i]?.[index];
-				if (cell === null || cell === undefined) {
-					return header;
-				}
-
-				return header !== null && header !== undefined ? header + ' ' + cell : cell;
-			});
+	// Extract header items for all columns
+	const headerGroupsByKey = headers.reduce((acc, header, index) => {
+		const [cleanHeader, headerItem] = extractHeaderItem(header, index, contentRowsPivoted[index]);
+		if (!acc[cleanHeader]) {
+			acc[cleanHeader] = new HeaderGroup(cleanHeader);
 		}
-	}
+		acc[cleanHeader].addHeaderItem(headerItem.header, headerItem.year, headerItem.index, headerItem.rawContent);
+		return acc;
+	}, {} as Record<string, HeaderGroup>);
 
-	// Create a new dense array with no holes, using the original isEmpty function
-	const headersEmptyReplaced = headers.map((header, index) => {
-		if (isEmpty(header)) {
-			return `Column ${index + 1}`;
-		}
-		return header;
+	// if there is only one year, set the group as financial
+	Object.values(headerGroupsByKey).forEach((group) => {
+		group.setIsFinancial(group.headerItemCount > 1);
 	});
 
-	const headerIsYear = headersEmptyReplaced.map((header) => pattern.test(header));
-
-	// Drop the header rows to get the content rows
-	let contentRows = data.slice(headerRows);
-	// only return the rows that have no year
-	contentRows = contentRows.map((row) => {
-		return row.filter((cell, index) => !headerIsYear[index]);
-	});
-	headers = headersEmptyReplaced.filter((header, index) => !headerIsYear[index]);
-	// Return the result as an object with 'header' and 'content' keys
-
-	return {
-		headers: headers,
-		content: contentRows,
-	};
+	return Object.values(headerGroupsByKey);
 }
 
-/**
- * Class representing a header item
- */
-export class ExcelColumnHeader {
-	name: string;
-	year: string | null;
+export class HeaderGroupItem {
+	// full header
 	header: string;
+	// cleaned header (without year)
+	cleanHeader: string;
+	// year
+	year: string | null;
+	// index
 	index: number;
-	samples: any[];
+	// raw content values
+	rawContent: any[];
+	// parsed numeric values (only set for financial columns)
+	parsedValues: (number | undefined)[] | null;
 
-	constructor(name: string, year: string | null, header: string, index: number, samples: any[]) {
-		this.name = name;
-		this.year = year;
+	constructor(header: string, cleanHeader: string, year: string | null, index: number, content: any[]) {
 		this.header = header;
+		this.cleanHeader = cleanHeader;
+		this.year = year;
 		this.index = index;
-		this.samples = samples;
+		this.rawContent = content;
+		this.parsedValues = null;
+	}
+
+	/**
+	 * Parse the raw content values using the provided parser
+	 * @param parser The numeric parser to use
+	 */
+	parseValues(parser: NumericParser) {
+		this.parsedValues = this.rawContent.map((value) => parser.parseNumericValue(value));
+	}
+
+	/**
+	 * Clear parsed values, reverting to raw content only
+	 */
+	clearParsedValues() {
+		this.parsedValues = null;
 	}
 }
 
-/**
- * Calculates the interquartile range for an array of numbers
- * @param values Array of numbers
- * @returns Object with quartile information
- */
-function calculateInterquartileRange(values: number[]): {range?: {lowerQuartile: number; upperQuartile: number}} {
-	if (!values.length) return {};
+export class HeaderGroup {
+	cleanedKey: string;
+	headers: HeaderGroupItem[];
+	isFinancial: boolean | undefined;
+	private parser: NumericParser;
 
-	const sorted = [...values].sort((a, b) => a - b);
-	const q1Index = Math.floor(sorted.length / 4);
-	const q3Index = Math.floor((sorted.length * 3) / 4);
+	constructor(cleanedKey: string, parser: NumericParser = defaultParser) {
+		this.cleanedKey = cleanedKey;
+		this.headers = [];
+		this.parser = parser;
+		this.isFinancial = undefined;
+	}
 
-	return {
-		range: {
-			lowerQuartile: sorted[q1Index],
-			upperQuartile: sorted[q3Index],
-		},
-	};
-}
+	addHeaderItem(header: string, year: string | null, index: number, content: any[]) {
+		const cleanHeader = this.cleanedKey;
+		this.headers.push(new HeaderGroupItem(header, cleanHeader, year, index, content));
+	}
 
-/**
- * Extracts headers with years and organizes them into general and financial categories
- * @param headers Array of headers
- * @param content Array of content rows
- * @returns Object with general and financial headers
- */
-export function categorizeHeadersByYear(
-	headers: string[],
-	content: any[][],
-): {generalHeaders: ExcelColumnHeader[]; financialHeaders: ExcelColumnHeader[]} {
-	// Pattern to match year (with or without brackets) anywhere in the string
-	const result = {
-		generalHeaders: [] as ExcelColumnHeader[],
-		financialHeaders: [] as ExcelColumnHeader[],
-	};
+	/**
+	 * Set whether this is a financial column group and parse values if needed
+	 */
+	setIsFinancial(isFinancial: boolean) {
+		this.isFinancial = isFinancial;
 
-	const countByFinancialType: Record<string, number> = {};
-	const sampleContent = content.slice(0, 5);
-	const dataByColumn: any[][] = [];
-
-	sampleContent.forEach((row) => {
-		row.forEach((colVal, colIndex) => {
-			dataByColumn[colIndex] = [...(dataByColumn[colIndex] ?? []), colVal];
-		});
-	});
-
-	headers.forEach((item, index) => {
-		if (typeof item === 'string') {
-			// Preprocess: replace newlines with spaces and trim
-			const cleanedItem = item.replace(/\r?\n/g, ' ').trim();
-			const match = cleanedItem.match(pattern);
-
-			if (match) {
-				// Using standard capturing groups: match[1] = name, match[2] = year, match[3] = remainder
-				const name = (match[1] + (match[3] || '')).trim();
-				const year = match[2];
-
-				result.financialHeaders.push(new ExcelColumnHeader(name, year, item, index, dataByColumn[index] || []));
-				countByFinancialType[name] = 1 + (countByFinancialType[name] ?? 0);
+		// Parse or clear values based on financial status
+		this.headers.forEach((header) => {
+			if (isFinancial) {
+				header.parseValues(this.parser);
 			} else {
-				result.generalHeaders.push(new ExcelColumnHeader(item, null, item, index, dataByColumn[index] || []));
+				header.clearParsedValues();
 			}
+		});
+	}
+
+	get headerItemCount() {
+		return this.headers.length;
+	}
+
+	get rowCount() {
+		return this.headers[0].rawContent.length;
+	}
+
+	/**
+	 * Gets all raw values for this header group
+	 * @returns Array of raw values
+	 */
+	getRawValues(): any[] {
+		return this.headers.flatMap((header) => header.rawContent);
+	}
+
+	/**
+	 * Gets all parsed values for this header group
+	 * If not a financial column, returns null
+	 * @returns Array of parsed values or null
+	 */
+	getParsedValues(): (number | undefined)[] | null {
+		if (!this.isFinancial) {
+			return null;
 		}
-	});
-
-	const statistics = calculateInterquartileRange(Object.values(countByFinancialType));
-	if (!statistics.range) {
-		return result;
+		return this.headers.flatMap((header) => header.parsedValues || []);
 	}
 
-	const {lowerQuartile, upperQuartile} = statistics.range;
+	/**
+	 * Gets a sample value for display purposes
+	 * @returns A string representation of the sample value, or 'No sample data' if none exists
+	 */
+	getSampleValue(): string {
+		// Try to get the first value from the raw values
+		if (this.headerItemCount > 0) {
+			const headerItem = this.headers[0];
 
-	// Find the outliers and move them from financialHeaders to generalHeaders
-	Object.entries(countByFinancialType).forEach(([name, value]) => {
-		if (value < lowerQuartile || value > upperQuartile) {
-			result.financialHeaders = result.financialHeaders.filter((headerObj) => {
-				if (headerObj.name === name) {
-					result.generalHeaders.push(headerObj);
-					return false;
-				}
-				return true;
-			});
+			if (this.isFinancial) {
+				const parsedValues = headerItem.parsedValues?.[0];
+				const formattedValue = parsedValues ? numberFormatOptions.number.format(parsedValues) : 'N/A';
+				return `${headerItem.year}: ${formattedValue}`;
+			}
+
+			// Fallback to direct access if getRawValues doesn't return expected data
+
+			return headerItem.rawContent.length > 0 ? String(headerItem.rawContent[0]) : 'No sample data';
 		}
-	});
-
-	return result;
-}
-
-/**
- * Parses a numeric value from a string or number
- * @param value The value to parse
- * @returns The parsed number or undefined
- */
-export function cleanAndParseNumber(value: any): number | undefined {
-	if (value === undefined || value === null || value === '') {
-		return undefined;
+		return 'No sample data';
 	}
-
-	if (typeof value === 'number') {
-		return value;
-	}
-
-	// Convert to string and clean it
-	const stringValue = String(value).replace(/[^\d.-]/g, '');
-	const parsedValue = parseFloat(stringValue);
-
-	return isNaN(parsedValue) ? undefined : parsedValue;
 }

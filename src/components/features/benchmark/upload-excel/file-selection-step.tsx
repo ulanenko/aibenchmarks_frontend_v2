@@ -8,7 +8,7 @@ import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {FileUpIcon, Loader2, HelpCircle, HistoryIcon, FileIcon, CheckCircle2, DownloadIcon} from 'lucide-react';
 import {StepProps} from './types';
-import {readExcelFileAsJson, supportedDatabases, extractDbTableFromSheet} from '@/lib/excel/excel-parser';
+import {readExcelFileAsJson, supportedDatabases, extractDbTableFromSheet, HeaderGroup} from '@/lib/excel/excel-parser';
 import {LoadingButton} from '@/components/ui/loading-button';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {useCompanyStore} from '@/stores/use-company-store';
@@ -214,31 +214,16 @@ export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 			}
 
 			// Extract the table data
-			const {headers, content} = extractDbTableFromSheet(
+			const headerGroups = extractDbTableFromSheet(
 				excelData[sheet],
 				dbConfig.skipRows,
 				dbConfig.headerRows,
 				dbConfig.copyRight,
 			);
 
-			// Convert array data to objects with headers as keys
-			const jsonData = content.map((row) => {
-				const obj: Record<string, any> = {};
-				headers.forEach((header, index) => {
-					if (header) {
-						obj[header] = row[index];
-					}
-				});
-				return obj;
-			});
-
 			// Store the extracted data in the state
 			updateState({
-				extractedData: {
-					headers,
-					content,
-					jsonData,
-				},
+				headerGroups,
 			});
 		} catch (err) {
 			console.error('Error extracting table data:', err);

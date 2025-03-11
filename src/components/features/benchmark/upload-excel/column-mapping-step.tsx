@@ -1,20 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import {use, useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup} from '@/components/ui/select';
 import {CheckCircle2, Circle, Loader2, Wand2} from 'lucide-react';
-import {StepProps} from './types';
-import {companyColumns} from '@/lib/company/company-columns';
-import {supportedDatabases, DatabaseConfig} from '@/lib/excel/excel-parser';
-import {Label} from '@/components/ui/label';
-import {TableBody, TableCell, Table, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {StepProps, UploadState} from './types';
+import {companyColumns, inputColumnDefinitions} from '@/lib/company/company-columns';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {LoadingButton} from '@/components/ui/loading-button';
 import {mapColumnsWithAI} from '@/app/actions/ai-mapper-actions';
 import {toast} from 'sonner';
 import {SourceColumn, TargetColumn, ColumnMapping} from '@/app/actions/dto/mapper-types';
 import {CreateCompanyDTO} from '@/lib/company/type';
+import {Label} from '@/components/ui/label';
+import {HeaderGroup} from '@/lib/excel/excel-parser';
+
 // Local column mapping used in the UI
 interface LocalColumnMapping {
 	targetColumn: keyof CreateCompanyDTO;
@@ -23,16 +24,20 @@ interface LocalColumnMapping {
 	title: string;
 }
 
-// Use a constant for the "none" value to ensure consistency
-const NONE_VALUE = '__none__';
+// Value used to represent "not mapped" in the UI
+const NONE_VALUE = 'NONE';
 
 const REQUIRED_FIELDS = ['name', 'country'];
-const COLUMN_MAPPING_FIELDS = Object.keys(companyColumns).filter((key) => key !== 'inputStatus');
+const COLUMN_MAPPING_FIELDS = Object.keys(inputColumnDefinitions);
 
-function createColumnMapping(columnMappings?: {[key: string]: string}): LocalColumnMapping[] {
+function createColumnMapping(
+	columnMappings?: {[key: string]: string},
+	headersAvailable?: string[],
+): LocalColumnMapping[] {
 	return COLUMN_MAPPING_FIELDS.map((key) => {
 		const column = companyColumns[key as keyof typeof companyColumns];
-		const sourceColumn = Object.entries(columnMappings || {}).find(([_, value]) => value === key)?.[0] || null;
+		let sourceColumn = Object.entries(columnMappings || {}).find(([_, value]) => value === key)?.[0] || null;
+		sourceColumn = headersAvailable?.includes(sourceColumn || '') ? sourceColumn : null;
 		return {
 			targetColumn: key as keyof CreateCompanyDTO,
 			sourceColumn,
@@ -43,43 +48,57 @@ function createColumnMapping(columnMappings?: {[key: string]: string}): LocalCol
 }
 
 export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProps) {
-	// const [availableColumns, setAvailableColumns] = useState<string[]>(state.extractedData?.headers || []);
-	const sourceRowSample = state.extractedData?.jsonData?.[0] || {};
-	const sourceColumnHeaders = state.extractedData?.headers || [];
-	// const [sampleData, setSampleData] = useState<Record<string, any>>(state.extractedData?.jsonData?.[0] || {});
-	const [mappings, setMappings] = useState<LocalColumnMapping[]>(createColumnMapping(state.columnMappings));
+	// Use the sample data from the first row
+
+	// Group similar columns by their base name (without year)
+	const headerGroups = state.headerGroups || [];
+
+	function updateStateMapping(state: UploadState, mappings: LocalColumnMapping[]) {
+		const columnMappings = mappings.reduce((acc, mapping) => {
+			if (mapping.sourceColumn) {
+				acc[mapping.sourceColumn] = mapping.targetColumn as keyof CreateCompanyDTO;
+			}
+			return acc;
+		}, {} as {[key: string]: keyof CreateCompanyDTO});
+		console.log('columnMappings', columnMappings);
+		updateState({columnMappings});
+	}
+	const headersAvailable = headerGroups.map((group) => group.cleanedKey);
+
+	const [mappings, setMappings] = useState<LocalColumnMapping[]>(
+		createColumnMapping(state.columnMappings, headersAvailable),
+	);
 	const [processes, setProcesses] = useState({
 		aiMapping: false,
 		loading: false,
 	});
 	const [error, setError] = useState<string | null>(null);
 
-	// When state.columnMappings changes (e.g., when loaded from saved settings), update the local mappings
+	// Add useEffect to update the parent state when mappings change
 	useEffect(() => {
-		if (state.columnMappings && Object.keys(state.columnMappings).length > 0) {
-			setMappings(createColumnMapping(state.columnMappings));
+		if (mappings.length > 0) {
+			// Only update parent state when mappings change, not during initial render
+			updateStateMapping(state, mappings);
 		}
-	}, [state.columnMappings]);
+	}, [mappings]);
 
 	const handleMappingChange = (targetColumn: string, sourceColumn: string) => {
 		// Convert the NONE_VALUE back to null
-		const actualValue = sourceColumn === NONE_VALUE ? null : sourceColumn;
-
-		// Update local state
-		const updatedMappings = mappings.map((mapping) =>
-			mapping.targetColumn === targetColumn ? {...mapping, sourceColumn: actualValue} : mapping,
-		);
-		setMappings(updatedMappings);
-
-		// Update parent state directly with the new mapping
-		const simpleMapping = updatedMappings.reduce((acc, mapping) => {
-			if (mapping.sourceColumn) {
-				acc[mapping.sourceColumn] = mapping.targetColumn;
-			}
-			return acc;
-		}, {} as {[key: string]: keyof CreateCompanyDTO});
-
-		updateState({columnMappings: simpleMapping});
+		const actualSourceColumn = sourceColumn === NONE_VALUE ? null : sourceColumn;
+		const resetMapping = targetColumn === NONE_VALUE;
+		// Update the mappings state
+		setMappings((currentMappings) => {
+			const updatedMapping = currentMappings.map((mapping) => {
+				if (mapping.targetColumn === targetColumn) {
+					return {...mapping, sourceColumn: actualSourceColumn};
+				} else if (resetMapping && mapping.sourceColumn === sourceColumn) {
+					return {...mapping, sourceColumn: null};
+				}
+				return mapping;
+			});
+			console.log('updatedMapping', updatedMapping);
+			return updatedMapping;
+		});
 	};
 
 	const handleNext = () => {
@@ -98,12 +117,14 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 			setProcesses({...processes, aiMapping: true});
 			setError(null);
 
-			// Prepare source and target columns
-			const sourceColumns: SourceColumn[] = sourceColumnHeaders.map((column) => ({
-				key: column,
-				title: column,
-				sample: sourceRowSample[column],
-			}));
+			// Prepare source and target columns - optimize to use HeaderGroup's methods
+			const sourceColumns: SourceColumn[] = headerGroups.map((group) => {
+				return {
+					key: group.cleanedKey,
+					title: group.cleanedKey,
+					sample: group.getSampleValue(),
+				};
+			});
 
 			const targetColumns: TargetColumn[] = mappings.map((mapping) => ({
 				key: mapping.targetColumn,
@@ -127,16 +148,6 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 
 			// Update local state
 			setMappings(updatedMappings);
-
-			// Update parent state directly with the new mapping
-			const simpleMapping = updatedMappings.reduce((acc, mapping) => {
-				if (mapping.sourceColumn) {
-					acc[mapping.sourceColumn] = mapping.targetColumn;
-				}
-				return acc;
-			}, {} as {[key: string]: keyof CreateCompanyDTO});
-
-			updateState({columnMappings: simpleMapping});
 
 			toast.success('AI mapping completed successfully!');
 		} catch (error) {
@@ -174,28 +185,23 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{sourceColumnHeaders.map((column) => (
-										<TableRow key={column} className="hover:bg-transparent">
+									{headerGroups.map((group) => (
+										<TableRow key={group.cleanedKey} className="hover:bg-transparent">
 											<TableCell className="align-top p-3">
-												<div className="font-medium">{column}</div>
+												<div className="font-medium">{group.cleanedKey}</div>
 												<div className="text-sm text-muted-foreground truncate max-w-[300px]">
-													{sourceRowSample[column] ? String(sourceRowSample[column]) : 'No sample data'}
+													{group.getSampleValue()}
 												</div>
 											</TableCell>
 											<TableCell className="p-3">
 												<div className="flex justify-end">
 													<Select
-														value={mappings.find((m) => m.sourceColumn === column)?.targetColumn || NONE_VALUE}
+														value={
+															mappings.find((m) => m.sourceColumn === group.cleanedKey)?.targetColumn || NONE_VALUE
+														}
 														onValueChange={(value) => {
-															setMappings((prevMappings) =>
-																prevMappings.map((mapping) =>
-																	mapping.sourceColumn === column ? {...mapping, sourceColumn: null} : mapping,
-																),
-															);
-
-															if (value !== NONE_VALUE) {
-																handleMappingChange(value, column);
-															}
+															// Set the new mapping
+															handleMappingChange(value, group.cleanedKey);
 														}}
 													>
 														<SelectTrigger className="w-full min-w-[200px]">
@@ -203,16 +209,18 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 														</SelectTrigger>
 														<SelectContent>
 															<SelectItem value={NONE_VALUE}>Not mapped</SelectItem>
-															{mappings.map((mapping) => (
-																<SelectItem
-																	key={mapping.targetColumn}
-																	value={mapping.targetColumn}
-																	disabled={!!mapping.sourceColumn && mapping.sourceColumn !== column}
-																>
-																	{mapping.title}
-																	{mapping.required && <span className="text-destructive ml-1">*</span>}
-																</SelectItem>
-															))}
+															<SelectGroup>
+																{mappings.map((mapping) => (
+																	<SelectItem
+																		key={mapping.targetColumn}
+																		value={mapping.targetColumn}
+																		disabled={mapping.sourceColumn !== null}
+																	>
+																		{mapping.title}
+																		{mapping.required && <span className="text-destructive ml-1">*</span>}
+																	</SelectItem>
+																))}
+															</SelectGroup>
 														</SelectContent>
 													</Select>
 												</div>
@@ -223,57 +231,50 @@ export function ColumnMappingStep({state, updateState, onNext, onBack}: StepProp
 							</Table>
 						</div>
 
-						{/* Right column - AI Mapper */}
-						<div className="w-80 shrink-0">
-							<div className="border rounded-md p-4  flex flex-col">
-								<h3 className="text-lg font-medium mb-4 border-b pb-2">AI Mapper and checks</h3>
-
-								<div className="flex-1">
-									{mappings.map((mapping) => {
-										const isMapped = !!mapping.sourceColumn;
-										return (
-											<div
-												key={mapping.targetColumn}
-												className="flex items-center space-x-2 py-1 border-b border-border/40"
-											>
-												{isMapped ? (
-													<CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-												) : (
-													<Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-												)}
-												<Label className="text-sm font-normal flex-grow">{mapping.title}</Label>
-												<span className="text-xs text-muted-foreground/70">
-													{mapping.required ? 'Required' : 'Optional'}
-												</span>
-											</div>
-										);
-									})}
-								</div>
-
-								<LoadingButton
-									className="w-full mt-4"
-									variant="default"
-									size="sm"
-									onClick={handleAiMapping}
-									disabled={sourceColumnHeaders.length === 0}
-									isLoading={processes.aiMapping}
-									loadingText="AI Mapping..."
-									loadingIcon={<Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-								>
-									<Wand2 className="h-4 w-4 mr-2" />
-									Start AI mapper
-								</LoadingButton>
+						{/* Right column - target fields checklist */}
+						<div className="w-[280px] border rounded-md p-4 h-min">
+							<h3 className="font-medium text-sm mb-2">AI Mapper and checks</h3>
+							<div className="flex flex-col gap-1 mb-4">
+								{mappings.map((mapping) => (
+									<div key={mapping.targetColumn} className="flex items-center gap-2 text-sm">
+										{mapping.sourceColumn ? (
+											<CheckCircle2 className="h-5 w-5 text-green-500" />
+										) : (
+											<Circle className="h-5 w-5 text-muted-foreground" />
+										)}
+										<span className="flex-1">
+											{mapping.title} {mapping.required && <span className="text-red-500">*</span>}
+										</span>
+										<span className="text-muted-foreground">{mapping.required ? 'Required' : 'Optional'}</span>
+									</div>
+								))}
 							</div>
+
+							<LoadingButton
+								variant="default"
+								className="w-full gap-2"
+								disabled={processes.aiMapping}
+								isLoading={processes.aiMapping}
+								onClick={handleAiMapping}
+							>
+								<Wand2 className="h-4 w-4" />
+								Start AI mapper
+							</LoadingButton>
 						</div>
 					</div>
 
-					{/* Bottom navigation */}
-					<div className="flex justify-between pt-4 mt-4 border-t">
-						<LoadingButton variant="outline" onClick={onBack} disabled={processes.loading}>
-							← Back
-						</LoadingButton>
-						<LoadingButton onClick={handleNext} isLoading={processes.loading} loadingText="Processing...">
-							Next →
+					{/* Footer with navigation */}
+					<div className="flex justify-between items-center mt-6">
+						<Button variant="outline" onClick={onBack}>
+							Back
+						</Button>
+						<LoadingButton
+							variant="default"
+							onClick={handleNext}
+							isLoading={processes.loading}
+							disabled={processes.loading}
+						>
+							Next
 						</LoadingButton>
 					</div>
 				</>

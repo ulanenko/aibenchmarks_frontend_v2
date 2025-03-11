@@ -71,26 +71,10 @@ export function WebsiteValidationResultsDialog({
 	const {toast} = useToast();
 	const [isSaving, setIsSaving] = useState(false);
 
-	const {VALID, INVALID} = CATEGORIES.WEBSITE;
-
-	// Filter companies by validation status
-	const invalidURLCompanies = validatedCompanies.filter(
-		(comp) => comp.dynamicInputValues?.urlValidationStatus === 'invalid',
-	);
-	const correctURLCompanies = validatedCompanies.filter(
-		(comp) => comp.dynamicInputValues?.urlValidationStatus === 'correct',
-	);
-	const fineTunedCompanies = validatedCompanies.filter(
-		(comp) => comp.dynamicInputValues?.urlValidationStatus === 'fine-tuned',
-	);
-	const updatedURLCompanies = validatedCompanies.filter(
-		(comp) => comp.dynamicInputValues?.urlValidationStatus === 'updated',
-	);
-
 	const companyCategories: CategoryItem[] = [
 		{
 			title: 'Valid',
-			companies: correctURLCompanies,
+			companies: validatedCompanies.filter((comp) => comp.dynamicInputValues?.urlValidationStatus === 'correct'),
 			colorClass: 'bg-green-500',
 			bgClass: 'bg-green-50',
 			icon: Check,
@@ -98,7 +82,7 @@ export function WebsiteValidationResultsDialog({
 		},
 		{
 			title: 'Fine-tuned',
-			companies: fineTunedCompanies,
+			companies: validatedCompanies.filter((comp) => comp.dynamicInputValues?.urlValidationStatus === 'fine-tuned'),
 			colorClass: 'bg-blue-500',
 			bgClass: 'bg-blue-50',
 			icon: FileEdit,
@@ -106,7 +90,7 @@ export function WebsiteValidationResultsDialog({
 		},
 		{
 			title: 'Updated',
-			companies: updatedURLCompanies,
+			companies: validatedCompanies.filter((comp) => comp.dynamicInputValues?.urlValidationStatus === 'updated'),
 			colorClass: 'bg-yellow-500',
 			bgClass: 'bg-yellow-50',
 			icon: AlertCircle,
@@ -114,7 +98,7 @@ export function WebsiteValidationResultsDialog({
 		},
 		{
 			title: 'Invalid',
-			companies: invalidURLCompanies,
+			companies: validatedCompanies.filter((comp) => comp.dynamicInputValues?.urlValidationStatus === 'invalid'),
 			colorClass: 'bg-red-500',
 			bgClass: 'bg-red-50',
 			icon: X,
@@ -124,12 +108,12 @@ export function WebsiteValidationResultsDialog({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-2xl">
+			<DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
 				<DialogHeader>
 					<DialogTitle>Website Validation Completed</DialogTitle>
 				</DialogHeader>
 
-				<div className="mt-2">
+				<div className="mt-2 overflow-y-auto flex-grow">
 					<h3 className="text-muted-foreground text-sm mb-4">Website Validation Results</h3>
 
 					<Accordion
@@ -154,7 +138,7 @@ export function WebsiteValidationResultsDialog({
 									</div>
 								</AccordionTrigger>
 								<AccordionContent className="px-0">
-									<div className="p-3 divide-y">
+									<div className="p-3 divide-y max-h-[40vh] overflow-y-auto">
 										{category.companies.map((company) => (
 											<div key={company.id} className="py-2">
 												<div className="flex items-center justify-between">
@@ -202,7 +186,7 @@ export function WebsiteValidationResultsDialog({
 					</Accordion>
 				</div>
 
-				<DialogFooter>
+				<DialogFooter className="mt-4">
 					<Button variant="default" onClick={() => onOpenChange(false)}>
 						Close
 					</Button>

@@ -11,22 +11,33 @@ import {useCompanyStore} from '@/stores/use-company-store';
 import {MappingSettings} from '@/lib/benchmark/type';
 import {useToast} from '@/hooks/use-toast';
 import {uploadBenchmarkFile} from '@/app/actions/upload-file';
+import {HeaderGroup, HeaderGroupItem} from '@/lib/excel/excel-parser';
 
 export function PreviewStep({state, updateState, onNext, onBack}: StepProps) {
 	const {toast} = useToast();
 	const {addMappedSourceData, saveMappingSettings, benchmarkId} = useCompanyStore();
 	const [previewCount, setPreviewCount] = useState(5); // Number of rows to preview
-	const {columnMappings} = state;
-	const companiesMapped =
-		state.extractedData?.jsonData?.map((row) => {
-			return Object.entries(row).reduce((acc, [key, value]) => {
-				const mappedKey = columnMappings?.[key];
-				if (mappedKey) {
-					acc[mappedKey] = value;
-				}
-				return acc;
-			}, {} as CreateCompanyDTO);
-		}) || [];
+	const {headerGroups, columnMappings} = state;
+	const rowCount = headerGroups?.[0]?.rowCount ?? 0;
+	const headerByMappedKey = headerGroups?.reduce((acc, header) => {
+		const mappedKey = columnMappings?.[header.cleanedKey];
+		if (mappedKey) {
+			acc[mappedKey] = header;
+		}
+		return acc;
+	}, {} as Record<keyof CreateCompanyDTO, HeaderGroup>);
+
+	// loop through rows in rowcount
+	const companiesMapped: CreateCompanyDTO[] = [];
+	for (let i = 0; i < rowCount; i++) {
+		// @ts-ignore
+		const company = Object.entries(headerByMappedKey).reduce((acc, [key, header]) => {
+			// @ts-ignore
+			acc[key] = header.headers[0].rawContent[i];
+			return acc;
+		}, {} as CreateCompanyDTO);
+		companiesMapped.push(company);
+	}
 
 	const handleImport = async () => {
 		updateState({isProcessing: true});

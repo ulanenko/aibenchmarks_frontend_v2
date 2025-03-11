@@ -5,26 +5,7 @@ import {urlRenderer, websiteValidationRenderer} from '@/components/hot/renderers
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
 import {DescriptionCategorizer, WebsiteCategorizer} from './categorizer/sourceCategorizere';
 
-// Column definitions
-export const companyColumns = {
-	inputStatus: new CategoryColumn({
-		title: 'Status',
-		description: 'Validation status of the company entry',
-		valuePath: 'INPUT',
-		categorizer: InputLabelsDescriptions,
-	}),
-	descriptionStatus: new CategoryColumn({
-		title: 'Description Status',
-		description: 'Validation status of the company description',
-		valuePath: 'DESCRIPTION',
-		categorizer: DescriptionCategorizer,
-	}),
-	websiteStatus: new CategoryColumn({
-		title: 'Website Status',
-		description: 'Validation status of the company website',
-		valuePath: 'WEBSITE',
-		categorizer: WebsiteCategorizer,
-	}),
+export const inputColumnDefinitions = {
 	name: new Column({
 		title: 'Company Name',
 		type: 'text',
@@ -56,15 +37,6 @@ export const companyColumns = {
 		data: 'dynamicInputValues.url',
 		renderer: urlRenderer,
 		description: 'Website of the company',
-	}),
-	websiteValidation: new Column({
-		title: 'Validate Website',
-		type: 'text',
-		width: 120,
-		data: 'websiteValidation',
-		renderer: websiteValidationRenderer,
-		readOnly: true,
-		description: 'Validate the company website',
 	}),
 
 	streetAndNumber: new Column({
@@ -137,6 +109,40 @@ export const companyColumns = {
 		width: 200,
 		data: 'inputValues.mainProductsAndServices',
 		description: 'Main products and services offered by the company',
+	}),
+};
+
+const statusColumns = {
+	inputStatus: new CategoryColumn({
+		title: 'Status',
+		description: 'Validation status of the company entry',
+		valuePath: 'INPUT',
+		categorizer: InputLabelsDescriptions,
+	}),
+	descriptionStatus: new CategoryColumn({
+		title: 'Description Status',
+		description: 'Validation status of the company description',
+		valuePath: 'DESCRIPTION',
+		categorizer: DescriptionCategorizer,
+	}),
+	websiteStatus: new CategoryColumn({
+		title: 'Website Status',
+		description: 'Validation status of the company website',
+		valuePath: 'WEBSITE',
+		categorizer: WebsiteCategorizer,
+	}),
+};
+// Column definitions
+export const companyColumns = {
+	...inputColumnDefinitions,
+	...statusColumns,
+	websiteValidation: new Column({
+		title: 'Validate Website',
+		type: 'text',
+		width: 120,
+		data: 'websiteValidation',
+		renderer: websiteValidationRenderer,
+		description: 'Validate the company website',
 	}),
 };
 
