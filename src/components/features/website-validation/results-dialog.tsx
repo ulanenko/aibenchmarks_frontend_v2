@@ -1,12 +1,10 @@
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
-import {Check, X, AlertCircle, Loader2, FileEdit, LucideIcon, ArrowRight} from 'lucide-react';
+import {Check, X, AlertCircle, FileEdit, LucideIcon, ArrowRight} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
-import {saveCompanyWebsiteValidationResults} from '@/services/client/save-company-website-validation';
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
 import {Company} from '@/lib/company/company';
-import {CATEGORIES} from '@/config/categories';
 
 export interface WebsiteValidationResultsDialogProps {
 	isOpen: boolean;

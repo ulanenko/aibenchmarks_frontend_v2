@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useToast} from '@/hooks/use-toast';
-import {CompanyValidationState, WebsiteValidationResultsDialog} from './results-dialog';
+import {WebsiteValidationResultsDialog} from './results-dialog';
 import {WebsiteValidationConfirmDialog} from './confirm-dialog';
 import {WebsiteValidationLoadingDialog} from './loading-dialog';
 import {CATEGORIES} from '@/config/categories';

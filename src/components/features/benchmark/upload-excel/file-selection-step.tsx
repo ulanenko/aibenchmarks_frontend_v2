@@ -238,12 +238,12 @@ export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 	const handleNext = async () => {
 		if (state.file && state.sheet && state.database) {
 			// If we don't have extracted data yet, extract it now
-			if (!state.extractedData) {
+			if (!state.headerGroups) {
 				await extractTableData(state.file, state.sheet, state.database);
 			}
 
 			// Only proceed if we have extracted data or no errors
-			if (state.extractedData || !state.error) {
+			if (state.headerGroups || !state.error) {
 				onNext();
 			}
 		}
