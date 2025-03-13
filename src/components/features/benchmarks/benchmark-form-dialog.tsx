@@ -25,11 +25,17 @@ interface BenchmarkFormDialogProps {
 	mode: 'create' | 'edit';
 	benchmark?: BenchmarkDTO;
 	trigger: React.ReactNode;
+	onComplete?: (benchmark: BenchmarkDTO) => void;
 }
 
 const benchmarkDefinition = new EntityDefinition(benchmarkSchema, BenchmarkFields);
 
-export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}: BenchmarkFormDialogProps) {
+export function BenchmarkFormDialog({
+	mode,
+	benchmark: initialBenchmark,
+	trigger,
+	onComplete,
+}: BenchmarkFormDialogProps) {
 	const [open, setOpen] = React.useState(false);
 	const [creatingField, setCreatingField] = React.useState<string | null>(null);
 	const {addBenchmark, editBenchmark, isLoading} = useBenchmarkListStore();
@@ -60,12 +66,18 @@ export function BenchmarkFormDialog({mode, benchmark: initialBenchmark, trigger}
 	}, [open]);
 
 	const onSubmit = async (data: CreateBenchmarkDTO) => {
+		let result;
 		if (mode === 'create') {
-			await addBenchmark(data);
+			result = await addBenchmark(data);
 		} else if (initialBenchmark?.id) {
-			await editBenchmark({...data, id: initialBenchmark.id});
+			result = await editBenchmark({...data, id: initialBenchmark.id});
 		}
 		setOpen(false);
+
+		// Call onComplete callback if provided and we have a benchmark result
+		if (onComplete && result?.benchmark) {
+			onComplete(result.benchmark);
+		}
 	};
 
 	const handleEntityCreated = (field: string, entity: {id: number; name: string}) => {

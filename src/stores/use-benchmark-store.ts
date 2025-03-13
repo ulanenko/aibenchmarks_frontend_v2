@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import {Benchmark} from '@/lib/benchmark/benchmark';
-import {CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
+import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
 import {toast} from '@/hooks/use-toast';
 import * as benchmarkActions from '@/app/actions/benchmark-actions';
 
@@ -9,8 +9,8 @@ interface BenchmarkListStore {
 	isLoading: boolean;
 	setBenchmarks: (benchmarks: Benchmark[]) => void;
 	loadBenchmarks: () => Promise<void>;
-	addBenchmark: (data: CreateBenchmarkDTO) => Promise<void>;
-	editBenchmark: (updateBenchmarkDTO: UpdateBenchmarkDTO) => Promise<void>;
+	addBenchmark: (data: CreateBenchmarkDTO) => Promise<{benchmark: BenchmarkDTO | null}>;
+	editBenchmark: (updateBenchmarkDTO: UpdateBenchmarkDTO) => Promise<{benchmark: BenchmarkDTO | null}>;
 	deleteBenchmark: (id: number) => Promise<void>;
 }
 
@@ -56,7 +56,10 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 					title: 'Success',
 					description: 'Benchmark created successfully',
 				});
+
+				return {benchmark: newBenchmark};
 			}
+			return {benchmark: null};
 		} catch (error) {
 			console.error('Error creating benchmark:', error);
 			toast({
@@ -64,6 +67,7 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 				title: 'Error',
 				description: error instanceof Error ? error.message : 'Failed to create benchmark',
 			});
+			return {benchmark: null};
 		}
 	},
 	editBenchmark: async (updateBenchmarkDTO: UpdateBenchmarkDTO) => {
@@ -85,7 +89,10 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 					title: 'Success',
 					description: 'Benchmark updated successfully',
 				});
+
+				return {benchmark: updatedBenchmark};
 			}
+			return {benchmark: null};
 		} catch (error) {
 			console.error('Error updating benchmark:', error);
 			toast({
@@ -93,6 +100,7 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 				title: 'Error',
 				description: error instanceof Error ? error.message : 'Failed to update benchmark',
 			});
+			return {benchmark: null};
 		} finally {
 			set({isLoading: false});
 		}
