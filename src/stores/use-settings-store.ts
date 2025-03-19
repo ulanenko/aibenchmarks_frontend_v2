@@ -13,7 +13,7 @@ interface ColumnOrder {
 	[key: string]: number;
 }
 
-interface BenchmarkSettings {
+export interface BenchmarkSettings {
 	visibility: ColumnVisibility;
 	widths: ColumnWidth;
 	order: ColumnOrder;

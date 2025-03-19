@@ -7,7 +7,7 @@ import {useCompanyStore} from '@/stores/use-company-store';
 import {Company} from '@/lib/company';
 import {CellChange, ChangeSource, ColumnDataGetterSetterFunction} from 'handsontable/common';
 import Handsontable from 'handsontable';
-import {useSettingsStore} from '@/stores/use-settings-store';
+import {BenchmarkSettings, useSettingsStore} from '@/stores/use-settings-store';
 import {useShallow} from 'zustand/react/shallow';
 import {UpdateCompanyDTO} from '@/lib/company/type';
 
@@ -29,18 +29,26 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 		})),
 	);
 	const {getSettings, bulkUpdateSettings} = useSettingsStore();
-	const settings = getSettings(benchmarkId.toString());
+	const settings: BenchmarkSettings = getSettings(benchmarkId.toString());
 	const [stretchH, setStretchH] = useState<'all' | 'none'>('all');
 	const columns = columnConfigs.map((config) => config.column);
 
-	// Get all columns and sort them based on stored order
-	const orderedColumns = useMemo(() => {
-		return columns.sort((a, b) => {
-			const orderA = settings.order[a.data] ?? Number.MAX_SAFE_INTEGER;
-			const orderB = settings.order[b.data] ?? Number.MAX_SAFE_INTEGER;
-			return orderA - orderB;
-		});
-	}, [settings.order, columns]);
+	// Initialize column order based on stored settings
+	const initiallyOrderedColumns = useMemo(() => {
+		// Create a new array to avoid mutating the original
+		return [...columns]
+			.sort((a, b) => {
+				const orderA = settings.order[a.data] ?? Number.MAX_SAFE_INTEGER;
+				const orderB = settings.order[b.data] ?? Number.MAX_SAFE_INTEGER;
+				return orderA - orderB;
+			})
+			.map((column) => {
+				if (settings.widths[column.data]) {
+					column.width = settings.widths[column.data];
+				}
+				return column;
+			});
+	}, []);
 
 	// Share the Handsontable instance with the parent component
 	useEffect(() => {
@@ -138,7 +146,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				if (hotColumns[i]) {
 					hotColumns[i].width = width;
 					// Store the width for the column
-					const columnData = orderedColumns[i]?.data;
+					const columnData = initiallyOrderedColumns[i]?.data;
 					if (columnData) {
 						newWidths[columnData] = width;
 					}
@@ -174,14 +182,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				}
 			});
 
-			// Update settings with new order and ensure stretchH is disabled
-			setStretchH('none');
-			// hot.updateSettings({
-			// 	stretchH: 'none',
-			// 	columns: columns,
-			// });
-
-			// Persist the new order
+			// Persist the new order without affecting the Handsontable instance
 			bulkUpdateSettings(benchmarkId.toString(), {
 				order: newOrder,
 			});
@@ -190,7 +191,8 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 
 	// Get all columns and their indices that should be hidden
 	const hiddenColumnIndices = useMemo(() => {
-		return columns
+		const hot = hotRef.current?.hotInstance as Handsontable;
+		return initiallyOrderedColumns
 			.map((column, index) => ({
 				index,
 				visible:
@@ -198,7 +200,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 					columnConfigs.find((config) => config.column.data === column.data)?.show !== 'no',
 			}))
 			.filter((col) => !col.visible)
-			.map((col) => col.index);
+			.map((col) => hot?.toVisualColumn(col.index) ?? col.index);
 	}, [settings.visibility, columnConfigs]);
 
 	return (
@@ -231,8 +233,8 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 					copyPasteEnabled: true,
 				}}
 			>
-				{orderedColumns.map((column, index) => (
-					<HotColumn key={index} {...column.toHotColumn()} width={settings.widths[column.data] ?? column.width} />
+				{initiallyOrderedColumns.map((column, index) => (
+					<HotColumn key={index} {...column.toHotColumn()} />
 				))}
 			</HotTable>
 		</div>
