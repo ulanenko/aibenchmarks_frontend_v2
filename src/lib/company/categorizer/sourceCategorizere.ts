@@ -74,3 +74,8 @@ export const DescriptionCategorizer: Categorizer = [
 			: CATEGORIES.DESCRIPTION.INVALID.toCategoryValue();
 	},
 ];
+
+/**
+ * Categorizer for web search status
+ */
+export const WebSearchCategorizer: Categorizer = [];
