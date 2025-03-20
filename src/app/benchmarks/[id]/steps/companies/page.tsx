@@ -1,13 +1,9 @@
 'use client';
 
-import {use, useEffect, useMemo, useRef, useState} from 'react';
-import {Card} from '@/components/ui/card';
+import {use, useEffect, useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {toast} from 'sonner';
 import {useCompanyStore} from '@/stores/use-company-store';
-import {StepsHeader} from '@/components/features/benchmark/steps-header';
-import {LoadingSpinner} from '@/components/ui/loading-spinner';
-import {ActionsFooter} from '@/components/features/benchmark/actions-footer';
 import {useUpload} from '@/components/features/benchmark/upload-excel/hooks';
 import {useValidation} from '@/components/features/website-validation/hooks';
 import {CompanyTable} from '@/components/features/benchmark/company-table';
@@ -16,6 +12,8 @@ import {useShallow} from 'zustand/react/shallow';
 import {companyColumns, defaultColumns, inputColumns} from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
 import {FileUpIcon, Loader2} from 'lucide-react';
+import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
+import {useRouter} from 'next/navigation';
 
 interface Props {
 	params: Promise<{
@@ -26,6 +24,7 @@ interface Props {
 export default function BenchmarkStep1Page({params}: Props) {
 	const {id} = use(params);
 	const benchmarkId = parseInt(id);
+	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
 
 	// Get validation and upload utilities
@@ -45,7 +44,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 	// Load companies data
 	useEffect(() => {
 		loadCompanies(benchmarkId);
-	}, [benchmarkId]);
+	}, [benchmarkId, loadCompanies]);
 
 	// Deduplicate column configs before passing them
 	const uniqueColumnConfigs = [...defaultColumns, ...inputColumns];
@@ -55,6 +54,7 @@ export default function BenchmarkStep1Page({params}: Props) {
 
 		try {
 			await saveChanges();
+			toast.success('Companies data saved successfully');
 		} catch (error) {
 			console.error('Error details:', error);
 			toast.error(error instanceof Error ? error.message : 'Error saving companies');
@@ -62,8 +62,12 @@ export default function BenchmarkStep1Page({params}: Props) {
 	};
 
 	const handleNext = () => {
-		// Implement navigation to next step
-		toast.info('Navigation to next step not implemented');
+		const nextUrl = getNextStepUrl(1, benchmarkId);
+		if (nextUrl) {
+			router.push(nextUrl);
+		} else {
+			toast.info('This is the last step');
+		}
 	};
 
 	const handleValidationClick = () => {
@@ -97,90 +101,79 @@ export default function BenchmarkStep1Page({params}: Props) {
 		</div>
 	);
 
-	return (
-		<div className="min-h-screen flex flex-col h-screen">
-			{/* Steps Header */}
-			<StepsHeader
-				currentStep={1}
-				className="flex-none"
-				helpSheetTitle="Companies Step Help"
-				helpSheetContent={companiesHelpContent}
-			/>
+	// Main content
+	const mainContent = (
+		<CompanyTable benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} onHotInstanceReady={setHotInstance} />
+	);
 
-			{/* Main Content */}
-			<div className="flex-1 p-4 overflow-auto">
-				<Card className="h-full">
-					<div className="h-full flex flex-col">
-						<div className="p-6 flex items-center justify-between">
-							<div>
-								<h2 className="text-lg font-semibold">Uploaded Companies</h2>
-								<p className="text-sm text-muted-foreground">Add, manage and validate companies here.</p>
-							</div>
-							<div className="flex items-center space-x-2">
-								<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />
-							</div>
-						</div>
-						<div className="flex-1 p-4 min-h-0">
-							{isLoading ? (
-								<LoadingSpinner message="Loading companies..." />
-							) : (
-								<CompanyTable
-									benchmarkId={benchmarkId}
-									columnConfigs={uniqueColumnConfigs}
-									onHotInstanceReady={setHotInstance}
-								/>
-							)}
-						</div>
-					</div>
-				</Card>
-			</div>
+	// Toolbar content
+	const toolbarContent = <ColumnVisibility benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />;
 
-			{/* Actions Footer */}
-			<ActionsFooter companies={companies} categoryColumn={companyColumns.inputStatus} hotInstance={hotInstance}>
-				<Button
-					variant="outline"
-					onClick={() => setIsUploadModalOpen(true)}
-					size="sm"
-					disabled={isUploading || isSaving}
-				>
-					{isUploading ? (
-						<>
-							<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-							Uploading...
-						</>
-					) : (
-						<>
-							<FileUpIcon className="h-4 w-4 mr-2" />
-							Upload Excel
-						</>
-					)}
-				</Button>
-				<Button
-					variant="outline"
-					onClick={handleValidationClick}
-					size="sm"
-					disabled={isUploading || isSaving || isValidating || !canValidate}
-				>
-					{isValidating ? (
-						<>
-							<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-							Validating...
-						</>
-					) : (
-						<>Validate Companies</>
-					)}
-				</Button>
-				<Button variant="outline" onClick={handleSave} disabled={isSaving || isUploading} size="sm">
-					{isSaving ? 'Saving...' : 'Save Changes'}
-				</Button>
-				<Button onClick={handleNext} size="sm" disabled={isUploading}>
-					Next Step →
-				</Button>
-			</ActionsFooter>
+	// Footer actions
+	const footerActions = (
+		<>
+			<Button variant="outline" onClick={() => setIsUploadModalOpen(true)} size="sm" disabled={isUploading || isSaving}>
+				{isUploading ? (
+					<>
+						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+						Uploading...
+					</>
+				) : (
+					<>
+						<FileUpIcon className="h-4 w-4 mr-2" />
+						Upload Excel
+					</>
+				)}
+			</Button>
+			<Button
+				variant="outline"
+				onClick={handleValidationClick}
+				size="sm"
+				disabled={isUploading || isSaving || isValidating || !canValidate}
+			>
+				{isValidating ? (
+					<>
+						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+						Validating...
+					</>
+				) : (
+					<>Validate Companies</>
+				)}
+			</Button>
+			<Button variant="outline" onClick={handleSave} disabled={isSaving || isUploading} size="sm">
+				{isSaving ? 'Saving...' : 'Save Changes'}
+			</Button>
+			<Button onClick={handleNext} size="sm" disabled={isUploading}>
+				Next Step →
+			</Button>
+		</>
+	);
 
-			{/* Render the modals */}
+	// Additional content
+	const additionalContent = (
+		<>
 			<UploadModal />
 			<ValidationDialogs />
-		</div>
+		</>
+	);
+
+	return (
+		<BenchmarkStepLayout
+			benchmarkId={benchmarkId}
+			stepNumber={1}
+			pageTitle="Uploaded Companies"
+			pageDescription="Add, manage and validate companies here."
+			helpSheetTitle="Companies Step Help"
+			helpSheetContent={companiesHelpContent}
+			companies={companies}
+			isLoading={isLoading}
+			categoryColumn={companyColumns.inputStatus}
+			hotInstance={hotInstance}
+			toolbarContent={toolbarContent}
+			mainContent={mainContent}
+			footerActions={footerActions}
+			additionalContent={additionalContent}
+			onNext={handleNext}
+		/>
 	);
 }

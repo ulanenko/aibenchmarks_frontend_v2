@@ -1,0 +1,100 @@
+{
+	"name": "Benchmark Management System Rules",
+	"formatRules": {
+		"tabWidth": 2,
+		"useTabs": true,
+		"printWidth": 120,
+		"singleQuote": true,
+		"trailingComma": "all",
+		"bracketSpacing": false,
+		"semi": true,
+		"endOfLine": "lf"
+	},
+	"lintRules": {
+		"noUnusedVars": "error",
+		"noExplicitAny": "warn",
+		"reactHooksRules": "error",
+		"reactHooksExhaustiveDeps": "warn"
+	},
+	"structure": {
+		"directories": {
+			"app": "Next.js App Router pages and layouts",
+			"components": {
+				"ui": "Reusable UI components",
+				"features": "Feature-specific components",
+				"layout": "Layout components",
+				"providers": "Context providers",
+				"clients": "Client-side components",
+				"hot": "Hot-reloading components"
+			},
+			"db": "Database schema and configurations",
+			"lib": "Shared utilities and helper functions",
+			"services": "Service layer (API clients, server services)",
+			"stores": "Client-side state management",
+			"hooks": "Custom React hooks",
+			"types": "TypeScript type definitions",
+			"fonts": "Font assets"
+		}
+	},
+	"namingConventions": {
+		"files": {
+			"components": "PascalCase.tsx",
+			"utilities": "camelCase.ts",
+			"hooks": "use-hookName.tsx",
+			"pages": "page.tsx"
+		},
+		"code": {
+			"components": "PascalCase",
+			"hooks": "useHookName",
+			"functions": "camelCase",
+			"constants": "UPPER_SNAKE_CASE"
+		}
+	},
+	"componentPatterns": {
+		"ui": {
+			"styleFramework": "Tailwind CSS",
+			"variantSystem": "class-variance-authority",
+			"forwardRef": true,
+			"typeProps": true
+		},
+		"hooks": {
+			"prefix": "use",
+			"typeSafety": true
+		}
+	},
+	"stateManagement": {
+		"global": "Zustand",
+		"location": "/src/stores"
+	},
+	"apiPatterns": {
+		"typeSafety": {
+			"separateDbTypes": true,
+			"explicitResponseTypes": true,
+			"consistentResponseFormats": true
+		},
+		"serviceLayer": {
+			"serverServices": "/src/services/server",
+			"apiClients": "/src/services/api",
+			"errorHandling": true
+		}
+	},
+	"authentication": {
+		"framework": "NextAuth.js",
+		"configuration": "/src/lib/auth"
+	},
+	"database": {
+		"orm": "Drizzle",
+		"database": "PostgreSQL",
+		"schemaLocation": "/src/db"
+	},
+	"frameworks": {
+		"ui": "shadcn/ui",
+		"formHandling": "react-hook-form",
+		"validation": "zod"
+	},
+	"imports": {
+		"aliases": {
+			"@/*": "./src/*"
+		}
+	}
+}

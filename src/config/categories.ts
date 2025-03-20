@@ -1,7 +1,7 @@
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CompanyHotCopy} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
-import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2} from 'lucide-react';
+import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search} from 'lucide-react';
 
 const CATEGORIES = {
 	WEBSITE: {
@@ -133,6 +133,40 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'INPUT.COMPLETED',
 			passed: true,
+		}),
+	},
+	WEBSEARCH: {
+		NOT_STARTED: new CategoryDefinition({
+			label: 'Not Started',
+			color: 'gray',
+			icon: Search,
+			status: 'not_started',
+			categoryKey: 'WEBSEARCH.NOT_STARTED',
+			passed: undefined,
+		}),
+		IN_PROGRESS: new CategoryDefinition({
+			label: 'Searching',
+			color: 'yellow',
+			icon: Loader2,
+			status: 'in_progress',
+			categoryKey: 'WEBSEARCH.IN_PROGRESS',
+			passed: undefined,
+		}),
+		COMPLETED: new CategoryDefinition({
+			label: 'Completed',
+			color: 'green',
+			icon: CheckCircle,
+			status: 'completed',
+			categoryKey: 'WEBSEARCH.COMPLETED',
+			passed: true,
+		}),
+		FAILED: new CategoryDefinition({
+			label: 'Failed',
+			color: 'red',
+			icon: X,
+			status: 'completed',
+			categoryKey: 'WEBSEARCH.FAILED',
+			passed: false,
 		}),
 	},
 };

@@ -2,7 +2,7 @@
 
 A modern web application for managing benchmarks and company data, built with Next.js, TypeScript, and a robust type-safe API layer.
 
-## Project Structure (WIP)
+## Project Structure
 
 ```
 src/
