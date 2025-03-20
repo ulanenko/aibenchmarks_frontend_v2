@@ -49,9 +49,26 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 	isSaving: false,
 	hotCopyCompanies: [],
 	setCompanies: (companies: Company[]) => {
-		set({companies});
-		// console.log(companies);
-		set({hotCopyCompanies: companies.map((c) => c.hotCopy)});
+		// Sort companies: positive IDs first in ascending order, then negative IDs in descending order (so -1 before -2)
+		const sortedCompanies = [...companies].sort((a, b) => {
+			const aId = a.id || 0;
+			const bId = b.id || 0;
+
+			// If one ID is negative and the other is positive, put positive first
+			if (aId >= 0 && bId < 0) return -1;
+			if (aId < 0 && bId >= 0) return 1;
+
+			// If both are negative, sort in descending order (higher negative values first)
+			if (aId < 0 && bId < 0) {
+				return bId - aId; // This will put -1 before -2
+			}
+
+			// If both are positive or zero, sort in ascending order
+			return aId - bId;
+		});
+
+		set({companies: sortedCompanies});
+		set({hotCopyCompanies: sortedCompanies.map((c) => c.hotCopy)});
 	},
 
 	// addCompany: (company) =>

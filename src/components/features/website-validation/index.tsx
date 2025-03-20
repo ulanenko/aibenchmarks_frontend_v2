@@ -21,6 +21,31 @@ export interface ValidationCallbacks {
 	onValidationComplete?: () => void;
 }
 
+// Interface for the useValidation wrapper hook return value
+export interface ValidationUtils {
+	isValidating: boolean;
+	canValidate: boolean;
+	openValidationModal: () => void;
+	ValidationDialogs: () => React.ReactElement;
+}
+
+// Wrapper hook to provide simplified validation interface with local state
+export function useValidation(): ValidationUtils {
+	const [isValidating, setIsValidating] = useState(false);
+
+	const {openValidationModal, ValidationDialogs, canValidate} = useWebsiteValidation({
+		onValidationStart: () => setIsValidating(true),
+		onValidationComplete: () => setIsValidating(false),
+	});
+
+	return {
+		isValidating,
+		canValidate,
+		openValidationModal,
+		ValidationDialogs,
+	};
+}
+
 // Create a validation manager for handling validation flow
 export function useWebsiteValidation(callbacks?: ValidationCallbacks) {
 	const {toast} = useToast();

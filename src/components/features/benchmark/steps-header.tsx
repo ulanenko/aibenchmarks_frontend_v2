@@ -1,17 +1,47 @@
 import {HelpSheet} from '@/components/layout/helpsheet/help-sheet';
 import {BENCHMARK_STEPS} from '@/config/steps';
+import {ReactNode} from 'react';
 
 interface StepsHeaderProps {
 	currentStep: number;
 	className?: string;
+	helpSheetTitle?: string;
+	helpSheetContent?: ReactNode;
 }
 
-export function StepsHeader({currentStep, className = ''}: StepsHeaderProps) {
+export function StepsHeader({
+	currentStep,
+	className = '',
+	helpSheetTitle = 'Benchmark Steps',
+	helpSheetContent,
+}: StepsHeaderProps) {
 	const steps = BENCHMARK_STEPS.map((step) => ({
 		...step,
 		isActive: currentStep === step.number,
 		isCompleted: currentStep > step.number,
 	}));
+
+	// Default help sheet content if none is provided
+	const defaultHelpSheetContent = (
+		<div className="prose prose-sm">
+			<h3>Overview</h3>
+			<p>The benchmark process consists of {steps.length} main steps:</p>
+			<ol>
+				{steps.map((step) => (
+					<li key={step.id}>
+						<strong>{step.label}</strong> - {step.description}
+					</li>
+				))}
+			</ol>
+			<p>
+				You can track your progress through the steps using the progress bar above. Each step must be completed before
+				moving to the next.
+			</p>
+		</div>
+	);
+
+	// Use provided content or default
+	const content = helpSheetContent || defaultHelpSheetContent;
 
 	return (
 		<div className={`border-b ${className}`}>
@@ -56,23 +86,7 @@ export function StepsHeader({currentStep, className = ''}: StepsHeaderProps) {
 					<div className="px-3 py-1 rounded bg-gray-50 text-sm text-gray-600 whitespace-nowrap">
 						IQ range N/A: no completed companies in set
 					</div>
-					<HelpSheet title="Benchmark Steps">
-						<div className="prose prose-sm">
-							<h3>Overview</h3>
-							<p>The benchmark process consists of {steps.length} main steps:</p>
-							<ol>
-								{steps.map((step) => (
-									<li key={step.id}>
-										<strong>{step.label}</strong> - {step.description}
-									</li>
-								))}
-							</ol>
-							<p>
-								You can track your progress through the steps using the progress bar above. Each step must be completed
-								before moving to the next.
-							</p>
-						</div>
-					</HelpSheet>
+					<HelpSheet title={helpSheetTitle}>{content}</HelpSheet>
 					<button className="p-1.5 hover:bg-gray-50 rounded shrink-0">
 						<span className="sr-only">Menu</span>
 						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
