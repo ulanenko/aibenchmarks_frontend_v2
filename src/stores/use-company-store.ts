@@ -26,6 +26,13 @@ interface CompanyStore {
 		companyId: number | number[],
 		websiteValidation: WebsiteValidationStatus | WebsiteValidationStatus[],
 	) => Company[];
+	updateWebSearchState: (
+		companyId: number | number[],
+		options: {
+			webSearchInitialized?: boolean;
+			searchId?: string | null;
+		},
+	) => Company[];
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
 	loadMappingSettings: (benchmarkId: number) => Promise<{
@@ -118,6 +125,38 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 			const company = companies.find((c) => c.id === id);
 			if (company) {
 				company.updateWebsiteValidation(websiteValidations[index]);
+			}
+		});
+
+		get().setCompanies(companies);
+		return get().companies.filter((c) => companyIds.includes(c.id!));
+	},
+
+	updateWebSearchState: (
+		companyId: number | number[],
+		options: {
+			webSearchInitialized?: boolean;
+			searchId?: string | null;
+		},
+	): Company[] => {
+		const companies = [...get().companies];
+		const companyIds = Array.isArray(companyId) ? companyId : [companyId];
+
+		companyIds.forEach((id) => {
+			const company = companies.find((c) => c.id === id);
+			if (company) {
+				// Update frontend state if provided
+				if (options.webSearchInitialized !== undefined) {
+					company.frontendState.webSearchInitialized = options.webSearchInitialized;
+				}
+
+				// Update searchId if provided
+				if (options.searchId !== undefined) {
+					company.backendState.searchId = options.searchId;
+				}
+
+				// Update dependent values to refresh categories
+				company.updateDependentValues();
 			}
 		});
 

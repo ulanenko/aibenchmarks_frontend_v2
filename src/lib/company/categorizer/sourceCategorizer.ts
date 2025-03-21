@@ -1,5 +1,5 @@
 import {CATEGORIES} from '@/config/categories';
-import {Company} from '@/lib/company/company';
+import {Company, CompanyHotCopy} from '@/lib/company/company';
 import {Categorizer, CategoryValue} from '@/types/category';
 import {getValidationStatus, isValidationUpToDate} from '../website-validation';
 import {CategoryDefinition} from '@/lib/category-definition';
@@ -78,4 +78,24 @@ export const DescriptionCategorizer: Categorizer = [
 /**
  * Categorizer for web search status
  */
-export const WebSearchCategorizer: Categorizer = [];
+export const WebSearchCategorizer: Categorizer = [
+	(company) => {
+		// If web search is initialized but no search ID, show as "Frontend initialized"
+		if (company.frontendState?.webSearchInitialized && !company.backendState?.searchId) {
+			return CATEGORIES.WEBSEARCH.FRONTEND_INITIALIZED.toCategoryValue();
+		}
+
+		// If we have a search ID, show as "In queue"
+		if (company.backendState?.searchId) {
+			return CATEGORIES.WEBSEARCH.IN_QUEUE.toCategoryValue();
+		}
+
+		// If no search initiated, check if the INPUT category is completed
+		const inputStatus = company.categoryValues?.INPUT;
+		if (inputStatus && inputStatus.category.status === 'completed') {
+			return CATEGORIES.WEBSEARCH.READY.toCategoryValue();
+		}
+
+		return CATEGORIES.WEBSEARCH.NOT_READY.toCategoryValue();
+	},
+];

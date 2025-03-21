@@ -3,7 +3,7 @@ import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer, websiteValidationRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
-import {DescriptionCategorizer, WebsiteCategorizer, WebSearchCategorizer} from './categorizer/sourceCategorizere';
+import {DescriptionCategorizer, WebsiteCategorizer, WebSearchCategorizer} from './categorizer/sourceCategorizer';
 
 export const inputColumnDefinitions = {
 	name: new Column({
@@ -181,4 +181,4 @@ export const inputColumns: ColumnConfig[] = [
 ];
 
 // Web search specific columns
-export const websearchColumns: ColumnConfig[] = [];
+export const websearchColumns: ColumnConfig[] = [{column: companyColumns.websearchStatus, show: 'yes'}];

@@ -5,6 +5,7 @@ import {checkUrlChanged, isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES, CategoryType} from '@/config/categories';
 import {WebsiteValidationStatus, createInputSettings} from './website-validation';
+
 export interface InputValues {
 	name: string;
 	country: string | null;
@@ -27,6 +28,16 @@ export type DynamicInputValues = {
 	urlValidationStatus: 'input' | 'updated' | 'fine-tuned' | 'correct' | 'invalid';
 };
 
+// Frontend state to track UI-specific states that don't belong in the database
+export type FrontendState = {
+	webSearchInitialized?: boolean;
+};
+
+// Backend state to track values set by the backend
+export type BackendState = {
+	searchId: string | null;
+};
+
 export type CompanyHotCopy = {
 	id: number | null;
 	inputValues: InputValues | null;
@@ -36,6 +47,8 @@ export type CompanyHotCopy = {
 		  }
 		| undefined;
 	dynamicInputValues: DynamicInputValues | null;
+	frontendState?: FrontendState;
+	backendState?: BackendState;
 };
 
 export class Company {
@@ -60,6 +73,14 @@ export class Company {
 	dynamicInputValues: DynamicInputValues = {
 		url: null,
 		urlValidationStatus: 'input',
+	};
+
+	// Frontend state for tracking UI states that shouldn't persist in the database
+	frontendState: FrontendState = {};
+
+	// Backend state for tracking values set by the backend
+	backendState: BackendState = {
+		searchId: null,
 	};
 
 	// Track which fields have been changed
@@ -104,6 +125,11 @@ export class Company {
 			tradeDescriptionOriginal: data?.tradeDescriptionOriginal ?? null,
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
+		};
+
+		// Initialize backendState
+		this.backendState = {
+			searchId: data?.searchId ?? null,
 		};
 
 		this.websiteValidation =
@@ -197,6 +223,8 @@ export class Company {
 			inputValues: {...this.inputValues},
 			dynamicInputValues: {...this.dynamicInputValues},
 			categoryValues: this.categoryValues,
+			frontendState: {...this.frontendState},
+			backendState: {...this.backendState},
 		};
 	}
 

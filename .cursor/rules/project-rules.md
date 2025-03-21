@@ -110,3 +110,84 @@ This document outlines the code standards and project structure for the Benchmar
 ## Import Aliases
 
 - `@/*` for imports from the `src` directory
+
+## Frontend Architecture and Data Flow
+
+### Data Model Structure
+
+#### Company Class
+
+The `Company` class serves as the central data structure with several key properties:
+
+- **Input Values (`inputValues`)**: User-provided data (name, country, URL, etc.)
+- **State Management**:
+  - `frontendState`: UI-specific states (e.g., `webSearchInitialized`)
+  - `backendState`: Backend-generated values (e.g., `searchId`)
+- **Derived Values**:
+  - `categoryValues`: Status information displayed to users (derived by categorizers)
+  - `dynamicInputValues`: Processed versions of user inputs (e.g., validated URLs)
+
+#### State Update Flow
+
+1. **User Interactions** trigger updates to the store
+2. **Store** updates the appropriate state based on data source:
+   - `inputValues`: For user-provided data
+   - `frontendState`: For UI-specific states
+   - `backendState`: For backend-generated values
+3. **Derived Values** are recalculated via `updateDependentValues()`
+4. **UI Components** observe state changes and re-render
+
+### Category System
+
+#### Category Calculation
+
+- Categories are calculated by dedicated categorizers in `/src/lib/company/categorizer/`
+- Categorizers examine various aspects of state and produce category values
+- Some categorizers depend on results from other categories
+
+#### Category Dependencies
+
+- Categories can depend on:
+  - Input values
+  - Frontend state
+  - Backend state
+  - Other category values
+
+### Analysis Workflow
+
+1. **Initiation**:
+
+   - User triggers company analysis
+   - `frontendState.webSearchInitialized` is set to `true`
+   - UI shows "Frontend initialized" status
+
+2. **Backend Processing**:
+
+   - Backend receives request and generates a search ID
+   - `backendState.searchId` is updated
+   - UI updates to show "In queue" status
+
+3. **Status Progression**:
+   - NOT_READY → FRONTEND_INITIALIZED → IN_QUEUE → IN_PROGRESS → COMPLETED/FAILED
+   - Each state change is visually reflected in the UI
+
+### State Management Best Practices
+
+1. **Data Location**:
+
+   - Place values in the semantically appropriate location
+   - User inputs → `inputValues`
+   - Frontend UI states → `frontendState`
+   - Backend responses → `backendState`
+   - Derived information → `categoryValues` and `dynamicInputValues`
+
+2. **Update Chain**:
+
+   - When updating state, always call `updateDependentValues()`
+   - This ensures all derived values are recalculated
+   - Then the UI will automatically reflect the current state
+
+3. **Changes Through Store**:
+   - All updates should go through the store (`useCompanyStore`)
+   - Never modify company state directly from components
+   - Use provided methods like `updateWebSearchState()`

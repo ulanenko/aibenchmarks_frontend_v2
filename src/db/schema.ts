@@ -102,6 +102,9 @@ export const company = pgTable('bm_company', {
 	urlValidationUrl: text('url_validated'),
 	urlValidationInput: text('url_validated_input'),
 	urlValidationValid: boolean('url_validated_and_accessible'),
+
+	// Search analysis data
+	searchId: text('search_id'),
 });
 
 export interface BaseFields {

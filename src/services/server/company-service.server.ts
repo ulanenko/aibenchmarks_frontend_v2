@@ -161,3 +161,52 @@ export async function saveCompanies(
 		throw error;
 	}
 }
+
+/**
+ * Updates companies with their search IDs after starting an analysis
+ *
+ * @param searchIdMap - Map of company IDs to search IDs
+ * @returns The updated company data
+ */
+export async function updateCompanySearchIds(searchIdMap: Record<number, string>): Promise<CompanyDTO[]> {
+	try {
+		const companyIds = Object.keys(searchIdMap).map((id) => parseInt(id));
+
+		if (companyIds.length === 0) {
+			return [];
+		}
+
+		const updatedCompanies: CompanyDTO[] = [];
+
+		// Process all the updates at once by combining SQL operations
+		for (const companyId of companyIds) {
+			const searchId = searchIdMap[companyId];
+
+			// Skip if we don't have a search ID for some reason
+			if (!searchId) continue;
+
+			// Update the company with its search ID
+			const updated = await db
+				.update(company)
+				.set({
+					searchId: searchId,
+					updatedAt: new Date(),
+				})
+				.where(eq(company.id, companyId))
+				.returning();
+
+			if (updated.length > 0) {
+				updatedCompanies.push({
+					...updated[0],
+					// Ensure non-nullable fields have default values
+					name: updated[0].name || '',
+				});
+			}
+		}
+
+		return updatedCompanies;
+	} catch (error) {
+		console.error('Error updating company search IDs:', error);
+		throw error;
+	}
+}

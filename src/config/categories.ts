@@ -2,6 +2,7 @@ import {CategoryDefinition} from '@/lib/category-definition';
 import {CompanyHotCopy} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
 import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search} from 'lucide-react';
+import {analyzeCompanyService} from '@/lib/company/services/companyAnalysisService';
 
 const CATEGORIES = {
 	WEBSITE: {
@@ -136,12 +137,37 @@ const CATEGORIES = {
 		}),
 	},
 	WEBSEARCH: {
-		NOT_STARTED: new CategoryDefinition({
-			label: 'Not Started',
+		NOT_READY: new CategoryDefinition({
+			label: 'Not Ready',
 			color: 'gray',
-			icon: Search,
-			status: 'not_started',
-			categoryKey: 'WEBSEARCH.NOT_STARTED',
+			icon: AlertCircle,
+			status: 'not_ready',
+			categoryKey: 'WEBSEARCH.NOT_READY',
+			passed: undefined,
+		}),
+		READY: new CategoryDefinition({
+			label: 'Start analysis',
+			color: 'blue',
+			icon: PlayCircle,
+			status: 'ready',
+			categoryKey: 'WEBSEARCH.READY',
+			onclick: analyzeCompanyService,
+			passed: undefined,
+		}),
+		FRONTEND_INITIALIZED: new CategoryDefinition({
+			label: 'Analysis started',
+			color: 'blue',
+			icon: Loader2,
+			status: 'in_progress',
+			categoryKey: 'WEBSEARCH.FRONTEND_INITIALIZED',
+			passed: undefined,
+		}),
+		IN_QUEUE: new CategoryDefinition({
+			label: 'In queue',
+			color: 'yellow',
+			icon: Loader2,
+			status: 'in_progress',
+			categoryKey: 'WEBSEARCH.IN_QUEUE',
 			passed: undefined,
 		}),
 		IN_PROGRESS: new CategoryDefinition({

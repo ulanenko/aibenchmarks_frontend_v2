@@ -14,6 +14,8 @@ export const updateCategories = (company: Company) => {
 	companyColumns.websiteStatus.categorize(company);
 	// step 2 - Input status
 	companyColumns.inputStatus.categorize(company);
+	// step 3 - Web search status
+	companyColumns.websearchStatus.categorize(company);
 };
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {

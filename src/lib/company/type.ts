@@ -28,6 +28,7 @@ export type CompanyDTO = {
 	urlValidationUrl: string | null;
 	urlValidationInput: string | null;
 	urlValidationValid: boolean | null;
+	searchId: string | null;
 };
 
 // Type for company creation - omit auto-generated fields
