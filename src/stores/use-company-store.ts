@@ -45,7 +45,7 @@ interface CompanyStore {
 		error: string | null;
 	}>;
 	removeCompany: (id: number) => void;
-	loadCompanies: (benchmarkId: number) => Promise<void>;
+	loadCompanies: (benchmarkId: number, options?: {includeSearchData?: boolean}) => Promise<void>;
 	saveChanges: () => Promise<void>;
 }
 
@@ -253,23 +253,39 @@ export const useCompanyStore = create<CompanyStore>((set, get) => ({
 			companies: state.companies.filter((c) => c.id !== id),
 		})),
 
-	loadCompanies: async (benchmarkId: number) => {
+	loadCompanies: async (benchmarkId: number, options?: {includeSearchData?: boolean}) => {
 		set({isLoading: true, benchmarkId});
 		try {
-			// Use the server action to get companies
-			const {companies, error} = await companyActions.getCompanies(benchmarkId);
+			// Determine whether to include search data (default to false for backward compatibility)
+			const includeSearchData = options?.includeSearchData ?? false;
+
+			// Use the appropriate server action based on the includeSearchData option
+			const {companies, error} = includeSearchData
+				? await companyActions.getCompaniesWithSearchData(benchmarkId)
+				: await companyActions.getCompanies(benchmarkId);
 
 			if (error) {
 				throw new Error(error);
 			}
 
 			get().setCompanies(companies.map((dto) => new Company(dto)));
+
+			// Only show additional toast notification when loading with search data
+			if (includeSearchData) {
+				toast({
+					title: 'Companies loaded',
+					description: `Loaded ${companies.length} companies with search data`,
+				});
+			}
 		} catch (error) {
-			console.error('Error loading companies:', error);
+			console.error(`Error loading companies${options?.includeSearchData ? ' with search data' : ''}:`, error);
 			toast({
 				variant: 'destructive',
 				title: 'Error loading companies',
-				description: error instanceof Error ? error.message : 'Failed to load companies',
+				description:
+					error instanceof Error
+						? error.message
+						: `Failed to load companies${options?.includeSearchData ? ' with search data' : ''}`,
 			});
 		} finally {
 			set({isLoading: false});

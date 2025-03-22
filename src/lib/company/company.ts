@@ -5,6 +5,7 @@ import {checkUrlChanged, isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES, CategoryType} from '@/config/categories';
 import {WebsiteValidationStatus, createInputSettings} from './website-validation';
+import {SearchedCompany} from '@/services/backend/models/searchedCompany';
 
 export interface InputValues {
 	name: string;
@@ -49,6 +50,7 @@ export type CompanyHotCopy = {
 	dynamicInputValues: DynamicInputValues | null;
 	frontendState?: FrontendState;
 	backendState?: BackendState;
+	searchedCompanyData: SearchedCompany | null;
 };
 
 export class Company {
@@ -93,12 +95,16 @@ export class Company {
 		inputValues: null,
 		categoryValues: undefined,
 		dynamicInputValues: null,
+		searchedCompanyData: null,
 	};
 	categoryValues:
 		| {
 				[key in CategoryType]: CategoryValue;
 		  }
 		| undefined;
+
+	// Searched company data
+	searchedCompanyData: SearchedCompany | null = null;
 
 	constructor(data?: CompanyDTO | CreateCompanyDTO) {
 		this.id = data && 'id' in data ? data.id : Company.getNextTempId();
@@ -131,6 +137,10 @@ export class Company {
 		this.backendState = {
 			searchId: data?.searchId ?? null,
 		};
+
+		// Initialize searchedCompanyData
+		this.searchedCompanyData =
+			data && 'searchedCompanyData' in data && data.searchedCompanyData !== undefined ? data.searchedCompanyData : null;
 
 		this.websiteValidation =
 			data && 'urlValidationUrl' in data && data.urlValidationUrl
@@ -225,6 +235,7 @@ export class Company {
 			categoryValues: this.categoryValues,
 			frontendState: {...this.frontendState},
 			backendState: {...this.backendState},
+			searchedCompanyData: this.searchedCompanyData,
 		};
 	}
 

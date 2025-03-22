@@ -1,5 +1,6 @@
 import {StepStatus} from '@/db/schema';
 import {company} from '@/db/schema';
+import {SearchedCompany} from '@/services/backend/models/searchedCompany';
 
 export type CompanyDBType = typeof company.$inferSelect;
 
@@ -29,6 +30,7 @@ export type CompanyDTO = {
 	urlValidationInput: string | null;
 	urlValidationValid: boolean | null;
 	searchId: string | null;
+	searchedCompanyData: SearchedCompany | null;
 };
 
 // Type for company creation - omit auto-generated fields

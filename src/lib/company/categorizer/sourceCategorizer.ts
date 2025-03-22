@@ -4,6 +4,7 @@ import {Categorizer, CategoryValue} from '@/types/category';
 import {getValidationStatus, isValidationUpToDate} from '../website-validation';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {VALIDATION} from '@/config/validation';
+import {isCompleted, isError, isUnsuccessful} from '../utils';
 
 /**
  * Helper function to check if a description is valid (meets the minimum word count requirement)
@@ -80,6 +81,18 @@ export const DescriptionCategorizer: Categorizer = [
  */
 export const WebSearchCategorizer: Categorizer = [
 	(company) => {
+		// If we have searchedCompanyData, the search is completed
+		if (company.searchedCompanyData !== null) {
+			// Check the status in the searchedCompanyData to determine if it was successful or failed
+			if (isCompleted(company.searchedCompanyData.overall_status)) {
+				return CATEGORIES.WEBSEARCH.COMPLETED.toCategoryValue();
+			} else if (isUnsuccessful(company.searchedCompanyData.overall_status)) {
+				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue();
+			} else if (isError(company.searchedCompanyData.overall_status)) {
+				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue();
+			}
+		}
+
 		// If web search is initialized but no search ID, show as "Frontend initialized"
 		if (company.frontendState?.webSearchInitialized && !company.backendState?.searchId) {
 			return CATEGORIES.WEBSEARCH.FRONTEND_INITIALIZED.toCategoryValue();

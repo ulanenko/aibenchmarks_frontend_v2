@@ -39,3 +39,15 @@ export const getUniqueValuesForPath = (objects: {[key: string]: any}[], dataPath
 	}, new Set<string>());
 	return Array.from(valuesSet);
 };
+
+export const isCompleted = (status: string) => {
+	return status && status.toLowerCase() === 'completed';
+};
+
+export const isUnsuccessful = (status: string) => {
+	return status && status.toLowerCase().search('analysis unsuccessful') !== -1;
+};
+
+export const isError = (status: string) => {
+	return status && status.toLowerCase().search('error') !== -1;
+};

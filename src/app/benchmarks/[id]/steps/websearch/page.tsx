@@ -38,7 +38,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 
 	// Load companies data
 	useEffect(() => {
-		loadCompanies(benchmarkId);
+		loadCompanies(benchmarkId, {includeSearchData: true});
 	}, [benchmarkId, loadCompanies]);
 
 	// Columns specific to the websearch step
