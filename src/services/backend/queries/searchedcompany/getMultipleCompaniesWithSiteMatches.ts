@@ -1,6 +1,7 @@
 import {secondaryDb} from '../../database/secondaryConnection';
 import {searchedCompany, siteMatch} from '../../database/secondarySchema';
 import {inArray} from 'drizzle-orm';
+import {SearchedCompany} from '../../models/searchedCompany';
 
 type SiteMatchType = typeof siteMatch.$inferSelect;
 
@@ -9,7 +10,7 @@ type SiteMatchType = typeof siteMatch.$inferSelect;
  * @param searchIds - Array of search_ids to retrieve
  * @returns Array of searched companies with their site match data
  */
-export async function getMultipleCompaniesWithSiteMatches(searchIds: string[]) {
+export async function getMultipleCompaniesWithSiteMatches(searchIds: string[]): Promise<SearchedCompany[]> {
 	if (!searchIds.length) {
 		return [];
 	}
@@ -39,7 +40,7 @@ export async function getMultipleCompaniesWithSiteMatches(searchIds: string[]) {
 		// Combine the results
 		return companies.map((company) => ({
 			...company,
-			siteMatch: company.search_id ? siteMatchMap.get(company.search_id) || null : null,
+			site_match: company.search_id ? siteMatchMap.get(company.search_id) || undefined : undefined,
 		}));
 	} catch (error) {
 		console.error('Error retrieving multiple companies with site matches:', error);

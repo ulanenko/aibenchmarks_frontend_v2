@@ -71,3 +71,23 @@ export async function getCompaniesWithSearchData(benchmarkId: number): Promise<{
 		};
 	}
 }
+
+/**
+ * Server action to get only the search data for companies
+ * This is more efficient than loading all company data when we only need search data
+ */
+export async function getCompaniesSearchData(benchmarkId: number): Promise<{
+	companies: Array<{id: number; searchId: string | null; searchedCompanyData: CompanyDTO['searchedCompanyData']}>;
+	error: string | null;
+}> {
+	try {
+		const companies = await companyService.getCompaniesSearchData(benchmarkId);
+		return {companies, error: null};
+	} catch (error) {
+		console.error(`Error getting companies search data for benchmark ${benchmarkId}:`, error);
+		return {
+			companies: [],
+			error: error instanceof Error ? error.message : 'An unknown error occurred',
+		};
+	}
+}

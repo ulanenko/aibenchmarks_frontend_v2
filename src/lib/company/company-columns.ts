@@ -1,7 +1,7 @@
 import {BaseRenderer} from 'handsontable/renderers';
 import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
-import {urlRenderer, websiteValidationRenderer} from '@/components/hot/renderers';
+import {urlRenderer, websiteValidationRenderer, descriptionRenderer, expandToggleRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
 import {DescriptionCategorizer, WebsiteCategorizer, WebSearchCategorizer} from './categorizer/sourceCategorizer';
 
@@ -112,6 +112,63 @@ export const inputColumnDefinitions = {
 	}),
 };
 
+const websearchColumnDefinitions = {
+	expandToggle: new Column({
+		title: 'Expand',
+		type: 'text',
+		width: 60,
+		data: 'id', // Just using id as a data reference, doesn't matter
+		renderer: expandToggleRenderer,
+		readOnly: true,
+		description: 'Expand or collapse description text',
+	}),
+	searchId: new Column({
+		title: 'Search ID',
+		type: 'text',
+		width: 200,
+		data: 'backendState.searchId',
+		description: 'Search ID of the company',
+	}),
+	overallStatus: new Column({
+		title: 'Overall Status',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.overall_status',
+		description: 'Status of web search results for the company',
+	}),
+	analysisBusinessDescription: new Column({
+		title: 'Analysis Business Description',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.business_description',
+		renderer: descriptionRenderer,
+		description: 'Business description of the company',
+	}),
+	analysisProductServiceDescription: new Column({
+		title: 'Analysis Product Service Description',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.product_service_description',
+		renderer: descriptionRenderer,
+		description: 'Product service description of the company',
+	}),
+	analysisFunctionalProfileDescription: new Column({
+		title: 'Analysis Functional Profile Description',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.functional_profile_description',
+		renderer: descriptionRenderer,
+		description: 'Functional profile description of the company',
+	}),
+	analysisCorporateStructureAndAffiliationsSummary: new Column({
+		title: 'Analysis Corporate Structure And Affiliations Summary',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.corporatestructureandaffiliations_summary',
+		renderer: descriptionRenderer,
+		description: 'Corporate structure and affiliations summary of the company',
+	}),
+};
 const statusColumns = {
 	inputStatus: new CategoryColumn({
 		title: 'Status',
@@ -142,6 +199,7 @@ const statusColumns = {
 export const companyColumns = {
 	...inputColumnDefinitions,
 	...statusColumns,
+	...websearchColumnDefinitions,
 	websiteValidation: new Column({
 		title: 'Validate Website',
 		type: 'text',
@@ -150,6 +208,7 @@ export const companyColumns = {
 		renderer: websiteValidationRenderer,
 		description: 'Validate the company website',
 	}),
+
 };
 
 export type ColumnConfig = {
@@ -181,4 +240,13 @@ export const inputColumns: ColumnConfig[] = [
 ];
 
 // Web search specific columns
-export const websearchColumns: ColumnConfig[] = [{column: companyColumns.websearchStatus, show: 'yes'}];
+export const websearchColumns: ColumnConfig[] = [
+	{column: companyColumns.expandToggle, show: 'yes'},
+	{column: companyColumns.searchId, show: 'yes'},
+	{column: companyColumns.overallStatus, show: 'yes'},
+	{column: companyColumns.websearchStatus, show: 'yes'},
+	{column: companyColumns.analysisBusinessDescription, show: 'yes'},
+	{column: companyColumns.analysisProductServiceDescription, show: 'yes'},
+	{column: companyColumns.analysisFunctionalProfileDescription, show: 'yes'},
+	{column: companyColumns.analysisCorporateStructureAndAffiliationsSummary, show: 'yes'}
+];

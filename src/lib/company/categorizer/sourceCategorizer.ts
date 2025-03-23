@@ -4,7 +4,7 @@ import {Categorizer, CategoryValue} from '@/types/category';
 import {getValidationStatus, isValidationUpToDate} from '../website-validation';
 import {CategoryDefinition} from '@/lib/category-definition';
 import {VALIDATION} from '@/config/validation';
-import {isCompleted, isError, isUnsuccessful} from '../utils';
+import {isCompleted, isError, isInProgress, isUnsuccessful} from '../utils';
 
 /**
  * Helper function to check if a description is valid (meets the minimum word count requirement)
@@ -83,13 +83,16 @@ export const WebSearchCategorizer: Categorizer = [
 	(company) => {
 		// If we have searchedCompanyData, the search is completed
 		if (company.searchedCompanyData !== null) {
+			const overallStatus = company.searchedCompanyData.overall_status!;
 			// Check the status in the searchedCompanyData to determine if it was successful or failed
-			if (isCompleted(company.searchedCompanyData.overall_status)) {
+			if (isCompleted(overallStatus)) {
 				return CATEGORIES.WEBSEARCH.COMPLETED.toCategoryValue();
-			} else if (isUnsuccessful(company.searchedCompanyData.overall_status)) {
-				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue();
-			} else if (isError(company.searchedCompanyData.overall_status)) {
-				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue();
+			} else if (isUnsuccessful(overallStatus)) {
+				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue({description: overallStatus});
+			} else if (isError(overallStatus)) {
+				return CATEGORIES.WEBSEARCH.FAILED.toCategoryValue({description: overallStatus});
+			} else if (isInProgress(overallStatus)) {
+				return CATEGORIES.WEBSEARCH.IN_PROGRESS.toCategoryValue();
 			}
 		}
 

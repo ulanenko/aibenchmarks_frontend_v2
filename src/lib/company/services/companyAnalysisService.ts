@@ -19,15 +19,20 @@ export async function analyzeCompanyService(
 	} = {},
 ): Promise<{success: boolean; message: string; searchIds?: string[]}> {
 	// Extract input values based on the type of object
-	const inputValues = 'inputValues' in companyData ? companyData.inputValues : companyData;
+	const inputValues = companyData.inputValues;
+	const isValid = companyData.categoryValues?.INPUT.category.status === 'completed'
+	const url = 'url' in companyData.dynamicInputValues ? companyData.dynamicInputValues.url : '';
 	// Get company ID if available (only use positive IDs)
-	let companyId: number | undefined = undefined;
-	if ('id' in companyData && companyData.id && companyData.id > -1) {
-		companyId = companyData.id;
+	let companyId: number | null = companyData.id;
+	if (companyId === null) {
+		return {
+			success: false,
+			message: 'Company ID is missing',
+		};
 	}
 
 	// Skip if missing required fields
-	if (!inputValues || !inputValues.name || !inputValues.country) {
+	if (!isValid || !inputValues || !inputValues.name || !inputValues.country) {
 		return {
 			success: false,
 			message: 'Company data is missing required fields (name, country)',
@@ -35,18 +40,14 @@ export async function analyzeCompanyService(
 	}
 
 	// Update the web search state in the store if we have a company ID
-	if (companyId) {
-		useCompanyStore.getState().updateWebSearchState(companyId, {
-			webSearchInitialized: true,
-		});
-	}
+	useCompanyStore.getState().updateWebSearchState(companyId, true, null);
 
 	// Extract necessary fields and ensure required ones are never null
 	const companyForAnalysis = {
 		id: companyId,
 		name: inputValues.name,
 		country: inputValues.country || '',
-		website: inputValues.url || '',
+		website: url || '',
 		// Include other relevant fields that match our API needs
 		streetAndNumber: inputValues.streetAndNumber,
 		addressLine: inputValues.addressLine1,
@@ -63,9 +64,7 @@ export async function analyzeCompanyService(
 
 	// If we got a search ID, update it in the store
 	if (result.success && result.searchIds && result.searchIds.length > 0 && companyId) {
-		useCompanyStore.getState().updateWebSearchState(companyId, {
-			searchId: result.searchIds[0],
-		});
+		useCompanyStore.getState().updateWebSearchState(companyId, false, result.searchIds[0]);
 	}
 
 	return result;

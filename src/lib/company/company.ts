@@ -32,6 +32,7 @@ export type DynamicInputValues = {
 // Frontend state to track UI-specific states that don't belong in the database
 export type FrontendState = {
 	webSearchInitialized?: boolean;
+	expanded?: boolean;
 };
 
 // Backend state to track values set by the backend
@@ -47,10 +48,10 @@ export type CompanyHotCopy = {
 				[key in CategoryType]: CategoryValue;
 		  }
 		| undefined;
-	dynamicInputValues: DynamicInputValues | null;
+	dynamicInputValues: DynamicInputValues | {};
 	frontendState?: FrontendState;
 	backendState?: BackendState;
-	searchedCompanyData: SearchedCompany | null;
+	searchedCompanyData: SearchedCompany | {};
 };
 
 export class Company {
@@ -78,7 +79,10 @@ export class Company {
 	};
 
 	// Frontend state for tracking UI states that shouldn't persist in the database
-	frontendState: FrontendState = {};
+	frontendState: FrontendState = {
+		webSearchInitialized: false,
+		expanded: false
+	};
 
 	// Backend state for tracking values set by the backend
 	backendState: BackendState = {
@@ -94,8 +98,8 @@ export class Company {
 		id: null,
 		inputValues: null,
 		categoryValues: undefined,
-		dynamicInputValues: null,
-		searchedCompanyData: null,
+		dynamicInputValues: {},
+		searchedCompanyData: {},
 	};
 	categoryValues:
 		| {
@@ -139,8 +143,7 @@ export class Company {
 		};
 
 		// Initialize searchedCompanyData
-		this.searchedCompanyData =
-			data && 'searchedCompanyData' in data && data.searchedCompanyData !== undefined ? data.searchedCompanyData : null;
+		this.searchedCompanyData = data?.searchedCompanyData ?? null;
 
 		this.websiteValidation =
 			data && 'urlValidationUrl' in data && data.urlValidationUrl
@@ -235,7 +238,7 @@ export class Company {
 			categoryValues: this.categoryValues,
 			frontendState: {...this.frontendState},
 			backendState: {...this.backendState},
-			searchedCompanyData: this.searchedCompanyData,
+			searchedCompanyData: this.searchedCompanyData ?? {},
 		};
 	}
 
@@ -343,5 +346,30 @@ export class Company {
 			count: Object.keys(this.changedFields).length,
 			fields: Object.keys(this.changedFields),
 		};
+	}
+	markAsSearchStarted() {
+		this.frontendState.webSearchInitialized = true;
+		this.searchedCompanyData = null;
+		this.backendState.searchId = null;
+		this.updateDependentValues();
+	}
+
+	// Update search data for the company
+	updateSearchData(searchId: string | null, searchedCompanyData: SearchedCompany | null) {
+		this.backendState.searchId = searchId;
+		this.searchedCompanyData = searchedCompanyData;
+		this.updateDependentValues();
+	}
+
+	// Toggle the expanded state of the company
+	toggleExpanded() {
+		if (!this.frontendState) {
+			this.frontendState = {
+				webSearchInitialized: false,
+				expanded: false
+			};
+		}
+		this.frontendState.expanded = !this.frontendState.expanded;
+		this.updateDependentValues();
 	}
 }

@@ -40,14 +40,18 @@ export const getUniqueValuesForPath = (objects: {[key: string]: any}[], dataPath
 	return Array.from(valuesSet);
 };
 
-export const isCompleted = (status: string) => {
+export const isCompleted = (status: string | null) => {
 	return status && status.toLowerCase() === 'completed';
 };
 
-export const isUnsuccessful = (status: string) => {
+export const isUnsuccessful = (status: string | null) => {
 	return status && status.toLowerCase().search('analysis unsuccessful') !== -1;
 };
 
-export const isError = (status: string) => {
+export const isError = (status: string | null) => {
 	return status && status.toLowerCase().search('error') !== -1;
+};
+
+export const isInProgress = (status: string | null) => {
+	return status && status.toLowerCase().search('in progress') !== -1;
 };

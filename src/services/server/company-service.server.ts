@@ -6,6 +6,7 @@ import {eq, inArray, and} from 'drizzle-orm';
 import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
 import {SQL} from 'drizzle-orm';
 import {getSearchedCompanyWithSiteMatch} from '@/services/backend/queries/searchedcompany/getSearchedCompanyWithSiteMatch';
+import {getMultipleCompaniesWithSiteMatches} from '@/services/backend/queries/searchedcompany/getMultipleCompaniesWithSiteMatches';
 
 export async function getCompanies(benchmarkId: number): Promise<CompanyDTO[]> {
 	try {
@@ -231,84 +232,75 @@ export async function getCompaniesWithSearchData(benchmarkId: number): Promise<C
 			where: eq(company.benchmarkId, benchmarkId),
 		});
 
-		// Then fetch search data for each company with a searchId
-		const companiesWithSearchData = await Promise.all(
-			companiesFromDb.map(async (companyData) => {
-				// Create base DTO
-				const companyDto: CompanyDTO = {
-					...companyData,
-					// Ensure non-nullable fields have default values
-					name: companyData.name || '',
-					searchedCompanyData: null,
-				};
+		// Filter out companies without search IDs
+		const companiesWithSearchIds = companiesFromDb.filter(c => c.searchId);
 
-				// If company has a searchId, fetch the searched company data
-				if (companyData.searchId) {
-					try {
-						const searchData = await getSearchedCompanyWithSiteMatch(companyData.searchId);
+		// Get search data for all companies with search IDs in a single query
+		const searchData = companiesWithSearchIds.length > 0 
+			? await getMultipleCompaniesWithSiteMatches(companiesWithSearchIds.map(c => c.searchId!))
+			: [];
 
-						// Only set searchedCompanyData if we received valid data
-						if (searchData) {
-							// Make sure all required string fields have at least empty strings
-							companyDto.searchedCompanyData = {
-								id: searchData.id,
-								search_id: searchData.search_id,
-								searched_company: searchData.searched_company || '',
-								country: searchData.country || '',
-								website: searchData.website || '',
-								overall_status: searchData.overall_status || '',
-								start_time: searchData.start_time || new Date(),
-								end_time: searchData.end_time || new Date(),
-								datasource_link: searchData.datasource_link || '',
-								datasource_quality: searchData.datasource_quality || '',
-								datasource_qualityexplanation: searchData.datasource_qualityexplanation || '',
-								business_description: searchData.business_description || '',
-								product_service_description: searchData.product_service_description || '',
-								functional_profile_description: searchData.functional_profile_description || '',
-								corporatestructureandaffiliations_summary: searchData.corporatestructureandaffiliations_summary || '',
-								productservicecomparability_status: searchData.productservicecomparability_status || '',
-								productservicecomparability_explanation: searchData.productservicecomparability_explanation || '',
-								functionalprofilecomparability_status: searchData.functionalprofilecomparability_status || '',
-								functionalprofilecomparability_explanation: searchData.functionalprofilecomparability_explanation || '',
-								independence_status: searchData.independence_status || '',
-								independence_explanation: searchData.independence_explanation || '',
-								comparability_analysis_status: searchData.comparability_analysis_status || '',
-								auth_code: searchData.auth_code || '',
-								zip_link: searchData.zip_link || '',
-								pdf_link: searchData.pdf_link || '',
-								default_business_description: searchData.default_business_description || '',
-								default_product_service_description: searchData.default_product_service_description || '',
-								default_functional_profile_description: searchData.default_functional_profile_description || '',
-								default_corporatestructureandaffiliations_summary:
-									searchData.default_corporatestructureandaffiliations_summary || '',
-								default_productservicecomparability_explanation:
-									searchData.default_productservicecomparability_explanation || '',
-								default_functionalprofilecomparability_explanation:
-									searchData.default_functionalprofilecomparability_explanation || '',
-								default_independence_explanation: searchData.default_independence_explanation || '',
-								ideal_product_service: searchData.ideal_product_service || '',
-								ideal_functional_profile: searchData.ideal_functional_profile || '',
-								language: searchData.language || '',
-								comparability_analysis_start_time: searchData.comparability_analysis_start_time || new Date(),
-								comparability_analysis_end_time: searchData.comparability_analysis_end_time || new Date(),
-								analysis_method: searchData.analysis_method || '',
-								// Convert null to undefined for site_match
-								site_match: searchData.siteMatch || undefined,
-							};
-						}
-					} catch (error) {
-						console.error(`Error fetching search data for company ${companyData.id}:`, error);
-						// Continue without search data if there's an error
-					}
-				}
-
-				return companyDto;
-			}),
+		// Create a map of search_id to search data for efficient lookups
+		const searchDataMap = new Map(
+			searchData.map(data => [data.search_id, data])
 		);
 
-		return companiesWithSearchData;
+		// Combine the results
+		return companiesFromDb.map(company => ({
+			...company,
+			name: company.name || '',
+			searchedCompanyData: company.searchId ? searchDataMap.get(company.searchId) || null : null,
+		}));
 	} catch (error) {
 		console.error(`Error getting companies with search data for benchmark ${benchmarkId}:`, error);
+		throw error;
+	}
+}
+
+/**
+ * Gets only the search data for companies in a benchmark
+ * This is more efficient than loading all company data when we only need search data
+ */
+export async function getCompaniesSearchData(benchmarkId: number): Promise<Array<{id: number; searchId: string | null; searchedCompanyData: CompanyDTO['searchedCompanyData']}>> {
+	try {
+		// First get basic company data to get the search IDs
+		const companiesFromDb = await db.query.company.findMany({
+			where: eq(company.benchmarkId, benchmarkId),
+			columns: {
+				id: true,
+				searchId: true,
+			},
+		});
+
+		// Filter out companies without search IDs
+		const companiesWithSearchIds = companiesFromDb.filter(c => c.searchId);
+
+		if (companiesWithSearchIds.length === 0) {
+			return companiesFromDb.map(c => ({
+				id: c.id,
+				searchId: c.searchId,
+				searchedCompanyData: null
+			}));
+		}
+
+		// Get search data for all companies with search IDs in a single query
+		const searchData = await getMultipleCompaniesWithSiteMatches(
+			companiesWithSearchIds.map(c => c.searchId!)
+		);
+
+		// Create a map of search_id to search data for efficient lookups
+		const searchDataMap = new Map(
+			searchData.map(data => [data.search_id, data])
+		);
+
+		// Combine the results
+		return companiesFromDb.map(company => ({
+			id: company.id,
+			searchId: company.searchId,
+			searchedCompanyData: company.searchId ? searchDataMap.get(company.searchId) || null : null,
+		}));
+	} catch (error) {
+		console.error(`Error getting companies search data for benchmark ${benchmarkId}:`, error);
 		throw error;
 	}
 }

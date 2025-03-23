@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"engines": {
-		"node": "20.x",
+		"node": "23.x",
 		"npm": "10.x"
 	},
 	"scripts": {
@@ -14,8 +14,7 @@
 		"lint": "next lint",
 		"lint:fix": "next lint --fix",
 		"db:push": "drizzle-kit push",
-		"dev:clean": "NODE_OPTIONS='--no-inspect' next dev",
-		"postinstall": "npm run build"
+		"dev:clean": "NODE_OPTIONS='--no-inspect' next dev"
 	},
 	"dependencies": {
 		"@auth/drizzle-adapter": "^1.7.4",

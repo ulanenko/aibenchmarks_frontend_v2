@@ -172,7 +172,7 @@ const CATEGORIES = {
 		}),
 		IN_PROGRESS: new CategoryDefinition({
 			label: 'Searching',
-			color: 'yellow',
+			color: 'orange',
 			icon: Loader2,
 			status: 'in_progress',
 			categoryKey: 'WEBSEARCH.IN_PROGRESS',

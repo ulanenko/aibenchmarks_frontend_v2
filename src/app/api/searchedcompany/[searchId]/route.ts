@@ -1,14 +1,24 @@
 import {NextResponse} from 'next/server';
 import {getSearchedCompanyWithSiteMatch} from '@/services/backend/queries/searchedcompany';
+import {NextRequest} from 'next/server';
+
+type Params = {
+	params: {
+		searchId: string;
+	};
+};
 
 /**
  * API route to get a searched company with site match data by search_id
  *
  * GET /api/searchedcompany/:searchId
  */
-export async function GET(request: Request, {params}: {params: {searchId: string}}) {
+export async function GET(
+	request: NextRequest,
+	context: Params
+): Promise<NextResponse> {
 	try {
-		const {searchId} = params;
+		const {searchId} = context.params;
 
 		if (!searchId) {
 			return NextResponse.json({error: 'Search ID is required'}, {status: 400});

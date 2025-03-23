@@ -1,13 +1,14 @@
 import {secondaryDb} from '../../database/secondaryConnection';
 import {searchedCompany, siteMatch} from '../../database/secondarySchema';
 import {eq} from 'drizzle-orm';
+import {SearchedCompany} from '../../models/searchedCompany';
 
 /**
  * Retrieves a searched company along with its associated site match data by search_id
  * @param searchId - The search_id of the company to retrieve
  * @returns The searched company data with site match or null if not found
  */
-export async function getSearchedCompanyWithSiteMatch(searchId: string) {
+export async function getSearchedCompanyWithSiteMatch(searchId: string): Promise<SearchedCompany | null> {
 	try {
 		const companyResults = await secondaryDb
 			.select()
@@ -31,7 +32,7 @@ export async function getSearchedCompanyWithSiteMatch(searchId: string) {
 		// Return the combined result
 		return {
 			...company,
-			siteMatch: siteMatchResults.length > 0 ? siteMatchResults[0] : null,
+			site_match: siteMatchResults.length > 0 ? siteMatchResults[0] : undefined,
 		};
 	} catch (error) {
 		console.error('Error retrieving searched company with site match:', error);
