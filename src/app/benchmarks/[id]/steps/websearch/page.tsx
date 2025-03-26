@@ -11,6 +11,7 @@ import {Loader2, Search, RefreshCw, Settings2} from 'lucide-react';
 import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
 import {CompanyTable} from '@/components/features/benchmark/company-table';
 import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
+import {SearchModal} from '@/components/features/search-modal';
 import {useRouter} from 'next/navigation';
 import {Switch} from '@/components/ui/switch';
 import {Label} from '@/components/ui/label';
@@ -26,8 +27,9 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 	const benchmarkId = parseInt(id);
 	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
-	const [isSearching, setIsSearching] = useState<boolean>(false);
 	const [isColumnsOpen, setIsColumnsOpen] = useState<boolean>(false);
+	const [searchModalOpen, setSearchModalOpen] = useState(false);
+	const [selectedCompanyIds, setSelectedCompanyIds] = useState<number[]>([]);
 
 	const {
 		loadCompanies, 
@@ -84,20 +86,6 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 		}
 	};
 
-	const handleStartSearch = async () => {
-		setIsSearching(true);
-		try {
-			// Here you would implement the actual web search logic
-			await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulating search process
-			toast.success('Web search completed for all companies');
-		} catch (error) {
-			toast.error('Failed to complete web search');
-			console.error(error);
-		} finally {
-			setIsSearching(false);
-		}
-	};
-
 	const handleRefreshSearchData = async () => {
 		if (isRefreshing) return;
 		await refreshSearchData();
@@ -127,6 +115,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 			<h4>How it works:</h4>
 			<ol>
 				<li>Click "Start Web Search" to begin the automated search process</li>
+				<li>Choose to search all companies or only selected ones</li>
 				<li>The system will search for each company in your list</li>
 				<li>Review the search results and make any necessary adjustments</li>
 				<li>Save your changes and proceed to the next step</li>
@@ -139,11 +128,18 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 
 	// Main content
 	const mainContent = (
-		<CompanyTable
-			benchmarkId={benchmarkId}
-			columnConfigs={websearchColumnConfigs}
-			onHotInstanceReady={setHotInstance}
-		/>
+		<>
+			<CompanyTable
+				benchmarkId={benchmarkId}
+				columnConfigs={websearchColumnConfigs}
+				onHotInstanceReady={setHotInstance}
+			/>
+			<SearchModal 
+                open={searchModalOpen} 
+                onOpenChange={setSearchModalOpen} 
+                selectedCompanyIds={selectedCompanyIds} 
+            />
+		</>
 	);
 
 	// Toolbar content
@@ -177,7 +173,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
 					<Button
-						onClick={handleStartSearch}
+						onClick={() => setSearchModalOpen(true)}
 						disabled={isLoading || isRefreshing}
 						className="bg-primary hover:bg-primary/90"
 						size="sm"
@@ -187,7 +183,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 					</Button>
 				</div>
 			</div>
-			<Button onClick={handleNext} size="sm" disabled={isSearching}>
+			<Button onClick={handleNext} size="sm">
 				Next Step →
 			</Button>
 		</>

@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {Company} from '@/lib/company';
+import {Company, CompanyHotCopy, FrontendState, InputValues, UpdateState} from '@/lib/company';
 import {CreateCompanyDTO, UpdateCompanyDTO} from '@/lib/company/type';
 import {MappingSettings} from '@/lib/benchmark/type';
 import {setValueForPath} from '@/lib/object-utils';
@@ -9,9 +9,14 @@ import * as companyActions from '@/app/actions/company-actions';
 import * as benchmarkActions from '@/app/actions/benchmark-actions';
 import {WebsiteValidationStatus} from '@/lib/company/website-validation';
 
+interface UpdateCompany {
+	frontendState: FrontendState;
+	inputValues:InputValues
+}
+
 interface CompanyStore {
 	companies: Company[];
-	hotCopyCompanies: {[key: string]: any}[];
+	hotCopyCompanies: CompanyHotCopy[];
 	isLoading: boolean;
 	isSaving: boolean;
 	isRefreshing: boolean;
@@ -20,9 +25,10 @@ interface CompanyStore {
 	setCompanies: (companies: Company[]) => void;
 	// addCompany: (company: Company) => void;
 	// updateCompany: (id: number, company: Partial<Company>) => void;
-	updateCompaniesWithDTO: (
-		updates: Array<{row: number; dto: UpdateCompanyDTO}>,
-		newCompanies?: UpdateCompanyDTO[],
+	updateCompany: (update: UpdateState) => void;	
+	updateCompanies: (
+		updates: Array<UpdateState>,
+		newCompanies?: Array<UpdateState>,
 	) => void;
 	updateWebsiteValidation: (
 		companyId: number | number[],
@@ -31,7 +37,7 @@ interface CompanyStore {
 	updateWebSearchState: (
 		companyId: number | number[],
 		webSearchInitialized: boolean,
-		searchId: string | null,
+		searchId: string | string[] | null,
 	) => Company[];
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
@@ -48,7 +54,6 @@ interface CompanyStore {
 	loadCompanies: (benchmarkId: number, options?: {includeSearchData?: boolean}) => Promise<void>;
 	saveChanges: () => Promise<void>;
 	refreshSearchData: () => Promise<void>;
-	toggleCompanyExpanded: (companyId: number) => void;
 	areAllCompaniesProcessed: () => boolean;
 	startAutoRefresh: () => void;
 	stopAutoRefresh: () => void;
@@ -102,26 +107,29 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 		// 		companies: state.companies.map((c) => (c.id === id ? {...c, ...company} : c)),
 		// 	})),
 
-		updateCompaniesWithDTO: (updates, newCompanies = []) => {
+		updateCompanies: (updates, newCompanies = []) => {
 			const currentCompanies = [...get().companies];
+			const companiesById = new Map(currentCompanies.map(c => [c.id, c]));
 
 			// Update existing companies
-			updates.forEach(({row, dto}) => {
-				if (row >= 0 && row < currentCompanies.length) {
-					const company = currentCompanies[row];
-					company.updateFromDTO(dto);
-					currentCompanies[row] = company;
+			updates.forEach((update) => {
+				if (!isEmpty(update.id)) {
+					const company = companiesById.get(update.id!);
+					if (company) {
+						company.update(update);
+					}
 				}
 			});
-
 			// Add new companies
 			newCompanies.forEach((dto) => {
-				const company = new Company();
-				company.updateFromDTO(dto);
+				const company = new Company(dto.inputValues);
 				currentCompanies.push(company);
 			});
 
 			get().setCompanies(currentCompanies);
+		},
+		updateCompany: (update: UpdateState) => {
+			get().updateCompanies([update]);
 		},
 
 		updateWebsiteValidation: (
@@ -149,17 +157,21 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 		updateWebSearchState: (
 			companyId: number | number[],
 			webSearchInitialized: boolean,
-			searchId: string | null,
+			searchId: string | string[] | null,
 		): Company[] => {
 			const companies = [...get().companies];
 			const companyIds = Array.isArray(companyId) ? companyId : [companyId];
+			const searchIds = Array.isArray(searchId) ? searchId : [searchId];
+			if(webSearchInitialized === false && searchIds.length !== companyIds.length) {
+				throw new Error('Company IDs and search IDs must have the same length');
+			}
 			const updatedCompanies: Company[] = [];
-			companies.forEach(company => {
+			companies.forEach((company, index) => {
 				if (companyIds.includes(company.id!)) {
 					if(webSearchInitialized) {
 						company.markAsSearchStarted();
-						}else if(searchId) {
-							company.updateSearchData(searchId, null);
+						}else if(searchIds[index]) {
+								company.updateSearchData(searchIds[index], null);
 						}
 					updatedCompanies.push(company);
 				}
@@ -400,17 +412,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 			}
 		},
 
-		toggleCompanyExpanded: (companyId: number) => {
-			const companies = [...get().companies];
-			const companyIndex = companies.findIndex(company => company.id === companyId);
-			
-			if (companyIndex !== -1) {
-				// Toggle the expanded state on the company
-				companies[companyIndex].toggleExpanded();
-				// Update the store
-				get().setCompanies(companies);
-			}
-		},
+
 
 		areAllCompaniesProcessed: () => {
 			const companies = get().companies;

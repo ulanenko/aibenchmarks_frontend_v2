@@ -46,7 +46,12 @@ export const expandToggleRenderer = (
     // Get company ID and toggle via store
     const companyId = rowData.id;
     if (companyId !== null) {
-      useCompanyStore.getState().toggleCompanyExpanded(companyId);
+      useCompanyStore.getState().updateCompany({
+        id: companyId,
+        frontendState: {
+          expanded: !isExpanded
+        }
+      });
     }
   };
   

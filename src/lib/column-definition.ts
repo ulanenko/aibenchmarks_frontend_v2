@@ -39,7 +39,6 @@ export class Column {
 	filter: boolean;
 	sort: boolean;
 	format?: (value: any) => string;
-
 	constructor(config: ColumnConfig) {
 		this.title = config.title;
 		this.type = config.type;
@@ -47,7 +46,9 @@ export class Column {
 		this.data = config.data;
 		this.readOnly = config.readOnly;
 		this.validator = config.validator;
-		this.renderer = config.renderer;
+		if(config.renderer) {
+			this.renderer = config.renderer;
+		}
 		this.description = config.description;
 		this.hotProps = config.hotProps;
 
@@ -85,11 +86,12 @@ export class Column {
 			type: this.type,
 			width: this.width,
 			readOnly: this.readOnly,
-			renderer: this.renderer,
+			
 			validator: this.validator,
 			filter: this.filter,
 			sort: this.sort,
 			...this.hotProps,
+			...(this.renderer ? {renderer: this.renderer} : {}),
 		};
 	}
 }

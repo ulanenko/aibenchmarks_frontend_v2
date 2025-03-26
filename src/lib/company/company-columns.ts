@@ -4,8 +4,21 @@ import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer, websiteValidationRenderer, descriptionRenderer, expandToggleRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
 import {DescriptionCategorizer, WebsiteCategorizer, WebSearchCategorizer} from './categorizer/sourceCategorizer';
+import { collapsibleRenderer } from '@/components/hot/renderers/collapsible-renderer';
 
 export const inputColumnDefinitions = {
+	selected: new Column({
+		title: '✓',
+		// title: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+		type: 'checkbox',
+		width: 60,
+		hotProps: {
+			className: 'htCenter htMiddle',
+		},
+		data: 'frontendState.selected',
+		readOnly: false,	
+		description: 'Select the company',
+	}),
 	name: new Column({
 		title: 'Company Name',
 		type: 'text',
@@ -80,6 +93,7 @@ export const inputColumnDefinitions = {
 		width: 200,
 		data: 'inputValues.fullOverview',
 		description: 'Complete overview of the company',
+		renderer: collapsibleRenderer,
 	}),
 
 	tradeDescriptionEnglish: new Column({
@@ -88,12 +102,14 @@ export const inputColumnDefinitions = {
 		width: 200,
 		data: 'inputValues.tradeDescriptionEnglish',
 		description: 'English description of the company trade',
+		renderer: collapsibleRenderer,
 	}),
 	tradeDescriptionOriginal: new Column({
 		title: 'Trade Description (Original)',
 		type: 'text',
 		width: 200,
 		data: 'inputValues.tradeDescriptionOriginal',
+		renderer: collapsibleRenderer,
 		description: 'Original language description of the company trade',
 	}),
 	mainActivity: new Column({
@@ -102,6 +118,7 @@ export const inputColumnDefinitions = {
 		width: 200,
 		data: 'inputValues.mainActivity',
 		description: 'Main activity of the company',
+		renderer: collapsibleRenderer,
 	}),
 	mainProductsAndServices: new Column({
 		title: 'Main Products & Services',
@@ -109,6 +126,7 @@ export const inputColumnDefinitions = {
 		width: 200,
 		data: 'inputValues.mainProductsAndServices',
 		description: 'Main products and services offered by the company',
+		renderer: collapsibleRenderer,
 	}),
 };
 
@@ -217,6 +235,9 @@ export type ColumnConfig = {
 };
 
 export const defaultColumns: ColumnConfig[] = [
+	
+	{column: companyColumns.selected, show: 'yes'},
+	{column: companyColumns.expandToggle, show: 'yes'},
 	{column: companyColumns.inputStatus, show: 'yes'},
 	{column: companyColumns.name, show: 'always'},
 	{column: companyColumns.country, show: 'yes'},
@@ -241,7 +262,6 @@ export const inputColumns: ColumnConfig[] = [
 
 // Web search specific columns
 export const websearchColumns: ColumnConfig[] = [
-	{column: companyColumns.expandToggle, show: 'yes'},
 	{column: companyColumns.searchId, show: 'yes'},
 	{column: companyColumns.overallStatus, show: 'yes'},
 	{column: companyColumns.websearchStatus, show: 'yes'},

@@ -6,7 +6,7 @@ export type CompanyDBType = typeof company.$inferSelect;
 
 export type CompanyDTO = {
 	id: number;
-	name: string;
+	name: string | null;
 	createdAt: Date;
 	updatedAt: Date | null;
 	benchmarkId: number;

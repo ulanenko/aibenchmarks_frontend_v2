@@ -14,7 +14,7 @@ import 'tippy.js/dist/tippy.css';
 function createUrlCell(url: string, isValid?: boolean, isUpdated?: boolean, sourceUrl?: string | null): HTMLElement {
 	// Create container
 	const container = document.createElement('div');
-	container.className = 'w-full h-full relative';
+	container.className = 'w-full ';
 
 	// Determine text color class based on validation status
 
@@ -106,7 +106,8 @@ export const urlRenderer = (
 	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
 	const sourceUrl = rowData?.inputValues?.url;
 	const urlIsValid = rowData?.categoryValues?.WEBSITE.category.passed;
-	const urlIsUpdated = urlIsValid && rowData?.dynamicInputValues?.urlValidationStatus === 'updated';
+	// @ts-ignore
+	const urlIsUpdated = urlIsValid && rowData?.dynamicInputValues!.urlValidationStatus === 'updated';
 
 	// Create and append the URL cell
 	const urlCell = createUrlCell(value, urlIsValid, urlIsUpdated, sourceUrl);

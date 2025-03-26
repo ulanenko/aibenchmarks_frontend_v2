@@ -8,7 +8,7 @@ import {WebsiteValidationStatus, createInputSettings} from './website-validation
 import {SearchedCompany} from '@/services/backend/models/searchedCompany';
 
 export interface InputValues {
-	name: string;
+	name: string | null;
 	country: string | null;
 	url: string | null;
 	streetAndNumber: string | null;
@@ -33,7 +33,14 @@ export type DynamicInputValues = {
 export type FrontendState = {
 	webSearchInitialized?: boolean;
 	expanded?: boolean;
+	selected?: boolean;
 };
+
+export type UpdateState = {
+	id: number;
+	frontendState?: Partial<FrontendState>;
+	inputValues?: Partial<InputValues>;
+}
 
 // Backend state to track values set by the backend
 export type BackendState = {
@@ -61,7 +68,6 @@ export class Company {
 	createdAt: Date;
 	updatedAt: Date | null;
 	benchmarkId: number;
-	databaseId: string | null;
 	sourceData: any;
 
 	mappedSourceData: Partial<InputValues>;
@@ -81,7 +87,8 @@ export class Company {
 	// Frontend state for tracking UI states that shouldn't persist in the database
 	frontendState: FrontendState = {
 		webSearchInitialized: false,
-		expanded: false
+		expanded: false,
+		selected: false,
 	};
 
 	// Backend state for tracking values set by the backend
@@ -110,14 +117,12 @@ export class Company {
 	// Searched company data
 	searchedCompanyData: SearchedCompany | null = null;
 
-	constructor(data?: CompanyDTO | CreateCompanyDTO) {
+	constructor(data?: CompanyDTO | CreateCompanyDTO | InputValues) {
 		this.id = data && 'id' in data ? data.id : Company.getNextTempId();
 		this.createdAt = data && 'createdAt' in data ? data.createdAt : new Date();
 		this.updatedAt = data && 'updatedAt' in data ? data.updatedAt : null;
 		this.benchmarkId = data && 'benchmarkId' in data ? data.benchmarkId : -1;
-		this.databaseId = data?.databaseId ?? null;
-		this.sourceData = data?.sourceData ?? null;
-		this.mappedSourceData = data?.mappedSourceData ?? null;
+		this.mappedSourceData = data && 'mappedSourceData' in data ? data.mappedSourceData : null;
 
 		// Initialize inputValues
 		this.inputValues = {
@@ -136,23 +141,19 @@ export class Company {
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
 		};
+		// for existing companies, set the searchId and searchedCompanyData
+		if(data && 'id' in data){
+			this.backendState.searchId = data.searchId;
+			this.searchedCompanyData = data?.searchedCompanyData ?? null;
+			if(data.urlValidationUrl){
+				this.websiteValidation = {
+					url_validated: data.urlValidationUrl,
+					input_settings: data.urlValidationInput!,
+					url_validated_and_accessible: data.urlValidationValid,
+				};
+			}
 
-		// Initialize backendState
-		this.backendState = {
-			searchId: data?.searchId ?? null,
-		};
-
-		// Initialize searchedCompanyData
-		this.searchedCompanyData = data?.searchedCompanyData ?? null;
-
-		this.websiteValidation =
-			data && 'urlValidationUrl' in data && data.urlValidationUrl
-				? {
-						url_validated: data!.urlValidationUrl!,
-						input_settings: data!.urlValidationInput!,
-						url_validated_and_accessible: data!.urlValidationValid!,
-				  }
-				: null;
+		}
 
 		// Store a deep copy of the original input values
 		this.originalInputValues = JSON.parse(JSON.stringify(this.inputValues));
@@ -169,7 +170,7 @@ export class Company {
 
 	// Getters to maintain compatibility with CompanyDTO interface
 	get name(): string {
-		return this.inputValues.name;
+		return this.inputValues.name ?? '';
 	}
 
 	get url(): string | null {
@@ -243,11 +244,12 @@ export class Company {
 	}
 
 	// Method to update company data from a DTO
-	updateFromDTO(dto: Partial<UpdateCompanyDTO>) {
+	update(updateState: UpdateState) {
 		this.updatedAt = new Date();
 
 		// Apply changes directly to the appropriate properties
-		Object.entries(dto).forEach(([key, value]) => {
+		const {frontendState = {}, inputValues = {}} = updateState;
+		Object.entries(inputValues).forEach(([key, value]) => {
 			if (key !== 'id') {
 				// Update inputValues properties
 				if (key in this.inputValues) {
@@ -266,12 +268,15 @@ export class Company {
 					}
 				} else if (key === 'websiteValidation') {
 					// Handle websiteValidation property
-					this.websiteValidation = value as WebsiteValidationStatus;
+					this.websiteValidation = value as WebsiteValidationStatus | null;
 				} else {
 					// Update other properties
 					(this as any)[key] = value;
 				}
 			}
+		});
+		Object.entries(frontendState).forEach(([key, value]) => {
+			this.frontendState[key as keyof FrontendState] = value as FrontendState[keyof FrontendState];
 		});
 
 		// Update dependent values and hot copy
@@ -291,7 +296,6 @@ export class Company {
 				id: this.id,
 				...this.inputValues,
 				benchmarkId: this.benchmarkId,
-				databaseId: this.databaseId,
 				sourceData: this.sourceData,
 				mappedSourceData: this.mappedSourceData,
 			} as UpdateCompanyDTO;
@@ -353,23 +357,10 @@ export class Company {
 		this.backendState.searchId = null;
 		this.updateDependentValues();
 	}
-
 	// Update search data for the company
 	updateSearchData(searchId: string | null, searchedCompanyData: SearchedCompany | null) {
 		this.backendState.searchId = searchId;
 		this.searchedCompanyData = searchedCompanyData;
-		this.updateDependentValues();
-	}
-
-	// Toggle the expanded state of the company
-	toggleExpanded() {
-		if (!this.frontendState) {
-			this.frontendState = {
-				webSearchInitialized: false,
-				expanded: false
-			};
-		}
-		this.frontendState.expanded = !this.frontendState.expanded;
 		this.updateDependentValues();
 	}
 }

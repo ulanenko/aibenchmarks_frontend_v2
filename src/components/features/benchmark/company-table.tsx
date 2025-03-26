@@ -4,12 +4,14 @@ import {registerAllModules} from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 import {ColumnConfig} from '@/lib/company/company-columns';
 import {useCompanyStore} from '@/stores/use-company-store';
-import {Company} from '@/lib/company';
+import {Company, UpdateState} from '@/lib/company';
 import {CellChange, ChangeSource, ColumnDataGetterSetterFunction} from 'handsontable/common';
 import Handsontable from 'handsontable';
 import {BenchmarkSettings, useSettingsStore} from '@/stores/use-settings-store';
 import {useShallow} from 'zustand/react/shallow';
 import {UpdateCompanyDTO} from '@/lib/company/type';
+import {setValueForPath} from '@/lib/object-utils';
+import { isEmpty } from '@/lib/utils';
 
 // Register all Handsontable modules
 registerAllModules();
@@ -22,9 +24,9 @@ interface CompanyTableProps {
 
 export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: CompanyTableProps) {
 	const hotRef = useRef<any>(null);
-	const {updateCompaniesWithDTO, hotCopyCompanies} = useCompanyStore(
+	const {updateCompanies, hotCopyCompanies} = useCompanyStore(
 		useShallow((state) => ({
-			updateCompaniesWithDTO: state.updateCompaniesWithDTO,
+			updateCompanies: state.updateCompanies,
 			hotCopyCompanies: state.hotCopyCompanies,
 		})),
 	);
@@ -68,18 +70,18 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 		const lastRowIndex = hot?.countRows() - spareRowCount;
 
 		// Group changes by row for the store to the updates and added companies
-		const updatesByRow: Record<number, UpdateCompanyDTO> = {};
-		const newCompanies: Record<number, UpdateCompanyDTO> = {};
+		const updatesByRow: Record<number, UpdateState> = {};
+		const newCompanies: Record<number, UpdateState> = {};
 
 		function updatePropInDto(
-			dto: UpdateCompanyDTO,
+			dto: UpdateState,
 			prop: string | number | ColumnDataGetterSetterFunction,
 			value: any,
 		) {
 			const propPath = prop.toString();
-			const propName = propPath.replace('inputValues.', '').replace('dynamicInputValues.', '');
-			dto[propName as keyof UpdateCompanyDTO] = value;
-			// validateAndFindWebsite(dto);
+			if(propPath.includes('inputValues.') || propPath.includes('frontendState.')){
+				setValueForPath(dto, propPath, value);
+			}
 		}
 
 		changes.forEach((change) => {
@@ -88,41 +90,40 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 
 			// Get the physical row index
 			// let physicalRow = newRows[row] ??
-			const isNewRow = row >= lastRowIndex;
+			const physicalRow = hot?.toPhysicalRow(row);
+			const isNewRow = isEmpty(hotCopyCompanies[physicalRow]?.id);
 
 			// Handle new rows (spare row or manually added row)
 			if (isNewRow) {
-				let idForNewCompany = newRows[row];
+				let idForNewCompany = newRows[physicalRow];
 				if (!idForNewCompany) {
 					idForNewCompany = newRowIndex;
-					newRows[row] = newRowIndex;
-					newCompanies[idForNewCompany] = {id: idForNewCompany} as UpdateCompanyDTO;
+					newRows[physicalRow] = newRowIndex;
+					newCompanies[idForNewCompany] = {id: idForNewCompany} as UpdateState;
 					newRowIndex--;
 				}
 
 				// Get the property path and set the value
 				updatePropInDto(newCompanies[idForNewCompany], prop, value);
 			} else {
-				const physicalRow = hot?.toPhysicalRow(row);
+				
 				// Handle existing rows
 				if (!updatesByRow[physicalRow]) {
 					updatesByRow[physicalRow] = {
-						id: hotCopyCompanies[physicalRow]?.id || physicalRow,
-					} as UpdateCompanyDTO;
+						id: hotCopyCompanies[physicalRow]?.id,
+					} as UpdateState;
 				}
 				updatePropInDto(updatesByRow[physicalRow], prop, value);
 			}
 		});
 
-		// Update existing companies
-		const updates = Object.entries(updatesByRow).map(([rowIndex, dto]) => ({
-			row: parseInt(rowIndex),
-			dto,
-		}));
-		console.log('updates', newCompanies);
-
 		// Add new companies and update existing ones
-		updateCompaniesWithDTO(updates, Object.values(newCompanies));
+		updateCompanies(Object.values(updatesByRow), Object.values(newCompanies));
+		return false;
+	};
+
+	const handleBeforePaste = (data: any, source: string) => {
+		console.log('beforePaste', data, source);
 		return false;
 	};
 
@@ -220,6 +221,7 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				manualColumnMove={true}
 				dropdownMenu={true}
 				columnSorting={true}
+				beforePaste={handleBeforePaste}
 				beforeChange={handleBeforeChange}
 				afterColumnResize={handleAfterColumnResize}
 				afterColumnMove={handleAfterColumnMove}
