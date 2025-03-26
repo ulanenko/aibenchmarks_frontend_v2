@@ -4,7 +4,7 @@ import {registerAllModules} from 'handsontable/registry';
 import 'handsontable/dist/handsontable.full.min.css';
 import {ColumnConfig} from '@/lib/company/company-columns';
 import {useCompanyStore} from '@/stores/use-company-store';
-import {Company, UpdateState} from '@/lib/company';
+import {Company, CompanyHotCopy, UpdateState} from '@/lib/company';
 import {CellChange, ChangeSource, ColumnDataGetterSetterFunction} from 'handsontable/common';
 import Handsontable from 'handsontable';
 import {BenchmarkSettings, useSettingsStore} from '@/stores/use-settings-store';
@@ -90,15 +90,15 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 
 			// Get the physical row index
 			// let physicalRow = newRows[row] ??
-			const physicalRow = hot?.toPhysicalRow(row);
-			const isNewRow = isEmpty(hotCopyCompanies[physicalRow]?.id);
+			const isNewRow = row >= lastRowIndex;
+			
 
 			// Handle new rows (spare row or manually added row)
 			if (isNewRow) {
-				let idForNewCompany = newRows[physicalRow];
+				let idForNewCompany = newRows[row];
 				if (!idForNewCompany) {
 					idForNewCompany = newRowIndex;
-					newRows[physicalRow] = newRowIndex;
+					newRows[row] = newRowIndex;
 					newCompanies[idForNewCompany] = {id: idForNewCompany} as UpdateState;
 					newRowIndex--;
 				}
@@ -106,11 +106,12 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				// Get the property path and set the value
 				updatePropInDto(newCompanies[idForNewCompany], prop, value);
 			} else {
-				
+				const physicalRow = hot?.toPhysicalRow(row) 
+				const hotCopyCompany = hot.getSourceDataAtRow(physicalRow) as CompanyHotCopy;	
 				// Handle existing rows
 				if (!updatesByRow[physicalRow]) {
 					updatesByRow[physicalRow] = {
-						id: hotCopyCompanies[physicalRow]?.id,
+						id: hotCopyCompany.id,
 					} as UpdateState;
 				}
 				updatePropInDto(updatesByRow[physicalRow], prop, value);
@@ -119,13 +120,9 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 
 		// Add new companies and update existing ones
 		updateCompanies(Object.values(updatesByRow), Object.values(newCompanies));
-		return false;
 	};
 
-	const handleBeforePaste = (data: any, source: string) => {
-		console.log('beforePaste', data, source);
-		return false;
-	};
+	
 
 	const handleAfterColumnResize = (newSize: number, column: number, isDoubleClick: boolean) => {
 		const hot = hotRef.current?.hotInstance as Handsontable;
@@ -221,7 +218,6 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 				manualColumnMove={true}
 				dropdownMenu={true}
 				columnSorting={true}
-				beforePaste={handleBeforePaste}
 				beforeChange={handleBeforeChange}
 				afterColumnResize={handleAfterColumnResize}
 				afterColumnMove={handleAfterColumnMove}

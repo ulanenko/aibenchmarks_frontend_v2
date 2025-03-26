@@ -19,6 +19,15 @@ export const inputColumnDefinitions = {
 		readOnly: false,	
 		description: 'Select the company',
 	}),
+	expandToggle: new Column({
+		title: '',
+		type: 'text',
+		width: 60,
+		data: 'id', // Just using id as a data reference, doesn't matter
+		renderer: expandToggleRenderer,
+		readOnly: true,
+		description: 'Expand or collapse description text',
+	}),
 	name: new Column({
 		title: 'Company Name',
 		type: 'text',
@@ -47,7 +56,10 @@ export const inputColumnDefinitions = {
 		type: 'text',
 		width: 200,
 		// we use the dynamicInputValues.url to show the url from the source validation
-		data: 'dynamicInputValues.url',
+		data: 'inputValues.url',
+		hotProps: {
+			dataToShow: 'dynamicInputValues.url',
+		},
 		renderer: urlRenderer,
 		description: 'Website of the company',
 	}),
@@ -131,15 +143,7 @@ export const inputColumnDefinitions = {
 };
 
 const websearchColumnDefinitions = {
-	expandToggle: new Column({
-		title: 'Expand',
-		type: 'text',
-		width: 60,
-		data: 'id', // Just using id as a data reference, doesn't matter
-		renderer: expandToggleRenderer,
-		readOnly: true,
-		description: 'Expand or collapse description text',
-	}),
+	
 	searchId: new Column({
 		title: 'Search ID',
 		type: 'text',

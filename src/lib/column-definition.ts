@@ -85,7 +85,7 @@ export class Column {
 			title: this.title,
 			type: this.type,
 			width: this.width,
-			readOnly: this.readOnly,
+			readOnly: this.readOnly ?? false,
 			
 			validator: this.validator,
 			filter: this.filter,

@@ -1,5 +1,6 @@
 import {getColorClass} from '@/lib/colors';
 import {CompanyHotCopy} from '@/lib/company/company';
+import { getValueForPath } from '@/lib/object-utils';
 import {isEmpty} from '@/lib/utils';
 import {CategoryColor} from '@/types/category';
 import Handsontable from 'handsontable';
@@ -24,9 +25,7 @@ function createUrlCell(url: string, isValid?: boolean, isUpdated?: boolean, sour
 	const link = document.createElement('a');
 	link.href = url;
 	link.textContent = isValid === false && isEmpty(url) ? 'N/A' : url;
-	if (isEmpty(url)) {
-		console.log('HOI HOI');
-	}
+
 	link.target = '_blank';
 	link.rel = 'noopener noreferrer';
 	link.className = `${textColorClass} inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap hover:underline`;
@@ -104,13 +103,16 @@ export const urlRenderer = (
 
 	const physicalRow = instance.toPhysicalRow(row);
 	const rowData = instance.getSourceDataAtRow(physicalRow) as CompanyHotCopy;
+	const dataToShow = cellProperties?.dataToShow;
+	const valueToShow = getValueForPath(rowData, dataToShow)
+
 	const sourceUrl = rowData?.inputValues?.url;
 	const urlIsValid = rowData?.categoryValues?.WEBSITE.category.passed;
 	// @ts-ignore
 	const urlIsUpdated = urlIsValid && rowData?.dynamicInputValues!.urlValidationStatus === 'updated';
 
 	// Create and append the URL cell
-	const urlCell = createUrlCell(value, urlIsValid, urlIsUpdated, sourceUrl);
+	const urlCell = createUrlCell(valueToShow, urlIsValid, urlIsUpdated, sourceUrl);
 	td.appendChild(urlCell);
 	td.classList.add('htMiddle');
 	td.style.color = 'inherit'; // Reset any color Handsontable might be applying
