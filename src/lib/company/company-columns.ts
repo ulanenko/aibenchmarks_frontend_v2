@@ -236,6 +236,7 @@ export const companyColumns = {
 export type ColumnConfig = {
 	column: Column;
 	show: 'always' | 'yes' | 'no';
+	editable?: boolean;
 };
 
 export const defaultColumns: ColumnConfig[] = [

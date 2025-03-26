@@ -231,9 +231,16 @@ export function CompanyTable({benchmarkId, columnConfigs, onHotInstanceReady}: C
 					copyPasteEnabled: true,
 				}}
 			>
-				{initiallyOrderedColumns.map((column, index) => (
-					<HotColumn key={index} {...column.toHotColumn()} />
-				))}
+				{initiallyOrderedColumns.map((column, index) => {
+					const config = columnConfigs.find(c => c.column.data === column.data);
+					return (
+						<HotColumn 
+							key={index} 
+							{...column.toHotColumn()} 
+							readOnly={config?.editable !== undefined ? !config.editable : column.readOnly} 
+						/>
+					);
+				})}
 			</HotTable>
 		</div>
 	);

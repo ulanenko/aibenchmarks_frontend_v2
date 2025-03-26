@@ -9,11 +9,12 @@ import {useValidation} from '@/components/features/website-validation/hooks';
 import {CompanyTable} from '@/components/features/benchmark/company-table';
 import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
 import {useShallow} from 'zustand/react/shallow';
-import {companyColumns, defaultColumns, inputColumns} from '@/lib/company/company-columns';
+import {companyColumns} from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
 import {FileUpIcon, Loader2} from 'lucide-react';
 import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
 import {useRouter} from 'next/navigation';
+import {ColumnConfig} from '@/lib/company/company-columns';
 
 interface Props {
 	params: Promise<{
@@ -46,8 +47,29 @@ export default function BenchmarkStep1Page({params}: Props) {
 		loadCompanies(benchmarkId);
 	}, [benchmarkId, loadCompanies]);
 
-	// Deduplicate column configs before passing them
-	const uniqueColumnConfigs = [...defaultColumns, ...inputColumns];
+	// Define column configuration for this page
+	const columnConfigs: ColumnConfig[] = [
+		// Default columns that are always shown
+		{column: companyColumns.selected, show: 'yes', editable: true},
+		{column: companyColumns.expandToggle, show: 'yes', editable: false},
+		{column: companyColumns.inputStatus, show: 'yes', editable: false},
+		{column: companyColumns.name, show: 'always', editable: true},
+		{column: companyColumns.country, show: 'yes', editable: true},
+		{column: companyColumns.url, show: 'yes', editable: true},
+		{column: companyColumns.websiteValidation, show: 'yes', editable: false},
+		
+		// Additional input columns
+		{column: companyColumns.streetAndNumber, show: 'yes', editable: true},
+		{column: companyColumns.addressLine1, show: 'yes', editable: true},
+		{column: companyColumns.consolidationCode, show: 'no', editable: true},
+		{column: companyColumns.independenceIndicator, show: 'no', editable: true},
+		{column: companyColumns.naceRev2, show: 'yes', editable: true},
+		{column: companyColumns.fullOverview, show: 'yes', editable: true},
+		{column: companyColumns.tradeDescriptionEnglish, show: 'yes', editable: true},
+		{column: companyColumns.tradeDescriptionOriginal, show: 'no', editable: true},
+		{column: companyColumns.mainActivity, show: 'yes', editable: true},
+		{column: companyColumns.mainProductsAndServices, show: 'yes', editable: true},
+	];
 
 	const handleSave = async () => {
 		if (isSaving) return;
@@ -103,11 +125,11 @@ export default function BenchmarkStep1Page({params}: Props) {
 
 	// Main content
 	const mainContent = (
-		<CompanyTable benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} onHotInstanceReady={setHotInstance} />
+		<CompanyTable benchmarkId={benchmarkId} columnConfigs={columnConfigs} onHotInstanceReady={setHotInstance} />
 	);
 
 	// Toolbar content
-	const toolbarContent = <ColumnVisibility benchmarkId={benchmarkId} columnConfigs={uniqueColumnConfigs} />;
+	const toolbarContent = <ColumnVisibility benchmarkId={benchmarkId} columnConfigs={columnConfigs} />;
 
 	// Footer actions
 	const footerActions = (

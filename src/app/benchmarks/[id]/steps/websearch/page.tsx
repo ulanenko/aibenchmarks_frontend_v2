@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button';
 import {toast} from 'sonner';
 import {useCompanyStore} from '@/stores/use-company-store';
 import {useShallow} from 'zustand/react/shallow';
-import {companyColumns, defaultColumns, websearchColumns} from '@/lib/company/company-columns';
+import {companyColumns} from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
 import {Loader2, Search, RefreshCw, Settings2} from 'lucide-react';
 import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
@@ -15,6 +15,7 @@ import {SearchModal} from '@/components/features/search-modal';
 import {useRouter} from 'next/navigation';
 import {Switch} from '@/components/ui/switch';
 import {Label} from '@/components/ui/label';
+import {ColumnConfig} from '@/lib/company/company-columns';
 
 interface Props {
 	params: Promise<{
@@ -62,8 +63,25 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 		loadCompanies(benchmarkId, {includeSearchData: true});
 	}, [benchmarkId, loadCompanies]);
 
-	// Columns specific to the websearch step
-	const websearchColumnConfigs = [...defaultColumns, ...websearchColumns];
+	// Define column configuration for this page
+	const columnConfigs: ColumnConfig[] = [
+		// Default columns that are always shown
+		{column: companyColumns.selected, show: 'yes', editable:true},
+		{column: companyColumns.expandToggle, show: 'yes', editable: true},
+		{column: companyColumns.name, show: 'always', editable: false},
+		{column: companyColumns.country, show: 'yes', editable: false},
+		{column: companyColumns.url, show: 'yes', editable: false},
+		{column: companyColumns.websiteValidation, show: 'no', editable: false},
+		
+		// Web search specific columns
+		{column: companyColumns.searchId, show: 'no', editable: false},
+		{column: companyColumns.overallStatus, show: 'no', editable: false},
+		{column: companyColumns.websearchStatus, show: 'yes', editable: false},
+		{column: companyColumns.analysisBusinessDescription, show: 'yes', editable: false},
+		{column: companyColumns.analysisProductServiceDescription, show: 'yes', editable: false},
+		{column: companyColumns.analysisFunctionalProfileDescription, show: 'yes', editable: false},
+		{column: companyColumns.analysisCorporateStructureAndAffiliationsSummary, show: 'yes', editable: false},
+	];
 
 	const handleSave = async () => {
 		if (isSaving) return;
@@ -131,7 +149,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 		<>
 			<CompanyTable
 				benchmarkId={benchmarkId}
-				columnConfigs={websearchColumnConfigs}
+				columnConfigs={columnConfigs}
 				onHotInstanceReady={setHotInstance}
 			/>
 			<SearchModal 
@@ -163,7 +181,7 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 				>
 					<RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
 				</Button>
-				<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={websearchColumnConfigs} />
+				<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={columnConfigs} />
 		</div>
 	);
 
