@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {Button} from '@/components/ui/button';
-import {useBenchmarkListStore} from '@/stores/use-benchmark-store';
+import {useBenchmarkListStore} from '@/stores/use-benchmark-list-store';
 import {BenchmarkFormDialog} from './benchmark-form-dialog';
 import {BenchmarkItem} from './benchmark-item';
 import {LoadingSpinner} from '@/components/ui/loading-spinner';

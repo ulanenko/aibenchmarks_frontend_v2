@@ -12,7 +12,7 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
-import {useBenchmarkListStore} from '@/stores/use-benchmark-store';
+import {useBenchmarkListStore} from '@/stores/use-benchmark-list-store';
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';

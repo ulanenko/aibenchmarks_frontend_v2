@@ -24,7 +24,7 @@ import {
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
 import {Separator} from '@/components/ui/separator';
 import {useState, useEffect} from 'react';
-import {useStrategiesStore} from '@/stores/strategies';
+import {useStrategiesStore} from '@/stores/use-strategy-list-store';
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';

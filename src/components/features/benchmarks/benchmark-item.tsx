@@ -4,7 +4,7 @@ import * as React from 'react';
 import {Button} from '@/components/ui/button';
 import {BenchmarkFormDialog} from './benchmark-form-dialog';
 import {ConfirmDialog} from '@/components/layout/dialogues/confirm-dialog';
-import {useBenchmarkListStore} from '@/stores/use-benchmark-store';
+import {useBenchmarkListStore} from '@/stores/use-benchmark-list-store';
 import {Pencil, Trash2, Copy, LayoutGrid, ChevronDown} from 'lucide-react';
 import {useRouter} from 'next/navigation';
 import {Benchmark} from '@/lib/benchmark/benchmark';

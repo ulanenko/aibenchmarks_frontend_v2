@@ -1,7 +1,7 @@
 'use client';
 
 import {Button} from '@/components/ui/button';
-import {useStrategiesStore} from '@/stores/strategies';
+import {useStrategiesStore} from '@/stores/use-strategy-list-store';
 import {useEffect, useState} from 'react';
 import {MoreVertical} from 'lucide-react';
 import {
