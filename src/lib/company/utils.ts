@@ -4,7 +4,7 @@ import {companyCategorizer} from './categorizer';
 import {CategoryValue} from '@/types/category';
 import {companyColumns} from './company-columns';
 import {CATEGORIES} from '@/config/categories';
-import { isEmpty } from '../utils';
+import { checkUrlChanged, isEmpty } from '../utils';
 // Legacy function for backward compatibility
 export const updateCategories = (company: Company) => {
 	// @ts-ignore
@@ -22,6 +22,42 @@ export const updateCategories = (company: Company) => {
 	companyColumns.acceptRejectStatus.categorize(company);
 
 };
+
+export const updateDynamicInputValues = (company: Company) => {
+	company.dynamicInputValues = {
+		url: company.inputValues?.url,
+		urlValidationStatus: 'input',
+	}
+	updateWebsiteValidationStatus(company)
+}
+
+/**
+ * this is called to check if the website validation status is updated
+ * @param company 
+ */
+const updateWebsiteValidationStatus = (company: Company) => {
+	let urlValidationStatus: 'input' | 'updated' | 'fine-tuned' | 'correct' | 'invalid' = 'input';
+	const websiteIsValid = company.categoryValues?.WEBSITE.category.passed === true;
+	const websiteIsValidated = company.categoryValues?.WEBSITE.category.passed !== undefined;
+		if (websiteIsValidated) {
+			if (websiteIsValid) {
+				if (company.backendState?.urlValidationUrl === company.inputValues?.url) {
+					urlValidationStatus = 'correct';
+				} else {
+					urlValidationStatus = checkUrlChanged(company.backendState?.urlValidationUrl, company.inputValues?.url)
+						? 'updated'
+						: 'fine-tuned';
+				}
+			} else {
+				urlValidationStatus = 'invalid';
+			}
+		}
+
+	company.dynamicInputValues = {
+		url: websiteIsValid ? company.backendState?.urlValidationUrl : company.inputValues?.url,
+		urlValidationStatus,
+	};
+}
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {
 	return objects.reduce((acc: {[key: string]: any[]}, object) => {

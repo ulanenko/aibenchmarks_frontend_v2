@@ -43,16 +43,8 @@ export const WebsiteCategorizer: Categorizer = [
 	// Not validated yet
 	(company) => {
 		// If no website validation data or inputs have changed since validation
-		const webisteIsValidated =
-			company.websiteValidation &&
-			isValidationUpToDate(
-				company.websiteValidation,
-				company.inputValues.name || '',
-				company.inputValues.country || '',
-				company.inputValues.url,
-			);
 
-		if (webisteIsValidated !== true) {
+		if (!isValidationUpToDate(company)) {
 			// check if company has sufficient data
 			const inputProvided = company.requiredInputProvided();
 			if (inputProvided !== true) {
@@ -62,11 +54,11 @@ export const WebsiteCategorizer: Categorizer = [
 			}
 		}
 
-		if (company.websiteValidation?.is_validating) {
+		if (company.frontendState?.urlValidationInitialized) {
 			return CATEGORIES.WEBSITE.VALIDATING.toCategoryValue();
 		}
 
-		const websiteIsValid = company.websiteValidation!.url_validated_and_accessible;
+		const websiteIsValid = company.backendState?.urlValidationValid;
 
 		if (websiteIsValid) {
 			return CATEGORIES.WEBSITE.VALID.toCategoryValue();

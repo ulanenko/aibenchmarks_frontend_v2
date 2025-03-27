@@ -1,19 +1,21 @@
+import { Company, CompanyHotCopy } from "./company";
+
 /**
  * Interface for website validation status
  */
+
 export interface WebsiteValidationStatus {
 	// Input settings used for validation (to check if inputs have changed)
-	input_settings: string; // Combination of company name, country, and URL
-	is_validating?: boolean;
-	// Validation results
-	url_validated: string | null; // The URL that was validated
-	url_validated_and_accessible: boolean | null; // Whether the URL is valid and accessible
+	urlValidationInput: string; // Combination of company name, country, and URL
+	urlValidationUrl: string;
+	urlValidationValid: boolean | null;
 }
 
+	
 /**
  * Helper function to create input settings string
  */
-export function createInputSettings(name: string, country: string, url: string | null): string {
+export function createInputSettings(name: string , country: string, url: string | null): string {
 	return `${name}|${country}|${url || ''}`;
 }
 
@@ -21,29 +23,25 @@ export function createInputSettings(name: string, country: string, url: string |
  * Helper function to check if validation is up to date
  */
 export function isValidationUpToDate(
-	status: WebsiteValidationStatus | null | undefined,
-	name: string,
-	country: string,
-	url: string | null,
+	company: Company | CompanyHotCopy
 ): boolean {
-	if (!status) return false;
+	if (!company.inputValues) return false;
+	const {name, country, url} = company.inputValues
+	if (!name || !country) return false;
+	const settings = company.backendState?.urlValidationInput
 
 	const currentInputSettings = createInputSettings(name, country, url);
-	return status.input_settings === currentInputSettings;
+	return settings === currentInputSettings;
 }
 
 /**
  * Helper function to get validation status
  */
 export function getValidationStatus(
-	status: WebsiteValidationStatus | null | undefined,
-	name: string,
-	country: string,
-	url: string | null,
+	company: Company | CompanyHotCopy
 ): 'valid' | 'invalid' | 'not-validated' {
-	if (!isValidationUpToDate(status, name, country, url)) {
+	if (!isValidationUpToDate(company)) {
 		return 'not-validated';
 	}
-
-	return status?.url_validated_and_accessible ? 'valid' : 'invalid';
+	return company.backendState?.urlValidationValid ? 'valid' : 'invalid';
 }

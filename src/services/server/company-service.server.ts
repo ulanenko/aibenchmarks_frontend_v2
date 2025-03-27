@@ -304,3 +304,25 @@ export async function getCompaniesSearchData(benchmarkId: number): Promise<Array
 		throw error;
 	}
 }
+
+/**
+ * Gets only the company IDs and their search IDs for a given benchmark
+ * This is the most efficient way to get just the search IDs
+ * 
+ * @param benchmarkId - The benchmark ID to get companies for
+ * @returns Promise with the company IDs and their search IDs
+ */
+export async function getCompanySearchIds(benchmarkId: number): Promise<Array<{id: number; searchId: string | null}>> {
+	try {
+		return await db.query.company.findMany({
+			where: eq(company.benchmarkId, benchmarkId),
+			columns: {
+				id: true,
+				searchId: true,
+			},
+		});
+	} catch (error) {
+		console.error(`Error getting company search IDs for benchmark ${benchmarkId}:`, error);
+		throw error;
+	}
+}

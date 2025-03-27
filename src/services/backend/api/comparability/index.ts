@@ -1,3 +1,5 @@
+import { BENCHMARK_API_CONFIG } from "@/config/env";
+
 export interface ComparabilityAnalysis {
     search_id: string;
     ideal_product_service: string;
@@ -44,14 +46,15 @@ export async function initiateComparabilityAnalysis(
     input: ComparabilityAnalysisInput
 ): Promise<ComparabilityAnalysisResponse | null> {
     try {
-        const response = await fetch('/api/comparability-analysis/initiate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(input),
-        });
+        const response = await fetch(`${BENCHMARK_API_CONFIG.URL}/comparability-analysis`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(input),
+		});
 
+        debugger;
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }

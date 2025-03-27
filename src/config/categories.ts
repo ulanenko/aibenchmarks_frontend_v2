@@ -172,7 +172,7 @@ const CATEGORIES = {
 			passed: undefined,
 		}),
 		IN_PROGRESS: new CategoryDefinition({
-			label: 'Analysing',
+			label: 'Searching',
 			color: 'orange',
 			icon: Loader2,
 			status: 'in_progress',
@@ -212,10 +212,7 @@ const CATEGORIES = {
 			icon: PlayCircle,
 			status: 'ready',
 			categoryKey: 'ACCEPT_REJECT.READY',
-			onclick: (company) => {
-				// Open the accept-reject modal via a custom event
-				window.dispatchEvent(new CustomEvent('openAcceptRejectModal', {detail: {company}}));
-			},
+			onclick: comparabilityAnalysisService,
 			onclickTooltip: 'Start comparability analysis',
 			passed: undefined,
 		}),

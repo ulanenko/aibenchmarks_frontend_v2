@@ -1,11 +1,12 @@
 import {CompanyDTO, CreateCompanyDTO, UpdateCompanyDTO} from './type';
-import {updateCategories} from './utils';
+import {updateCategories, updateDynamicInputValues} from './utils';
 import {setValueForPath} from '../object-utils';
 import {checkUrlChanged, isEmpty} from '../utils';
 import {CategoryValue} from '@/types/category';
 import {CATEGORIES, CategoryType} from '@/config/categories';
 import {WebsiteValidationStatus, createInputSettings} from './website-validation';
 import {SearchedCompany} from '@/services/backend/models/searchedCompany';
+import { ValidateWebsiteDTO } from '@/app/actions/website-validation-actions';
 
 export interface InputValues {
 	name: string | null;
@@ -35,6 +36,7 @@ export type FrontendState = {
 	acceptRejectInitialized?: boolean;
 	expanded?: boolean;
 	selected?: boolean;
+	urlValidationInitialized?: boolean;
 };
 
 export type UpdateState = {
@@ -46,6 +48,10 @@ export type UpdateState = {
 // Backend state to track values set by the backend
 export type BackendState = {
 	searchId: string | null;
+	urlValidationUrl: string | null | undefined;
+	urlValidationInput: string | null | undefined;
+	urlValidationValid: boolean | null | undefined;
+
 };
 
 export type CompanyHotCopy = {
@@ -76,14 +82,16 @@ export class Company {
 	inputValues: InputValues;
 
 	// Website validation status
-	websiteValidation: WebsiteValidationStatus | null = null;
+	// websiteValidation: WebsiteValidationStatus | null = null;
 
-	// Store original input values for change tracking
+	// Store original input values for change trackinge
 	private originalInputValues: InputValues;
 	dynamicInputValues: DynamicInputValues = {
 		url: null,
 		urlValidationStatus: 'input',
 	};
+
+
 
 	// Frontend state for tracking UI states that shouldn't persist in the database
 	frontendState: FrontendState = {
@@ -91,11 +99,15 @@ export class Company {
 		acceptRejectInitialized: false,
 		expanded: false,
 		selected: false,
+		urlValidationInitialized: false,
 	};
 
 	// Backend state for tracking values set by the backend
 	backendState: BackendState = {
 		searchId: null,
+		urlValidationUrl: null,
+		urlValidationInput: null,
+		urlValidationValid: null,
 	};
 
 	// Track which fields have been changed
@@ -143,17 +155,18 @@ export class Company {
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
 		};
+
+		
 		// for existing companies, set the searchId and searchedCompanyData
 		if(data && 'id' in data){
-			this.backendState.searchId = data.searchId;
+			this.backendState = {
+				searchId: data?.searchId ?? null,
+				urlValidationUrl: data?.urlValidationUrl ?? null,
+				urlValidationInput: data?.urlValidationInput ?? null,
+				urlValidationValid: data?.urlValidationValid ?? null,
+			};
 			this.searchedCompanyData = data?.searchedCompanyData ?? null;
-			if(data.urlValidationUrl){
-				this.websiteValidation = {
-					url_validated: data.urlValidationUrl,
-					input_settings: data.urlValidationInput!,
-					url_validated_and_accessible: data.urlValidationValid,
-				};
-			}
+			
 		}
 
 		// Store a deep copy of the original input values
@@ -198,27 +211,7 @@ export class Company {
 	updateDependentValues() {
 		updateCategories(this);
 		// source status
-		let urlValidationStatus: 'input' | 'updated' | 'fine-tuned' | 'correct' | 'invalid' = 'input';
-		const websiteIsValid = this.categoryValues?.WEBSITE.category.passed === true;
-		const websiteIsValidated = this.categoryValues?.WEBSITE.category.passed !== undefined;
-		if (websiteIsValidated) {
-			if (websiteIsValid) {
-				if (this.websiteValidation?.url_validated === this.inputValues.url) {
-					urlValidationStatus = 'correct';
-				} else {
-					urlValidationStatus = checkUrlChanged(this.websiteValidation?.url_validated, this.inputValues.url)
-						? 'updated'
-						: 'fine-tuned';
-				}
-			} else {
-				urlValidationStatus = 'invalid';
-			}
-		}
-
-		this.dynamicInputValues = {
-			url: websiteIsValid ? this.websiteValidation?.url_validated : this.inputValues.url,
-			urlValidationStatus,
-		};
+		updateDynamicInputValues(this);
 
 		// update the hotCopy to ensure that the hot table is updated
 		this.updateHOTExport();
@@ -267,12 +260,6 @@ export class Company {
 						// If the value is back to the original, remove it from changedFields
 						delete this.changedFields[key as keyof InputValues];
 					}
-				} else if (key === 'websiteValidation') {
-					// Handle websiteValidation property
-					this.websiteValidation = value as WebsiteValidationStatus | null;
-				} else {
-					// Update other properties
-					(this as any)[key] = value;
 				}
 			}
 		});
@@ -284,10 +271,38 @@ export class Company {
 		this.updateDependentValues();
 	}
 
-	updateWebsiteValidation(websiteValidation: WebsiteValidationStatus) {
-		this.websiteValidation = websiteValidation;
+	/**
+	 * Marks the company as having a validation in progress
+	 * @param started - whether the validation has started or stopped
+	 */
+	markAsUrlValidationStarted(started: boolean = true) {
+		const {name, country, url} = this.inputValues;
+		// just the country and name are required to initialize the validation
+		const canInitialize = name && country ;
+		if(!canInitialize) {
+			this.frontendState.urlValidationInitialized = false;
+		}else{
+			this.backendState.urlValidationInput = createInputSettings(name, country, url);;
+			this.frontendState.urlValidationInitialized = started;
+			this.backendState.urlValidationUrl = null;
+			this.backendState.urlValidationValid = null;
+		}
+		// we don't have to reset the backend state because we check if these are still relevant
 		this.updateDependentValues();
 	}
+
+	updateWebsiteValidation(validationResult: WebsiteValidationStatus) {
+		this.frontendState.urlValidationInitialized = false;
+		this.backendState.urlValidationUrl = validationResult.urlValidationUrl;
+		this.backendState.urlValidationInput = validationResult.urlValidationInput;
+		this.backendState.urlValidationValid = validationResult.urlValidationValid;
+		this.updateDependentValues();
+	}
+
+	// updateWebsiteValidation(websiteValidation: WebsiteValidationStatus) {
+	// 	this.websiteValidation = websiteValidation;
+	// 	this.updateDependentValues();
+	// }
 
 	// Convert to plain object (DTO)
 	getUpdateDTO(): UpdateCompanyDTO | null {
@@ -360,6 +375,7 @@ export class Company {
 	}
 	// Update search data for the company
 	updateSearchData(searchId: string | null, searchedCompanyData: SearchedCompany | null) {
+		this.frontendState.webSearchInitialized = false;
 		this.backendState.searchId = searchId;
 		this.searchedCompanyData = searchedCompanyData;
 		this.updateDependentValues();
@@ -369,16 +385,8 @@ export class Company {
 	/**
 	 * Marks the company as having an accept-reject analysis in progress
 	 */
-	markAsAcceptRejectStarted() {
-		this.frontendState.acceptRejectInitialized = true;
-		this.updateHOTExport();
-	}
-
-	/**
-	 * Updates the company with accept-reject analysis data
-	 */
-	updateAcceptRejectData() {
-		this.frontendState.acceptRejectInitialized = false;
-		this.updateHOTExport();
+	markAsAcceptRejectStarted(started: boolean = true) {
+		this.frontendState.acceptRejectInitialized = started;
+		this.updateDependentValues();
 	}
 }

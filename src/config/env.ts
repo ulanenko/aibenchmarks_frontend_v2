@@ -9,6 +9,10 @@ export const SUPPORT_SERVICES_CONFIG = {
 	AUTH_TOKEN: process.env.SUPPORT_SERVICES_AUTH_TOKEN,
 };
 
+export const BENCHMARK_API_CONFIG = {
+	URL: process.env.BENCHMARK_API_URL || 'https://aibenchmarks-experimental-2.azurewebsites.net',
+};
+
 // Database configuration
 export const DATABASE_CONFIG = {
 	URL: process.env.DATABASE_URL || '',

@@ -26,23 +26,14 @@ interface CompanyStore {
 	// addCompany: (company: Company) => void;
 	// updateCompany: (id: number, company: Partial<Company>) => void;
 	updateCompany: (update: UpdateState) => void;	
+	updateCompaniesWithAction: (
+		companyIds: number | number[],
+		companyAction: (company: Company, index: number) => void,
+	) => Company[];
 	updateCompanies: (
 		updates: Array<UpdateState>,
 		newCompanies?: Array<UpdateState>,
 	) => void;
-	updateWebsiteValidation: (
-		companyId: number | number[],
-		websiteValidation: WebsiteValidationStatus | WebsiteValidationStatus[],
-	) => Company[];
-	updateWebSearchState: (
-		companyId: number | number[],
-		webSearchInitialized: boolean,
-		searchId: string | string[] | null,
-	) => Company[];
-	updateAcceptRejectState: (
-		companyId: number | number[],
-		acceptRejectInitialized: boolean,
-	) => Company[];
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
 	loadMappingSettings: (benchmarkId: number) => Promise<{
@@ -136,69 +127,17 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 			get().updateCompanies([update]);
 		},
 
-		updateWebsiteValidation: (
-			companyId: number | number[],
-			websiteValidation: WebsiteValidationStatus | WebsiteValidationStatus[],
-		): Company[] => {
+		
+
+		updateCompaniesWithAction: (companyIds:number | number[], companyAction: (company: Company, index: number) => void) => {
+			const companyIdsArray = Array.isArray(companyIds) ? companyIds : [companyIds];
 			const companies = [...get().companies];
-			const companyIds = Array.isArray(companyId) ? companyId : [companyId];
-			const websiteValidations = Array.isArray(websiteValidation) ? websiteValidation : [websiteValidation];
-			if (companyIds.length !== websiteValidations.length) {
-				throw new Error('Company IDs and website validations must have the same length');
-			}
-
-			companyIds.forEach((id, index) => {
-				const company = companies.find((c) => c.id === id);
-				if (company) {
-					company.updateWebsiteValidation(websiteValidations[index]);
-				}
-			});
-
-			get().setCompanies(companies);
-			return get().companies.filter((c) => companyIds.includes(c.id!));
-		},
-
-		updateWebSearchState: (
-			companyId: number | number[],
-			webSearchInitialized: boolean,
-			searchId: string | string[] | null,
-		): Company[] => {
-			const companies = [...get().companies];
-			const companyIds = Array.isArray(companyId) ? companyId : [companyId];
-			const searchIds = Array.isArray(searchId) ? searchId : [searchId];
-			if(webSearchInitialized === false && searchIds.length !== companyIds.length) {
-				throw new Error('Company IDs and search IDs must have the same length');
-			}
+			const companiesById = new Map(companies.map(c => [c.id, c]));
 			const updatedCompanies: Company[] = [];
-			companies.forEach((company, index) => {
-				if (companyIds.includes(company.id!)) {
-					if(webSearchInitialized) {
-						company.markAsSearchStarted();
-						}else if(searchIds[index]) {
-								company.updateSearchData(searchIds[index], null);
-						}
-					updatedCompanies.push(company);
-				}
-			});
-			get().setCompanies(companies);
-			return updatedCompanies;
-		},
-
-		updateAcceptRejectState: (
-			companyId: number | number[],
-			acceptRejectInitialized: boolean,
-		): Company[] => {
-			const companies = [...get().companies];
-			const companyIds = Array.isArray(companyId) ? companyId : [companyId];
-			
-			const updatedCompanies: Company[] = [];
-			companies.forEach((company) => {
-				if (companyIds.includes(company.id!)) {
-					if(acceptRejectInitialized) {
-						company.markAsAcceptRejectStarted();
-					} else {
-						company.updateAcceptRejectData();
-					}
+			companyIdsArray.forEach((companyId, index) => {
+				const company = companiesById.get(companyId);
+				if(company) {
+					companyAction(company, index);
 					updatedCompanies.push(company);
 				}
 			});

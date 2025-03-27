@@ -234,7 +234,7 @@ export const companyColumns = {
 		title: 'Validate Website',
 		type: 'text',
 		width: 120,
-		data: 'websiteValidation',
+		data: '',
 		renderer: websiteValidationRenderer,
 		description: 'Validate the company website',
 	}),

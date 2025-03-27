@@ -1,7 +1,7 @@
 'use server';
 
 import {createClient} from '@supabase/supabase-js';
-import {getBenchmarkById} from './benchmark-list-actions';
+import { getBenchmarkById } from './benchmark-actions';
 
 // Initialize Supabase client with service role key to bypass RLS policies
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

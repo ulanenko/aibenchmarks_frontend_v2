@@ -1,7 +1,7 @@
+import { BENCHMARK_API_CONFIG } from '@/config/env';
 import {AnalyzeCompanyInput, AnalyzeCompanyAPIResponse} from './types';
 
 // Benchmark API URL
-const BENCHMARK_API_URL = 'https://aibenchmarks-experimental-2.azurewebsites.net';
 
 // API Token for authorization
 
@@ -17,7 +17,7 @@ export async function initiateCompanyAnalysis(
 	try {
 		// Send the POST request to the Benchmark API
 		// Include the API token in the URL as a query parameter
-		const response = await fetch(`${BENCHMARK_API_URL}/company-analysis`, {
+		const response = await fetch(`${BENCHMARK_API_CONFIG.URL}/company-analysis`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

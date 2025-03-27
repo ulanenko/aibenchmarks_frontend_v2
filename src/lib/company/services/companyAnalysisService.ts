@@ -40,7 +40,9 @@ export async function analyzeCompanyService(
 
 	const companyIds = companyDataArray.map(company => company.id!);
 	// Update the web search state in the store if we have a company ID
-	useCompanyStore.getState().updateWebSearchState(companyIds, true, null);
+	useCompanyStore.getState().updateCompaniesWithAction(companyIds, (company) => {
+		company.markAsSearchStarted();
+	});
 
 	// Extract necessary fields and ensure required ones are never null
 	const companiesForAnalysis = companyDataArray.map(company => ({	
@@ -64,7 +66,9 @@ export async function analyzeCompanyService(
 
 	// If we got a search ID, update it in the store
 	if (result.success && result.searchIds && result.searchIds.length > 0 && companyIds) {
-		useCompanyStore.getState().updateWebSearchState(companyIds, false, result.searchIds);
+		useCompanyStore.getState().updateCompaniesWithAction(companyIds, (company, index) => {
+			company.updateSearchData(result.searchIds![index], null);
+		});
 	}
 
 	return result;

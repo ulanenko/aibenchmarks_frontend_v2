@@ -7,57 +7,93 @@ import {
     ComparabilityAnalysis,
 } from '@/services/backend/api/comparability';
 import { CompanyDTO } from '@/lib/company/type';
+import * as companyService from '@/services/server/company-service.server';
+import * as benchmarkService from '@/services/server/benchmark-service.server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 /**
  * Server action to initiate comparability analysis for a list of companies
  *
- * @param companies - Array of company data to analyze
- * @param authCode - Authorization code for the API
- * @returns Response with search IDs or error information
+ * @param companyIds - Array of company IDs to analyze
+ * @param benchmarkId - The benchmark ID containing the strategy information
+ * @returns Response with search IDs, initialized company IDs, or error information
  */
 export async function initiateComparabilityAnalysisAction(
-    companies: (Partial<CompanyDTO> & {id?: number; name: string; searchId: string})[],
-    authCode: number = 6666666, // Default auth code, replace with actual auth mechanism
-    options: {
-        idealProductService: string;
-        idealFunctionalProfile: string;
-        language?: string;
-        relaxedProduct?: boolean;
-        relaxedFunction?: boolean;
-    },
-): Promise<{success: boolean; message: string; searchIds?: string[]}> {
+    companyIds: number[],
+    benchmarkId: number,
+): Promise<{success: boolean; message: string; searchIds?: string[]; initializedCompanyIds?: number[]}> {
     try {
+        debugger;
+        // Get auth session for user
+        const session = await getServerSession(authOptions);
+        const authCode = session?.user?.authCode ? parseInt(session.user.authCode) : 6666666; // Default auth code if no user
+
         // Validate input
-        if (!companies || companies.length === 0) {
+        if (!companyIds || companyIds.length === 0) {
             return {
                 success: false,
-                message: 'No companies provided for analysis',
+                message: 'No company IDs provided for analysis',
             };
         }
 
-        if (!options.idealProductService || !options.idealFunctionalProfile) {
+        // Get the benchmark to retrieve strategy information
+        const benchmark = await benchmarkService.getBenchmarkById(benchmarkId);
+        
+        if (!benchmark) {
             return {
                 success: false,
-                message: 'Ideal product/service and functional profile descriptions are required',
+                message: `Benchmark with ID ${benchmarkId} not found`,
+            };
+        }
+        
+        if (!benchmark.strategy) {
+            return {
+                success: false,
+                message: 'Benchmark has no strategy information',
             };
         }
 
-        // Map the company data to the format expected by the analysis API
-        const analysisCompanies: ComparabilityAnalysis[] = companies.map((company) => {
+        // Get the strategy data
+        const { idealProducts, idealFunctionalProfile } = benchmark.strategy;
+        if (!idealProducts || !idealFunctionalProfile) {
             return {
-                search_id: company.searchId,
-                ideal_product_service: options.idealProductService,
-                ideal_functional_profile: options.idealFunctionalProfile,
-                lang: options.language || 'en',
-                relaxed_product: options.relaxedProduct || false,
-                relaxed_function: options.relaxedFunction || false,
+                success: false,
+                message: 'Benchmark strategy is missing required product/service or functional profile descriptions',
             };
-        });
+        }
+
+        // Get companies with their search IDs directly from the database
+        const companiesData = await companyService.getCompanySearchIds(benchmarkId);
+        
+        // Filter to only include the requested company IDs and ensure they have search IDs
+        const filteredCompanies = companiesData
+            .filter(company => companyIds.includes(company.id) && company.searchId);
+            
+        // Store company IDs that were successfully initialized
+        const initializedCompanyIds = filteredCompanies.map(company => company.id);
+        
+        const companiesForAnalysis = filteredCompanies
+            .map(company => ({
+                search_id: company.searchId!,
+                ideal_product_service: idealProducts,
+                ideal_functional_profile: idealFunctionalProfile,
+                lang: benchmark.lang || 'en',
+                relaxed_product: benchmark.strategy?.relaxedProduct || false,
+                relaxed_function: benchmark.strategy?.relaxedFunction || false,
+            }));
+
+        if (companiesForAnalysis.length === 0) {
+            return {
+                success: false,
+                message: 'No companies with valid search IDs found for the provided company IDs',
+            };
+        }
 
         // Build the full analysis request
         const analysisInput: ComparabilityAnalysisInput = {
             auth_code: authCode,
-            analysis: analysisCompanies,
+            analysis: companiesForAnalysis,
         };
 
         // Initiate the analysis
@@ -82,8 +118,9 @@ export async function initiateComparabilityAnalysisAction(
 
         return {
             success: true,
-            message: `Successfully initiated comparability analysis for ${companies.length} companies`,
+            message: `Successfully initiated comparability analysis for ${companiesForAnalysis.length} companies`,
             searchIds,
+            initializedCompanyIds,
         };
     } catch (error) {
         console.error('Error in initiateComparabilityAnalysisAction:', error);

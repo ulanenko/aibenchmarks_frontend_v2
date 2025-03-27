@@ -30,13 +30,9 @@ export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) 
 	// Create input settings string
 	const inputSettings = createInputSettings(name, country, url);
 
-	const inProgressStatus: WebsiteValidationStatus = {
-		input_settings: inputSettings,
-		is_validating: true,
-		url_validated: null,
-		url_validated_and_accessible: null,
-	};
-	useCompanyStore.getState().updateWebsiteValidation(hotCopy.id, inProgressStatus);
+	useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+		company.markAsUrlValidationStarted();
+	});
 
 	// Get the benchmarkId from the store
 	const benchmarkId = useCompanyStore.getState().benchmarkId;
@@ -55,14 +51,19 @@ export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) 
 	};
 
 	const {result, error} = await validateAndFindWebsite(validateWebsiteDto);
-
-	const update: WebsiteValidationStatus = {
-		input_settings: inputSettings,
-		url_validated: result?.official_url || null,
-		url_validated_and_accessible: result?.validation_passed === true,
-	};
-	if (hotCopy.id) {
-		useCompanyStore.getState().updateWebsiteValidation(hotCopy.id, update);
+	if (!result) {
+		useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+			company.markAsUrlValidationStarted(false);
+		});
+	}else{
+		const update: WebsiteValidationStatus = {
+			urlValidationInput: inputSettings,
+			urlValidationUrl: result.official_url,
+			urlValidationValid: result.validation_passed		,
+		};
+		useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+			company.updateWebsiteValidation(update);
+		});
 	}
 
 	return {result, error};
@@ -90,28 +91,25 @@ export async function validateCompanyWebsiteBatch() {
 	const companiesToValidateIds: number[] = [];
 	const companiesToValidateInputSettings: WebsiteValidationStatus[] = [];
 	const websiteValidateDTOs: WebsiteValidateDTO[] = [];
+	const inputSettingsList: string[] = [];
 	// Mark all selected companies as "in progress"
 	companiesToValidate.forEach((company) => {
-		if (!company.id) return;
-
 		const {name, country, url} = company.inputValues;
-		const inputSettings = createInputSettings(name, country || '', url);
+		// we can safely assume that the input values are not null because we filtered the companies
+		const inputSettings = createInputSettings(name!, country!, url!);
 
 		companiesToValidateIds.push(company.id);
-		companiesToValidateInputSettings.push({
-			input_settings: inputSettings,
-			is_validating: true,
-			url_validated: null,
-			url_validated_and_accessible: null,
-		});
+		inputSettingsList.push(inputSettings);
 		websiteValidateDTOs.push({
 			id: company.id,
-			name,
+			name: name! ,
 			country: country!,
-			databaseUrl: url,
+			databaseUrl: url ,
 		});
 	});
-	store.updateWebsiteValidation(companiesToValidateIds, companiesToValidateInputSettings);
+	store.updateCompaniesWithAction(companiesToValidateIds, (company, index) => {
+		company.markAsUrlValidationStarted();
+	});
 
 	// Create the batch validation DTO
 	const validateWebsiteDto: ValidateWebsiteBatchDTO = {
@@ -126,25 +124,22 @@ export async function validateCompanyWebsiteBatch() {
 	if (results) {
 		const companiesToValidateIds: number[] = [];
 		const companiesToValidateInputSettings: WebsiteValidationStatus[] = [];
-		results.forEach(({companyId, result}) => {
-			const company = companies.find((c) => c.id === companyId);
-			if (!company || !result) return;
-
-			const {name, country, url} = company.inputValues;
-			const inputSettings = createInputSettings(name, country || '', url);
-
+		results.forEach(({companyId, result}, index) => {
+			const inputSettings = inputSettingsList[index];
 			// Handle cases where the API returns "N/A" for the official URL
-			const officialUrl = result.official_url === 'N/A' ? null : result.official_url;
+			const officialUrl = result?.official_url === 'N/A' ? null : result?.official_url;
 
 			const update: WebsiteValidationStatus = {
-				input_settings: inputSettings,
-				url_validated: officialUrl,
-				url_validated_and_accessible: result.validation_passed === true,
+				urlValidationInput: inputSettings,
+				urlValidationUrl: officialUrl || '',
+				urlValidationValid: result?.validation_passed || null,
 			};
 			companiesToValidateIds.push(companyId);
 			companiesToValidateInputSettings.push(update);
 		});
-		validatedCompanies = store.updateWebsiteValidation(companiesToValidateIds, companiesToValidateInputSettings);
+		validatedCompanies = store.updateCompaniesWithAction(companiesToValidateIds, (company, index) => {
+			company.updateWebsiteValidation(companiesToValidateInputSettings[index]);
+		});
 	}
 
 	return {validatedCompanies, error};
