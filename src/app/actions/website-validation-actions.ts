@@ -5,7 +5,7 @@ import {
 	DTO_ValidateAndFindWebsiteResponse,
 	DTO_ValidateAndFindWebsiteRequestBatch,
 	DTO_ValidateAndFindWebsiteResponseBatch,
-} from '@/services/support-services/types';
+} from '@/services/support-services/website-validation/types';
 import * as supportServices from '@/services/support-services';
 import {saveCompanies} from '@/services/server/company-service.server';
 import {createInputSettings} from '@/lib/company/website-validation';

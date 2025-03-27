@@ -1,8 +1,8 @@
 'use server';
 
-import {aiMapper} from '@/services/support-services/ai-mapper';
+import {aiMapper} from '@/services/support-services/ai-mapper/ai-mapper';
 import {SUPPORT_SERVICES_CONFIG} from '@/config/env';
-import {MapperInput} from '@/services/support-services/types';
+import {MapperInput} from '@/services/support-services/website-validation/types';
 import {SourceColumn, TargetColumn, MappingResult} from './dto/mapper-types';
 
 /**

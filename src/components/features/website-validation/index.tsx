@@ -6,7 +6,7 @@ import {WebsiteValidationLoadingDialog} from './loading-dialog';
 import {CATEGORIES} from '@/config/categories';
 import {useCompanyStore} from '@/stores/use-company-store';
 import {useShallow} from 'zustand/react/shallow';
-import {DTO_ValidateAndFindWebsiteResponse} from '@/services/support-services/types';
+import {DTO_ValidateAndFindWebsiteResponse} from '@/services/support-services/website-validation/types';
 import {validateCompanyWebsiteBatch} from '@/services/client/validate-company-website';
 import {Company} from '@/lib/company/company';
 

@@ -1,5 +1,5 @@
 import {SUPPORT_SERVICES_CONFIG} from '@/config/env';
-import {MapperInput, AIMapperResults} from './types';
+import { AIMapperResults, MapperInput } from './types';
 
 /**
  * Calls the AI Mapper API to map source columns to target columns
@@ -8,7 +8,7 @@ import {MapperInput, AIMapperResults} from './types';
  */
 export async function aiMapper(input: MapperInput): Promise<AIMapperResults | null> {
 	const apiUrl = `${SUPPORT_SERVICES_CONFIG.URL}/ai-mapper-source-to-target`;
-
+	
 	try {
 		// Check if the auth token is configured
 		if (!SUPPORT_SERVICES_CONFIG.AUTH_TOKEN) {

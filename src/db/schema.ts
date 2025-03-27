@@ -107,6 +107,21 @@ export const company = pgTable('bm_company', {
 	searchId: text('search_id'),
 });
 
+export const strategy = pgTable('bm_strategy', {
+	...baseFields,
+	userId: integer('user_id')
+		.references(() => user.id)
+		.notNull(),
+	name: text('name').notNull(),
+	idealFunctionalProfile: text('ideal_functional_profile'),
+	idealProducts: text('ideal_products_services'),
+	rejectFunctions: text('reject_functions_activities'),
+	rejectProducts: text('reject_products_services'),
+	relaxedProduct: boolean('relaxed_product').notNull().default(true),
+	relaxedFunction: boolean('relaxed_function').notNull().default(true),
+	disabledIndependence: boolean('disabled_independence').notNull().default(false),
+});
+
 export interface BaseFields {
 	id: number;
 	name: string;

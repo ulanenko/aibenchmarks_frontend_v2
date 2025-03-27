@@ -1,5 +1,5 @@
 import {aiMapper} from './index';
-import {MapperInput} from './types';
+import {MapperInput} from './website-validation/types';
 import {SourceColumn as SharedSourceColumn} from '@/app/actions/dto/mapper-types';
 
 /**
