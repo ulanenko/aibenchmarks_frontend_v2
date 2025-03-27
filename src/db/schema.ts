@@ -55,6 +55,7 @@ export const benchmark = pgTable('bm_benchmark', {
 	year: integer('year').notNull(),
 	lang: text('lang'),
 	mappingSettings: jsonb('mapping_settings'),
+	strategy: jsonb('strategy'),
 });
 
 export const client = pgTable('bm_client', {

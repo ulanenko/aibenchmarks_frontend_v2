@@ -2,7 +2,8 @@ import {create} from 'zustand';
 import {Benchmark} from '@/lib/benchmark/benchmark';
 import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO} from '@/lib/benchmark/type';
 import {toast} from '@/hooks/use-toast';
-import * as benchmarkActions from '@/app/actions/benchmark-actions';
+import * as benchmarkActions from '@/app/actions/benchmark-list-actions';
+import * as benchmarkAction from '@/app/actions/benchmark-actions';
 
 interface BenchmarkListStore {
 	benchmarks: Benchmark[];
@@ -73,7 +74,7 @@ export const useBenchmarkListStore = create<BenchmarkListStore>((set, get) => ({
 	editBenchmark: async (updateBenchmarkDTO: UpdateBenchmarkDTO) => {
 		set({isLoading: true});
 		try {
-			const {benchmark: updatedBenchmark, error} = await benchmarkActions.updateBenchmark(updateBenchmarkDTO);
+			const {benchmark: updatedBenchmark, error} = await benchmarkAction.updateBenchmark(updateBenchmarkDTO);
 
 			if (error) {
 				throw new Error(error);

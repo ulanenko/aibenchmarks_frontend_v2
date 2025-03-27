@@ -3,6 +3,7 @@
 import {db} from '@/db';
 import {benchmark, client, user} from '@/db/schema';
 import {BenchmarkDTO, CreateBenchmarkDTO, UpdateBenchmarkDTO, MappingSettings} from '@/lib/benchmark/type';
+import { StrategyBenchmark } from '@/lib/strategy/type';
 import {eq} from 'drizzle-orm';
 
 // Define types for the query results
@@ -152,6 +153,44 @@ export async function loadMappingSettings(benchmarkId: number): Promise<MappingS
 		return (result?.mappingSettings as MappingSettings) || null;
 	} catch (error) {
 		console.error(`Error loading mapping settings for benchmark ${benchmarkId}:`, error);
+		throw error;
+	}
+}
+
+/**
+ * Updates the strategy for a benchmark
+ * Stores the strategy data in mappingSettings.strategy
+ */
+export async function updateBenchmarkStrategy(benchmarkId: number, strategyData: StrategyBenchmark): Promise<BenchmarkDTO | null> {
+	try {
+		// Get the current benchmark
+		const benchmarkResult = await getBenchmarkById(benchmarkId);
+		
+		if (!benchmarkResult) {
+			throw new Error(`Benchmark with ID ${benchmarkId} not found`);
+		}
+		
+		
+	
+		
+		// Update the benchmark with the new mappingSettings
+		const [result] = await db
+			.update(benchmark)
+			.set({
+				strategy: strategyData,
+				updatedAt: new Date(),
+			})
+			.where(eq(benchmark.id, benchmarkId))
+			.returning();
+			
+		// Return the updated benchmark with the strategy already set
+		return {
+			...result,
+			clientName: benchmarkResult.clientName,
+			userName: benchmarkResult.userName,
+		} as BenchmarkDTO;
+	} catch (error) {
+		console.error(`Error updating strategy for benchmark ${benchmarkId}:`, error);
 		throw error;
 	}
 }

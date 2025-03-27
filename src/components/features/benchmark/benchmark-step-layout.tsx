@@ -9,7 +9,7 @@ import {LoadingSpinner} from '@/components/ui/loading-spinner';
 import {BENCHMARK_STEPS} from '@/config/steps';
 import {useRouter} from 'next/navigation';
 import {Button} from '@/components/ui/button';
-import {useBenchmarkStore} from '@/stores/use-benchmark-store2';
+import {useBenchmarkStore} from '@/stores/use-benchmark-store';
 
 /**
  * Configuration for a benchmark step page

@@ -1,6 +1,7 @@
 import {benchmark} from '@/db/schema';
 import {benchmarkSchema} from './schema-and-fields';
 import {z} from 'zod';
+import { StrategyBenchmark } from '../strategy/type';
 export type BenchmarkDBType = typeof benchmark.$inferSelect;
 
 // Define mapping settings type to match the Python model
@@ -24,6 +25,7 @@ export interface BenchmarkDTO {
 	year: number;
 	lang: string | null;
 	mappingSettings: MappingSettings | null;
+	strategy?: StrategyBenchmark | null ;
 	clientName: string | null;
 	userName: string | null;
 }

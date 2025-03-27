@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import {useRef, useState, useEffect} from 'react';
-import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -12,9 +11,7 @@ import {readExcelFileAsJson, supportedDatabases, extractDbTableFromSheet, Header
 import {LoadingButton} from '@/components/ui/loading-button';
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
 import {useCompanyStore} from '@/stores/use-company-store';
-import {MappingSettings} from '@/lib/benchmark/type';
 import {useToast} from '@/hooks/use-toast';
-import {downloadFileFromStorage} from '@/app/actions/download-file';
 
 export function FileSelectionStep({state, updateState, onNext}: StepProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null);

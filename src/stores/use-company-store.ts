@@ -6,7 +6,7 @@ import {setValueForPath} from '@/lib/object-utils';
 import {toast} from 'sonner';
 import {isEmpty} from '@/lib/utils';
 import * as companyActions from '@/app/actions/company-actions';
-import * as benchmarkActions from '@/app/actions/benchmark-actions';
+import * as benchmarkAction from '@/app/actions/benchmark-actions';
 import {WebsiteValidationStatus} from '@/lib/company/website-validation';
 
 interface UpdateCompany {
@@ -242,7 +242,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 				}
 
 				// Use the server action to save mapping settings
-				const {success, error} = await benchmarkActions.saveMappingSettings(benchmarkId as number, settings);
+				const {success, error} = await benchmarkAction.saveMappingSettings(benchmarkId as number, settings);
 
 				if (!success) {
 					throw new Error(error || 'Failed to save mapping settings');
@@ -264,7 +264,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 		loadMappingSettings: async (benchmarkId: number) => {
 			try {
 				// Use the server action to load mapping settings and file data
-				const result = await benchmarkActions.loadMappingSettings(benchmarkId);
+				const result = await benchmarkAction.loadMappingSettings(benchmarkId);
 
 				if (result.error) {
 					console.warn('Warning loading benchmark data:', result.error);

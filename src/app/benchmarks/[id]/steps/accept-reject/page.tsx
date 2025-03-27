@@ -16,6 +16,7 @@ import {useRouter} from 'next/navigation';
 import {Switch} from '@/components/ui/switch';
 import {Label} from '@/components/ui/label';
 import {ColumnConfig} from '@/lib/company/company-columns';
+import {BenchmarkStrategyButton} from '@/components/features/benchmark/benchmark-strategy-button';
 
 interface Props {
 	params: Promise<{
@@ -185,6 +186,7 @@ export default function BenchmarkAcceptRejectPage({params}: Props) {
 		<>
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2">
+					<BenchmarkStrategyButton />
 					<Button
 						onClick={() => setAnalysisModalOpen(true)}
 						disabled={isLoading || isRefreshing}
