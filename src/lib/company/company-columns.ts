@@ -3,8 +3,10 @@ import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer, websiteValidationRenderer, descriptionRenderer, expandToggleRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
-import {DescriptionCategorizer, WebsiteCategorizer, WebSearchCategorizer} from './categorizer/sourceCategorizer';
+import {DescriptionCategorizer, WebsiteCategorizer} from './categorizer/sourceCategorizer';
+import AcceptRejectCategorizer from './categorizer/acceptRejectCategorizer';
 import { collapsibleRenderer } from '@/components/hot/renderers/collapsible-renderer';
+import { WebSearchCategorizer } from './categorizer/websearchCategorizer';
 
 export const inputColumnDefinitions = {
 	selected: new Column({
@@ -215,6 +217,12 @@ const statusColumns = {
 		description: 'Status of web search results for the company',
 		valuePath: 'WEBSEARCH',
 		categorizer: WebSearchCategorizer,
+	}),
+	acceptRejectStatus: new CategoryColumn({
+		title: 'Comparability Status',
+		description: 'Status of comparability analysis for the company',
+		valuePath: 'ACCEPT_REJECT',
+		categorizer: AcceptRejectCategorizer,
 	}),
 };
 // Column definitions

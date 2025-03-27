@@ -39,6 +39,10 @@ interface CompanyStore {
 		webSearchInitialized: boolean,
 		searchId: string | string[] | null,
 	) => Company[];
+	updateAcceptRejectState: (
+		companyId: number | number[],
+		acceptRejectInitialized: boolean,
+	) => Company[];
 	addMappedSourceData: (mappedSourceData: CreateCompanyDTO[]) => Promise<void>;
 	saveMappingSettings: (settings: MappingSettings) => Promise<void>;
 	loadMappingSettings: (benchmarkId: number) => Promise<{
@@ -173,6 +177,28 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 						}else if(searchIds[index]) {
 								company.updateSearchData(searchIds[index], null);
 						}
+					updatedCompanies.push(company);
+				}
+			});
+			get().setCompanies(companies);
+			return updatedCompanies;
+		},
+
+		updateAcceptRejectState: (
+			companyId: number | number[],
+			acceptRejectInitialized: boolean,
+		): Company[] => {
+			const companies = [...get().companies];
+			const companyIds = Array.isArray(companyId) ? companyId : [companyId];
+			
+			const updatedCompanies: Company[] = [];
+			companies.forEach((company) => {
+				if (companyIds.includes(company.id!)) {
+					if(acceptRejectInitialized) {
+						company.markAsAcceptRejectStarted();
+					} else {
+						company.updateAcceptRejectData();
+					}
 					updatedCompanies.push(company);
 				}
 			});
@@ -411,8 +437,6 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 				set({isRefreshing: false});
 			}
 		},
-
-
 
 		areAllCompaniesProcessed: () => {
 			const companies = get().companies;

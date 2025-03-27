@@ -1,4 +1,4 @@
-export type StepId = 'input' | 'websearch' | 'review' | 'humanreview';
+export type StepId = 'input' | 'websearch' | 'accept-reject' | 'humanreview';
 
 export const BENCHMARK_STEPS = [
 	{
@@ -28,14 +28,14 @@ export const BENCHMARK_STEPS = [
 		},
 	},
 	{
-		id: 'review',
+		id: 'accept-reject',
 		number: 3,
 		label: 'Accept/Reject',
-		description: 'Review the found data and accept or reject the matches for each company.',
+		description: 'Analyze company comparability based on product/service and functional profiles.',
 		configs: {
 			completed: {
-				value: 'Reviewed',
-				label: 'Data Reviewed',
+				value: 'Analyzed',
+				label: 'Comparability Analyzed',
 				color: 'blue',
 			},
 		},

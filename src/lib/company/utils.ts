@@ -4,6 +4,7 @@ import {companyCategorizer} from './categorizer';
 import {CategoryValue} from '@/types/category';
 import {companyColumns} from './company-columns';
 import {CATEGORIES} from '@/config/categories';
+import { isEmpty } from '../utils';
 // Legacy function for backward compatibility
 export const updateCategories = (company: Company) => {
 	// @ts-ignore
@@ -16,6 +17,10 @@ export const updateCategories = (company: Company) => {
 	companyColumns.inputStatus.categorize(company);
 	// step 3 - Web search status
 	companyColumns.websearchStatus.categorize(company);
+
+	// step 4 - Accept/reject status
+	companyColumns.acceptRejectStatus.categorize(company);
+
 };
 
 export const getObjectsByCategory = (objects: {[key: string]: any}[], dataPath: string): {[key: string]: any[]} => {
@@ -40,18 +45,41 @@ export const getUniqueValuesForPath = (objects: {[key: string]: any}[], dataPath
 	return Array.from(valuesSet);
 };
 
-export const isCompleted = (status: string | null) => {
+type StringOrNull = string | null | undefined;
+
+export const isInQueue = (status: StringOrNull) => {
+	return status && status.toLowerCase().search('in queue') !== -1;
+};
+
+
+export const isCompleted = (status: StringOrNull) => {
 	return status && status.toLowerCase() === 'completed';
 };
 
-export const isUnsuccessful = (status: string | null) => {
+export const isUnsuccessful = (status: StringOrNull) => {
 	return status && status.toLowerCase().search('analysis unsuccessful') !== -1;
 };
 
-export const isError = (status: string | null) => {
+export const isError = (status: StringOrNull) => {
 	return status && status.toLowerCase().search('error') !== -1;
 };
 
-export const isInProgress = (status: string | null) => {
+export const isInProgress = (status: StringOrNull) => {
 	return status && status.toLowerCase().search('in progress') !== -1;
 };
+
+
+export const isAcceptOrReject = (status: StringOrNull) => {
+	if(isEmpty(status)) {
+		return undefined;
+	}
+	const statusLower = `${status}`.toLowerCase();
+	if(statusLower.search('accepted') !== -1) {
+		return 'accepted';
+	}
+	if(statusLower.search('rejected') !== -1) {
+		return 'rejected';
+	}
+	return undefined;
+};
+

@@ -32,6 +32,7 @@ export type DynamicInputValues = {
 // Frontend state to track UI-specific states that don't belong in the database
 export type FrontendState = {
 	webSearchInitialized?: boolean;
+	acceptRejectInitialized?: boolean;
 	expanded?: boolean;
 	selected?: boolean;
 };
@@ -87,6 +88,7 @@ export class Company {
 	// Frontend state for tracking UI states that shouldn't persist in the database
 	frontendState: FrontendState = {
 		webSearchInitialized: false,
+		acceptRejectInitialized: false,
 		expanded: false,
 		selected: false,
 	};
@@ -152,7 +154,6 @@ export class Company {
 					url_validated_and_accessible: data.urlValidationValid,
 				};
 			}
-
 		}
 
 		// Store a deep copy of the original input values
@@ -362,5 +363,22 @@ export class Company {
 		this.backendState.searchId = searchId;
 		this.searchedCompanyData = searchedCompanyData;
 		this.updateDependentValues();
+	}
+
+	// Add methods for accept-reject analysis
+	/**
+	 * Marks the company as having an accept-reject analysis in progress
+	 */
+	markAsAcceptRejectStarted() {
+		this.frontendState.acceptRejectInitialized = true;
+		this.updateHOTExport();
+	}
+
+	/**
+	 * Updates the company with accept-reject analysis data
+	 */
+	updateAcceptRejectData() {
+		this.frontendState.acceptRejectInitialized = false;
+		this.updateHOTExport();
 	}
 }
