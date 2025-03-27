@@ -138,3 +138,7 @@ export interface UserBase extends BaseFields {
 	isAdmin: boolean;
 	password: string;
 }
+
+// Drizzle types
+export type Strategy = typeof strategy.$inferSelect;
+export type StrategyNewDTO = Omit<Strategy, 'id' | 'createdAt' | 'updatedAt'>;

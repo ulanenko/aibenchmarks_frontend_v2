@@ -1,6 +1,7 @@
 // Export the AI mapper service
 export {aiMapper} from './ai-mapper/ai-mapper';
 export {validateAndFindWebsite, validateAndFindWebsiteBatch} from './website-validation/website-validator';
+export {strategyWizard} from './strategy-wizard/strategy-wizard';
 
 // Export types
 export type {
@@ -17,3 +18,8 @@ export type {
 	AIMapperResults,
 	AIMapperResultItem,
 } from './ai-mapper/types';
+
+export type {
+	StrategyWizardRequest,
+	StrategyWizardResponse,
+} from './strategy-wizard/types';

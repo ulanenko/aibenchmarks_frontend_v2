@@ -1,5 +1,6 @@
 import {PageHeader} from '@/components/layout/page-header';
 import {Metadata} from 'next';
+import {StrategiesList} from './components/strategies-list';
 
 export const metadata: Metadata = {
 	title: 'Criteria & Strategies',
@@ -52,12 +53,7 @@ export default function Page() {
 			</header>
 			<main className="flex-1">
 				<div className="container py-6">
-					<div className="rounded-lg border border-dashed p-12 text-center">
-						<h2 className="text-lg font-semibold">Criteria & Strategies Coming Soon</h2>
-						<p className="text-sm text-muted-foreground mt-1">
-							This section will help you define and manage your evaluation criteria and testing strategies.
-						</p>
-					</div>
+					<StrategiesList />
 				</div>
 			</main>
 		</>
