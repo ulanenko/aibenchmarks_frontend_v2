@@ -36,13 +36,13 @@ export const descriptionRenderer = (
   const searchStatus = websearchCategory?.status || 'not_ready';
   // Determine the visual state based on category status and key
   const isSearching = searchStatus === 'in_progress';
-  const isSuccessful = searchStatus === 'completed' && websearchCategory?.passed === true;
+  const isCompleted = searchStatus === 'completed' 
 
   
   // Create a container for the cell content
   const container = document.createElement('div');
   container.className = 'flex flex-col w-full gap-1';
-  if(!isSuccessful && websearchCategory?.color){
+  if(!isCompleted && websearchCategory?.color){
     td.style.backgroundColor = getColorValue(websearchCategory.color, 'soft');
   }
   
@@ -50,14 +50,14 @@ export const descriptionRenderer = (
     const statusBarElement = createStatusBar(true, websearchCategory?.color as CategoryColor);
     container.appendChild(statusBarElement);
   }
-  if(searchStatus === 'completed' && websearchCategory?.passed === false){
+  if(isCompleted){
     const statusBarElement = createStatusBar(false, websearchCategory?.color as CategoryColor);
     container.appendChild(statusBarElement);
   }
 
   
   // Skip rendering text content if search is not successful
-  if (!isSuccessful) {
+  if (!isCompleted) {
     td.appendChild(container);
     td.classList.add('htMiddle');
     return td;

@@ -1,7 +1,7 @@
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CompanyHotCopy} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
-import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User} from 'lucide-react';
+import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot} from 'lucide-react';
 import {analyzeCompanyService} from '@/lib/company/services/companyAnalysisService';
 import {comparabilityAnalysisService} from '@/lib/company/services/comparabilityAnalysisService';
 
@@ -191,7 +191,7 @@ const CATEGORIES = {
 			label: 'Human review',
 			color: 'gray',
 			icon: User,
-			status: 'completed',
+			status: 'failed',
 			categoryKey: 'WEBSEARCH.FAILED',
 			passed: false,
 		}),
@@ -236,14 +236,14 @@ const CATEGORIES = {
 			label: 'Human review 2',
 			color: 'gray',
 			icon: User,
-			status: 'completed',
+			status: 'failed',
 			categoryKey: 'ACCEPT_REJECT.FAILED',
 			passed: false,
 		}),
 		ACCEPTED: new CategoryDefinition({
 			label: 'Accepted',
 			color: 'green',
-			icon: ThumbsUp,
+			icon: Bot,
 			status: 'decision',
 			categoryKey: 'ACCEPT_REJECT.ACCEPTED',
 			passed: true,
@@ -251,7 +251,7 @@ const CATEGORIES = {
 		REJECTED: new CategoryDefinition({
 			label: 'Rejected',
 			color: 'red',
-			icon: ThumbsDown,
+			icon: Bot,
 			status: 'decision',
 			categoryKey: 'ACCEPT_REJECT.REJECTED',
 			passed: false,

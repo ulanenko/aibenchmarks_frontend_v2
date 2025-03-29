@@ -64,7 +64,7 @@ export const comparabilityRenderer = (
       iconElement.className += ' bg-red-100 text-red-600';
     } 
     const color  = isAccept ? ACCEPTED.color : REJECTED.color;
-    td.style.backgroundColor = getColorValue(color as CategoryColor, 'soft') 
+    // td.style.backgroundColor = getColorValue(color as CategoryColor, 'soft') 
       // Create the status icon element
     const statusContainer = document.createElement('div');
     statusContainer.className = 'flex items-center';

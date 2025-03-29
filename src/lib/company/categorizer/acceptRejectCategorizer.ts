@@ -9,23 +9,22 @@ import { isAcceptOrReject, isCompleted, isError, isInProgress, isInQueue, isUnsu
 const AcceptRejectCategorizer: Categorizer = [
 	// If the company has not completed web search, it cannot be analyzed
 	(company) => {
-		if (company.categoryValues?.WEBSEARCH.category.status !== 'completed') {
+		const websearchCategory = company.categoryValues?.WEBSEARCH;
+		if (websearchCategory?.category.passed === undefined) {
 			return {
 				category: CATEGORIES.ACCEPT_REJECT.NOT_READY,
 				categoryKey: CATEGORIES.ACCEPT_REJECT.NOT_READY.categoryKey,
 				label: 'Search Required',	
 				description: 'Web search must be completed first',
 			};
+			// so this means that a decision has been made
+		}else if(websearchCategory?.category.passed === false){
+			return websearchCategory;
 		}
 		return false;
 	},
-	// Default state - ready for analysis
+	// Default state - ready for analysis or analysis in progress/completed
 	(company) => {
-		const key = CATEGORIES.WEBSEARCH.FAILED.categoryKey;
-		const websearchCategory = company.categoryValues?.WEBSEARCH
-		if(websearchCategory?.categoryKey === key || websearchCategory?.category.status === 'decision') {
-			return websearchCategory;
-		}
 		const comparabilityStatus = company.searchedCompanyData?.comparability_analysis_status!;
 		
 		// Check the status in the searchedCompanyData to determine if it was successful or failed
@@ -35,14 +34,20 @@ const AcceptRejectCategorizer: Categorizer = [
 				company.searchedCompanyData?.productservicecomparability_status,
 				company.searchedCompanyData?.functionalprofilecomparability_status,
 			]
-			if(disabledIndependence) {
+			if(!disabledIndependence) {
 				acceptRejectValues.push(company.searchedCompanyData?.independence_status);
 			}
 			const accept = acceptRejectValues.every(item => isAcceptOrReject(item));
+
 			if(accept) {
 				return CATEGORIES.ACCEPT_REJECT.ACCEPTED.toCategoryValue();
 			} else {
-				return CATEGORIES.ACCEPT_REJECT.REJECTED.toCategoryValue();
+				// reasons 
+				const reasons  =['products', 'functions'].concat(disabledIndependence ? [] : ['independence']);
+				const rejectReason = reasons.filter((reason, index)=> !isAcceptOrReject(acceptRejectValues[index]))
+				const reasonLabel = rejectReason.length > 1 ? `Reject: ${rejectReason.length} reasons` : `Reject: ${rejectReason[0]}`;
+				const reasonDescription = `Rejected because incomparable ${rejectReason.join(', ')}`;
+				return CATEGORIES.ACCEPT_REJECT.REJECTED.toCategoryValue({label: reasonLabel, description: reasonDescription});
 			}
 
 		} else if (isUnsuccessful(comparabilityStatus)) {
