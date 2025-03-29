@@ -81,6 +81,10 @@ export const comparabilityRenderer = (
       const statusBarElement = createStatusBar(true, acceptRejectCategory?.color as CategoryColor);
       container.appendChild(statusBarElement);
     }
+    if(acceptRejectCategory?.passed === false){
+      const statusBarElement = createStatusBar(false, acceptRejectCategory?.color as CategoryColor);
+      container.appendChild(statusBarElement);
+    }
 
 
   }
