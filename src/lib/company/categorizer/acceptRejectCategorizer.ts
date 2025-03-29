@@ -54,6 +54,9 @@ const AcceptRejectCategorizer: Categorizer = [
 		} else if (isInQueue(comparabilityStatus)) {
 			return CATEGORIES.ACCEPT_REJECT.IN_QUEUE.toCategoryValue();
 		}
+		if(company.frontendState?.acceptRejectInitialized) {
+			return CATEGORIES.ACCEPT_REJECT.IN_QUEUE.toCategoryValue();
+		}
 		return  CATEGORIES.ACCEPT_REJECT.READY.toCategoryValue();
 	},
 ];

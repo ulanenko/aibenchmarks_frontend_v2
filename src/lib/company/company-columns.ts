@@ -7,6 +7,7 @@ import {DescriptionCategorizer, WebsiteCategorizer} from './categorizer/sourceCa
 import AcceptRejectCategorizer from './categorizer/acceptRejectCategorizer';
 import { collapsibleRenderer } from '@/components/hot/renderers/collapsible-renderer';
 import { WebSearchCategorizer } from './categorizer/websearchCategorizer';
+import { comparabilityRenderer } from '@/components/hot/renderers/comparability-renderer';
 
 export const inputColumnDefinitions = {
 	selected: new Column({
@@ -193,6 +194,81 @@ const websearchColumnDefinitions = {
 		description: 'Corporate structure and affiliations summary of the company',
 	}),
 };
+
+export const comparabilityColumnDefinitions = {
+	compFactorProductService: new Column({
+		title: 'Product/services',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.productservicecomparability_status',
+		description: 'Comparability status of the company',
+		renderer: comparabilityRenderer,
+		hotProps: {
+			motivationPath: 'searchedCompanyData.productservicecomparability_explanation',
+		},
+	}),
+	compFactorFunctionalProfile: new Column({
+		title: 'Functional Profile',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.functionalprofilecomparability_status',
+		description: 'Comparability status of the company',
+		renderer: comparabilityRenderer,
+		hotProps: {
+			motivationPath: 'searchedCompanyData.functionalprofilecomparability_explanation',
+		},
+	}),
+	compFactorIndependence: new Column({
+		title: 'Independence',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.independence_status',
+		description: 'Comparability status of the company',
+		renderer: comparabilityRenderer,
+		hotProps: {
+			motivationPath: 'searchedCompanyData.independence_explanation',
+		},
+	}),
+};
+
+// product_services_comparability_decision: new ComparabilityColumn({
+// 	title: 'Products/Services',
+// 	titleLong: 'Product/service comparability',
+// 	key: 'product_services_comparability_decision',
+// 	icon: 'bi bi-box',
+// 	manualDecision: 'productsServicesStatus_manual',
+// 	aiDecision: 'productservicecomparability_status',
+// 	manualDescription: 'productsServicesDescription_manual',
+// 	aiDescription: 'productservicecomparability_explanation',
+// 	decisionSource: 'product_service_description',
+// 	kpis: ['ros', 'cost_plus', 'ebit_per_employee', 'roa'],
+// }),
+
+// functional_comparability_decision: new ComparabilityColumn({
+// 	title: 'Functional',
+// 	titleLong: 'Functional comparability',
+// 	key: 'functional_comparability_decision',
+// 	icon: 'bi bi-gear',
+// 	manualDecision: 'functionalStatus_manual',
+// 	aiDecision: 'functionalprofilecomparability_status',
+// 	manualDescription: 'functionalDescription_manual',
+// 	aiDescription: 'functionalprofilecomparability_explanation',
+// 	decisionSource: 'functional_profile_description',
+// 	kpis: ['revenue_per_employee', 'asset_per_employee', 'assets_intangible_total_assets'],
+// }),
+
+// independance_comparability_decision: new ComparabilityColumn({
+// 	title: 'Independence',
+// 	titleLong: 'Independance check',
+// 	key: 'independance_comparability_decision',
+// 	manualDecision: 'independenceStatus_manual',
+// 	aiDecision: 'independence_status',
+// 	manualDescription: 'independenceDescription_manual',
+// 	aiDescription: 'independence_explanation',
+// 	decisionSource: 'corporatestructureandaffiliations_summary',
+// 	kpis: ['ros', 'cost_plus', 'ebit_per_employee', 'roa'],
+// }),
+
 const statusColumns = {
 	inputStatus: new CategoryColumn({
 		title: 'Status',

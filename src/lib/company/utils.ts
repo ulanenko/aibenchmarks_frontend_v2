@@ -110,11 +110,11 @@ export const isAcceptOrReject = (status: StringOrNull) => {
 		return undefined;
 	}
 	const statusLower = `${status}`.toLowerCase();
-	if(statusLower.search('accepted') !== -1) {
-		return 'accepted';
+	if(statusLower.search('accept') !== -1) {
+		return true;
 	}
-	if(statusLower.search('rejected') !== -1) {
-		return 'rejected';
+	if(statusLower.search('reject') !== -1) {
+		return false;
 	}
 	return undefined;
 };

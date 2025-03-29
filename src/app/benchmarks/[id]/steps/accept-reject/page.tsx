@@ -5,7 +5,7 @@ import {Button} from '@/components/ui/button';
 import {toast} from 'sonner';
 import {useCompanyStore} from '@/stores/use-company-store';
 import {useShallow} from 'zustand/react/shallow';
-import {companyColumns} from '@/lib/company/company-columns';
+import {companyColumns, comparabilityColumnDefinitions} from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
 import {Loader2, ThumbsUp, RefreshCw, Settings2} from 'lucide-react';
 import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
@@ -76,9 +76,12 @@ export default function BenchmarkAcceptRejectPage({params}: Props) {
  		
 		// Accept-reject specific columns
 		{column: companyColumns.acceptRejectStatus, show: 'yes', editable: false},
-		{column: companyColumns.analysisBusinessDescription, show: 'yes', editable: false},
-		{column: companyColumns.analysisProductServiceDescription, show: 'yes', editable: false},
-		{column: companyColumns.analysisFunctionalProfileDescription, show: 'yes', editable: false},
+		// {column: companyColumns.analysisBusinessDescription, show: 'yes', editable: false},
+		// {column: companyColumns.analysisProductServiceDescription, show: 'yes', editable: false},
+		// {column: companyColumns.analysisFunctionalProfileDescription, show: 'yes', editable: false},
+		{column: comparabilityColumnDefinitions.compFactorProductService, show: 'yes', editable: false},
+		{column: comparabilityColumnDefinitions.compFactorFunctionalProfile, show: 'yes', editable: false},
+		{column: comparabilityColumnDefinitions.compFactorIndependence, show: 'yes', editable: false},
 	];
 
 	const handleSave = async () => {

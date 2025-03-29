@@ -54,7 +54,6 @@ export async function initiateComparabilityAnalysis(
 			body: JSON.stringify(input),
 		});
 
-        debugger;
         if (!response.ok) {
             throw new Error(`API error: ${response.status} ${response.statusText}`);
         }

@@ -1,13 +1,14 @@
 import {secondaryDb} from '../../database/secondaryConnection';
 import {searchedCompany} from '../../database/secondarySchema';
 import {inArray} from 'drizzle-orm';
+import { SearchedCompany } from '../../models/searchedCompany';
 
 /**
  * Retrieves multiple searched companies by their search_ids
  * @param searchIds - Array of search_ids to retrieve
  * @returns Array of searched company data
  */
-export async function getMultipleSearchedCompanies(searchIds: string[]) {
+export async function getMultipleSearchedCompanies(searchIds: string[]): Promise<SearchedCompany[]> {
 	if (!searchIds.length) {
 		return [];
 	}

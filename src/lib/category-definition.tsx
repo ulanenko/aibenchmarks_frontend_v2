@@ -30,7 +30,7 @@ export class CategoryDefinition {
 	}
 
 	getColorClass() {
-		return getColorClass(this.color, 'bg');
+		return getColorClass(this.color, 'bg', 'full');
 	}
 
 	isDone() {

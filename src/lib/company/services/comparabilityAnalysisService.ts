@@ -49,10 +49,12 @@ export async function comparabilityAnalysisService(
 
 	// If successful, mark the companies as no longer in progress
 	// Only mark the companies that were actually initialized for analysis
-	if (result.success && result.initializedCompanyIds?.length) {
+	if (result.success && result.initializedCompanyIds?.length && result.searchedCompanies?.length) {
 		// TODO: UPdate this with the recent search data
-		useCompanyStore.getState().updateCompaniesWithAction(result.initializedCompanyIds, (company) => {
+		useCompanyStore.getState().updateCompaniesWithAction(result.initializedCompanyIds, (company, index) => {
+			const searchResult = result.searchedCompanies![index]!;
 			company.markAsAcceptRejectStarted(false);
+			company.updateSearchData(searchResult.search_id, searchResult);
 		});
 	}else{
 		useCompanyStore.getState().updateCompaniesWithAction(companyIds, (company) => {

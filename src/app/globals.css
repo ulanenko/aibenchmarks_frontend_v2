@@ -11,6 +11,17 @@
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
 	}
+
+	/* Animated gradient bar */
+	.animated-gradient-bar {
+		background-size: 200% 100%;
+		animation: gradient-slide 1.5s ease-in-out infinite;
+	}
+
+	@keyframes gradient-slide {
+		0% { background-position: 100% 0; }
+		100% { background-position: -100% 0; }
+	}
 }
 .ht_clone_top,
 .ht_clone_left,

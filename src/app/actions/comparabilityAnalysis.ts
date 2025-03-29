@@ -11,6 +11,8 @@ import * as companyService from '@/services/server/company-service.server';
 import * as benchmarkService from '@/services/server/benchmark-service.server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getMultipleSearchedCompanies } from '@/services/backend/queries/searchedcompany/getMultipleSearchedCompanies';
+import { SearchedCompany } from '@/services/backend/models/searchedCompany';
 
 /**
  * Server action to initiate comparability analysis for a list of companies
@@ -22,9 +24,8 @@ import { authOptions } from '@/lib/auth';
 export async function initiateComparabilityAnalysisAction(
     companyIds: number[],
     benchmarkId: number,
-): Promise<{success: boolean; message: string; searchIds?: string[]; initializedCompanyIds?: number[]}> {
+): Promise<{success: boolean; message: string; searchedCompanies?: SearchedCompany[]; initializedCompanyIds?: number[]}> {
     try {
-        debugger;
         // Get auth session for user
         const session = await getServerSession(authOptions);
         const authCode = session?.user?.authCode ? parseInt(session.user.authCode) : 6666666; // Default auth code if no user
@@ -115,11 +116,15 @@ export async function initiateComparabilityAnalysisAction(
                 message: 'The API returned no search IDs',
             };
         }
+        // If we have company IDs, save the search IDs to the companies
+		const companyIdsWithSearchIds: Record<number, SearchedCompany> = {};
 
+		const searchedCompanies  = await getMultipleSearchedCompanies(searchIds);
+		
         return {
             success: true,
             message: `Successfully initiated comparability analysis for ${companiesForAnalysis.length} companies`,
-            searchIds,
+            searchedCompanies,
             initializedCompanyIds,
         };
     } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,15 +13,13 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useCompanyStore } from '@/stores/use-company-store';
-import { Loader2, ThumbsUp, Filter } from 'lucide-react';
+import { Loader2, ThumbsUp } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import { comparabilityAnalysisService } from '@/lib/company/services/comparabilityAnalysisService';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Company } from '@/lib/company';
 import { getObjectsByCategory } from '@/lib/company/utils';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 
 interface AcceptRejectModalProps {
   open: boolean;
@@ -35,6 +33,7 @@ interface Category {
   companies: Company[];
   selected: boolean;
   title: string;
+  disabled?: true;
 }
 
 type Categories = Record<string, Category>;
@@ -45,16 +44,11 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
   const [categories, setCategories] = useState<Categories>({
     ready: { companies: [], selected: true, title: 'Ready for Comparability Analysis' },
     in_progress: { companies: [], selected: false, title: 'Analysis In Progress' },
-    completed: { companies: [], selected: false, title: 'Analysis Completed' },
-    not_ready: { companies: [], selected: false, title: 'Not Ready (requires web search)' }
+    decision: { companies: [], selected: false, title: 'Decision' },
+    completed: { companies: [], disabled: true, selected: false, title: 'Human review required' },
+    not_ready: { companies: [], disabled: true, selected: false, title: 'Not Ready (requires web search)' }
   });
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
-
-  // Analysis parameters
-  const [idealProductService, setIdealProductService] = useState('');
-  const [idealFunctionalProfile, setIdealFunctionalProfile] = useState('');
-  const [relaxedProduct, setRelaxedProduct] = useState(false);
-  const [relaxedFunction, setRelaxedFunction] = useState(false);
   
   const { companies, startAutoRefresh } = useCompanyStore(
     useShallow((state) => ({
@@ -73,10 +67,11 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
       companies,
       'categoryValues.ACCEPT_REJECT.category.status'
     );
+
     setCategories((state) => {
       const newState = {...state};
       Object.entries(newState).forEach(([key, value]) => {
-        value.companies = companiesByStatus[key as keyof typeof companiesByStatus] || [];
+        value.companies = companiesByStatus[key as keyof typeof companiesByStatus] || []
       });
       return newState;
     });
@@ -97,30 +92,8 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
   // Calculate total credits needed (1 credit per company)
   const totalCredits = getTotalCompaniesToProcess();
 
-  // Validate form inputs
-  const isFormValid = () => {
-    if (!idealProductService.trim()) {
-      toast.error('Please enter an ideal product/service description');
-      return false;
-    }
-    
-    if (!idealFunctionalProfile.trim()) {
-      toast.error('Please enter an ideal functional profile description');
-      return false;
-    }
-    
-    if (getTotalCompaniesToProcess() === 0) {
-      toast.error('Please select at least one company for analysis');
-      return false;
-    }
-    
-    return true;
-  };
-
   // Handle analysis button click
   const handleAnalysis = async () => {
-    if (!isFormValid()) return;
-    
     setIsAnalyzing(true);
     
     try {
@@ -150,14 +123,7 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
         return;
       }
       
-      const result = await comparabilityAnalysisService(companiesToAnalyze, {
-        idealProductService,
-        idealFunctionalProfile,
-        language: 'en',
-        relaxedProduct,
-        relaxedFunction,
-        authCode: 6666666, // Default auth code
-      });
+      const result = await comparabilityAnalysisService(companiesToAnalyze);
       
       if (result.success) {
         toast.success(result.message);
@@ -186,59 +152,23 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Comparability Analysis</DialogTitle>
           <DialogDescription>
-            Analyze company comparability based on product/service and functional profiles.
+            Analyze company comparability based on their web search results.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="idealProductService">Ideal Product/Service Profile</Label>
-              <Textarea 
-                id="idealProductService" 
-                placeholder="Enter ideal product/service description, e.g. 'Consumer electronics; reject companies involved in industrial electronics'" 
-                value={idealProductService}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setIdealProductService(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="idealFunctionalProfile">Ideal Functional Profile</Label>
-              <Textarea 
-                id="idealFunctionalProfile" 
-                placeholder="Enter ideal functional profile description, e.g. 'Manufacturing; reject retail, distribution'" 
-                value={idealFunctionalProfile}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setIdealFunctionalProfile(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex items-center space-x-4 pt-2">
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="relaxedProduct" 
-                  checked={relaxedProduct}
-                  onCheckedChange={setRelaxedProduct}
-                />
-                <Label htmlFor="relaxedProduct">Relaxed product matching</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  id="relaxedFunction" 
-                  checked={relaxedFunction}
-                  onCheckedChange={setRelaxedFunction}
-                />
-                <Label htmlFor="relaxedFunction">Relaxed function matching</Label>
-              </div>
+          <div className="flex flex-col space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span>Total companies:</span>
+              <span className="font-semibold">{companies.length}</span>
             </div>
           </div>
 
           <div className="pt-4 border-t">
-            <p className="text-sm font-medium mb-2">Select companies to analyze:</p>
             <Tabs value={selectionMode} onValueChange={(value) => setSelectionMode(value as SelectionMode)}>
               <TabsList className="w-full mb-4">
                 <TabsTrigger value="category" className="flex-1">
@@ -256,7 +186,7 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
               <div className="space-y-4">
                 {selectionMode === "category" ? (
                   <div className="flex flex-col space-y-2">
-                    {Object.entries(categories).map(([key, { companies, selected, title }]) => (
+                    {Object.entries(categories).map(([key, { companies, selected, title, disabled }]) => (
                       <div key={key} className="flex items-center space-x-2">
                         <Checkbox 
                           id={`${key}-category`}
@@ -265,7 +195,7 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
                             ...prev,
                             [key]: { ...prev[key], selected: checked === true }
                           }))}
-                          disabled={companies.length === 0}
+                          disabled={companies.length === 0 || disabled}
                         />
                         <Label htmlFor={`${key}-category`}>
                           {title} ({companies.length})
@@ -309,7 +239,7 @@ export function AcceptRejectModal({ open, onOpenChange }: AcceptRejectModalProps
             ) : (
               <>
                 <ThumbsUp className="mr-2 h-4 w-4" />
-                Start Analysis
+                Start Analysis ({totalCredits} credits)
               </>
             )}
           </Button>
