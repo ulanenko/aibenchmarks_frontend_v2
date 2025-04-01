@@ -2,13 +2,12 @@ import {pgTable, text, serial, timestamp, integer, boolean, json, jsonb, pgEnum}
 
 export type StepStatus =
 	| 'not_ready'
-	| 'not_started'
 	| 'input_required'
 	| 'ready'
-	| 'pending'
 	| 'in_progress'
 	| 'completed'
 	| 'decision'
+	| 'reviewed'
 	| 'failed';
 
 export const stepStatusEnum = pgEnum('step_status', [
@@ -19,6 +18,7 @@ export const stepStatusEnum = pgEnum('step_status', [
 	'pending',
 	'in_progress',
 	'completed',
+	'reviewed',
 	'failed',
 ]);
 
@@ -104,8 +104,24 @@ export const company = pgTable('bm_company', {
 	urlValidationInput: text('url_validated_input'),
 	urlValidationValid: boolean('url_validated_and_accessible'),
 
+	siteMatchRiskIgnored: boolean('site_match_risk_ignored').default(false),
+
 	// Search analysis data
 	searchId: text('search_id'),
+
+	// Manual status and description fields
+	cfSufficientDataHRDecision: text('sufficient_data_status_manual'),
+	cfSufficientDataHRMotiviation: text('sufficient_data_description_manual'),
+	
+	cfProductsServicesHRDecision: text('products_services_status_manual'),
+	cfProductsServicesHRMotivation: text('products_services_description_manual'),
+	
+	cfFunctionalProfileHRDecision: text('functional_status_manual'),
+	cfFunctionalProfileHRMotivation: text('functional_description_manual'),
+	
+	cfIndependenceHRDecision: text('independence_status_manual'),
+	cfIndependenceHRMotivation: text('independence_description_manual'),
+	
 });
 
 export const strategy = pgTable('bm_strategy', {

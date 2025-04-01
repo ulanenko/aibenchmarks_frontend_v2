@@ -23,6 +23,20 @@ export interface InputValues {
 	tradeDescriptionOriginal: string | null;
 	mainActivity: string | null;
 	mainProductsAndServices: string | null;
+
+
+	// Site match risk ignored
+	siteMatchRiskIgnored: boolean | null;
+
+	// Comparability factors human input fields
+	cfSufficientDataHRDecision: string | null;
+	cfSufficientDataHRMotivation: string | null;
+	cfProductsServicesHRDecision: string | null;
+	cfProductsServicesHRMotivation: string | null;
+	cfFunctionalProfileHRDecision: string | null;
+	cfFunctionalProfileHRMotivation: string | null;
+	cfIndependenceHRDecision: string | null;
+	cfIndependenceHRMotivation: string | null;
 }
 
 export type DynamicInputValues = {
@@ -154,6 +168,19 @@ export class Company {
 			tradeDescriptionOriginal: data?.tradeDescriptionOriginal ?? null,
 			mainActivity: data?.mainActivity ?? null,
 			mainProductsAndServices: data?.mainProductsAndServices ?? null,
+
+			// Site match risk ignored
+			siteMatchRiskIgnored: data?.siteMatchRiskIgnored ?? null,
+
+			// Human review fields
+			cfSufficientDataHRDecision: data?.cfSufficientDataHRDecision ?? null,
+			cfSufficientDataHRMotivation: data?.cfSufficientDataHRMotivation ?? null,
+			cfProductsServicesHRDecision: data?.cfProductsServicesHRDecision ?? null,
+			cfProductsServicesHRMotivation: data?.cfProductsServicesHRMotivation ?? null,
+			cfFunctionalProfileHRDecision: data?.cfFunctionalProfileHRDecision ?? null,
+			cfFunctionalProfileHRMotivation: data?.cfFunctionalProfileHRMotivation ?? null,
+			cfIndependenceHRDecision: data?.cfIndependenceHRDecision ?? null,
+			cfIndependenceHRMotivation: data?.cfIndependenceHRMotivation ?? null,
 		};
 
 		
@@ -255,6 +282,7 @@ export class Company {
 
 					// Check if the value has changed from the original
 					if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
+						// @ts-ignore this is correct, the provided value will match the expected value as they are both of type InputValues
 						this.changedFields[key as keyof InputValues] = newValue;
 					} else {
 						// If the value is back to the original, remove it from changedFields

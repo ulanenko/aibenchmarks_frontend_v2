@@ -40,7 +40,7 @@ export const comparabilityRenderer = (
 
   // Create a container for the cell content
   const container = document.createElement('div');
-  container.className = 'flex flex-col w-full';
+  container.className = 'flex flex-col w-full cursor-pointer';
   const isAccept = isAcceptOrReject(value);
 
 

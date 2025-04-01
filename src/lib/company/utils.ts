@@ -8,19 +8,36 @@ import { checkUrlChanged, isEmpty } from '../utils';
 // Legacy function for backward compatibility
 export const updateCategories = (company: Company) => {
 	// @ts-ignore
-	company.categoryValues = {};
+	company.categoryValues = {
+		INPUT: undefined,
+		DESCRIPTION: undefined,
+		WEBSITE: undefined,
+		WEBSEARCH: undefined,
+		ACCEPT_REJECT: undefined,
+		REVIEW_PRIORITY: undefined,
+		HUMAN_REVIEW: undefined,
+	} as any;
 
 	// step 1 - Source status (website and description validation)
 	companyColumns.descriptionStatus.categorize(company);
 	companyColumns.websiteStatus.categorize(company);
 	// step 2 - Input status
 	companyColumns.inputStatus.categorize(company);
-	// step 3 - Web search status
+
+	// step 3 - Site match status
+	companyColumns.siteMatchStatus.categorize(company);
+
+	// step 4 - Web search status
 	companyColumns.websearchStatus.categorize(company);
 
 	// step 4 - Accept/reject status
 	companyColumns.acceptRejectStatus.categorize(company);
 
+	// step 5 - Human review status
+	companyColumns.humanReviewStatus.categorize(company);
+
+	// step 6 - Decision status
+	companyColumns.decisionStatus.categorize(company);
 };
 
 export const updateDynamicInputValues = (company: Company) => {

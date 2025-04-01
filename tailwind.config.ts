@@ -1,6 +1,26 @@
 import type {Config} from 'tailwindcss';
 import {fontFamily} from 'tailwindcss/defaultTheme';
 
+const colors = [
+	'emerald',
+	'rose',
+	'amber',
+	'blue',
+	'purple',
+	'pink',
+	'slate',
+]
+const hoverColors = (color: string)=>{
+	return [
+		'bg-'+color+'-500',
+		'hover:bg-'+color+'-600',
+		'text-'+color+'-500',
+		'!text-'+color+'-500',
+		'hover:text-'+color+'-600',
+	]
+}
+const allColors = colors.flatMap(hoverColors);
+
 const config = {
 	darkMode: ['class'],
 	content: [
@@ -10,20 +30,8 @@ const config = {
 		'./src/lib/**/*.{ts,tsx}',
 	],
 	safelist: [
-		'bg-emerald-500',
-		'bg-rose-500',
-		'bg-amber-500',
-		'bg-blue-500',
-		'bg-purple-500',
-		'bg-pink-500',
-		'bg-slate-500',
-		'bg-orange-500',
-		'!text-emerald-500',
-		'!text-rose-500',
-		'!text-amber-500',
-		'!text-blue-500',
-		'!text-purple-500',
-		'!text-pink-500',
+		...allColors,
+		
 	],
 	prefix: '',
 	theme: {
@@ -112,7 +120,7 @@ const config = {
 			},
 		},
 	},
-	plugins: [require('tailwindcss-animate')],
+	plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')],
 } satisfies Config;
 
 export default config;

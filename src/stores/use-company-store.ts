@@ -437,5 +437,6 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 				set({ autoRefreshEnabled: false });
 			}
 		},
+
 	};
 });

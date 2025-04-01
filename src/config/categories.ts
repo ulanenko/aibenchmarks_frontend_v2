@@ -1,7 +1,7 @@
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CompanyHotCopy} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
-import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot} from 'lucide-react';
+import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot, Clock, BarChart, CircleHelp} from 'lucide-react';
 import {analyzeCompanyService} from '@/lib/company/services/companyAnalysisService';
 import {comparabilityAnalysisService} from '@/lib/company/services/comparabilityAnalysisService';
 
@@ -83,7 +83,7 @@ const CATEGORIES = {
 			label: 'New',
 			color: 'green',
 			icon: PlusCircle,
-			status: 'not_started',
+			status: 'not_ready',
 			categoryKey: 'INPUT.NEW',
 			passed: undefined,
 		}),
@@ -255,6 +255,135 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'ACCEPT_REJECT.REJECTED',
 			passed: false,
+		}),
+	},
+	
+	REVIEW_PRIORITY: {
+		NOT_READY: new CategoryDefinition({
+			label: 'Not Ready',
+			color: 'gray',
+			icon: AlertCircle,
+			status: 'not_ready',
+			categoryKey: 'REVIEW_PRIORITY.NOT_READY',
+			passed: undefined,
+		}),
+		HIGH_PRIORITY: new CategoryDefinition({
+			label: 'High Priority',
+			color: 'red',
+			icon: ThumbsUp,
+			status: 'ready',
+			categoryKey: 'REVIEW_PRIORITY.HIGH_PRIORITY',
+			passed: undefined,
+		}),
+		MEDIUM_PRIORITY: new CategoryDefinition({
+			label: 'Medium Priority',
+			color: 'orange',
+			icon: BarChart,
+			status: 'ready',
+			categoryKey: 'REVIEW_PRIORITY.MEDIUM_PRIORITY',
+			passed: undefined,
+		}),
+		LOW_PRIORITY: new CategoryDefinition({
+			label: 'Low Priority',
+			color: 'yellow',
+			icon: BarChart,
+			status: 'ready',
+			categoryKey: 'REVIEW_PRIORITY.LOW_PRIORITY',
+			passed: undefined,
+		}),
+		REVIEWED: new CategoryDefinition({
+			label: 'Reviewed',
+			color: 'green',
+			icon: CheckCircle,
+			status: 'completed',
+			categoryKey: 'REVIEW_PRIORITY.REVIEWED',
+			passed: true,
+		}),
+	},
+	
+	HUMAN_REVIEW: {
+		NO_DECISION: new CategoryDefinition({
+			label: 'No decision',
+			color: 'gray',
+			icon: CircleHelp,
+			status: 'ready',
+			categoryKey: 'HUMAN_REVIEW.NO_DECISION',
+			passed: undefined,
+		}),
+		ACCEPT_HR: new CategoryDefinition({
+			label: 'Accept (HR)',
+			color: 'green',
+			icon: User,
+			status: 'reviewed',
+			categoryKey: 'HUMAN_REVIEW.ACCEPT_HR',
+			passed: true,
+		}),
+		ACCEPT_AI: new CategoryDefinition({
+			label: 'Accept (AI)',
+			color: 'green',
+			icon: Bot,
+			status: 'decision',
+			categoryKey: 'HUMAN_REVIEW.ACCEPT_AI',
+			passed: true,
+		}),
+		REJECT_HR: new CategoryDefinition({
+			label: 'Reject (HR)',
+			color: 'red',
+			icon: User,
+			status: 'reviewed',
+			categoryKey: 'HUMAN_REVIEW.REJECT_HR',
+			passed: false,
+		}),
+		REJECT_AI: new CategoryDefinition({
+			label: 'Reject (AI)',
+			color: 'red',
+			icon: Bot,
+			status: 'decision',
+			categoryKey: 'HUMAN_REVIEW.REJECT_AI',
+			passed: false,
+		}),
+	},
+	
+	SITE_MATCH: {
+		NOT_AVAILABLE: new CategoryDefinition({
+			label: 'N/A',
+			color: 'gray',
+			icon: CircleHelp,
+			status: 'not_ready',
+			categoryKey: 'SITE_MATCH.NOT_AVAILABLE',
+			passed: undefined,
+		}),
+		LIKELY: new CategoryDefinition({
+			label: 'Likely',
+			color: 'green',
+			icon: CheckCircle,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.LIKELY',
+			passed: true,
+		}),
+		POSSIBLY: new CategoryDefinition({
+			label: 'Possibly',
+			color: 'yellow',
+			icon: AlertCircle,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.POSSIBLY',
+			passed: undefined,
+		}),
+		NOT_LIKELY: new CategoryDefinition({
+			label: 'Not Likely',
+			color: 'red',
+			icon: X,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.NOT_LIKELY',
+			passed: false,
+		}),
+		UNCERTAIN: new CategoryDefinition({
+			label: 'Uncertain',
+			color: 'gray',
+			icon: CircleHelp,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.UNCERTAIN',
+			passed: undefined,
 		}),
 	},
 };

@@ -31,6 +31,19 @@ export type CompanyDTO = {
 	urlValidationValid: boolean | null;
 	searchId: string | null;
 	searchedCompanyData: SearchedCompany | null;
+
+	// Site match risk ignored
+	siteMatchRiskIgnored: boolean | null;
+
+	// Human review fields
+	cfSufficientDataHRDecision: string | null;
+	cfSufficientDataHRMotivation: string | null;
+	cfProductsServicesHRDecision: string | null;
+	cfProductsServicesHRMotivation: string | null;
+	cfFunctionalProfileHRDecision: string | null;
+	cfFunctionalProfileHRMotivation: string | null;
+	cfIndependenceHRDecision: string | null;
+	cfIndependenceHRMotivation: string | null;
 };
 
 // Type for company creation - omit auto-generated fields

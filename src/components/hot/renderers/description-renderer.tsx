@@ -50,7 +50,7 @@ export const descriptionRenderer = (
     const statusBarElement = createStatusBar(true, websearchCategory?.color as CategoryColor);
     container.appendChild(statusBarElement);
   }
-  if(isCompleted){
+  if(websearchCategory?.passed === false){
     const statusBarElement = createStatusBar(false, websearchCategory?.color as CategoryColor);
     container.appendChild(statusBarElement);
   }

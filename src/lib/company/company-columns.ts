@@ -3,11 +3,16 @@ import {ValidatorCallback} from '@/types/handsontable';
 import {Column, CategoryColumn} from '@/lib/column-definition';
 import {urlRenderer, websiteValidationRenderer, descriptionRenderer, expandToggleRenderer} from '@/components/hot/renderers';
 import {InputLabelsDescriptions} from './categorizer/inputCategorizer';
-import {DescriptionCategorizer, WebsiteCategorizer} from './categorizer/sourceCategorizer';
+import {DescriptionCategorizer, SiteMatchCategorizer, WebsiteCategorizer} from './categorizer/sourceCategorizer';
 import AcceptRejectCategorizer from './categorizer/acceptRejectCategorizer';
 import { collapsibleRenderer } from '@/components/hot/renderers/collapsible-renderer';
 import { WebSearchCategorizer } from './categorizer/websearchCategorizer';
 import { comparabilityRenderer } from '@/components/hot/renderers/comparability-renderer';
+import { ColumnComparabilityDefinition } from '@/lib/column-comparability-definition';
+import { humanReviewRenderer } from '@/components/hot/renderers/human-review-renderer';
+import ReviewPriorityCategorizer from './categorizer/reviewPriorityCategorizer';
+import HumanReviewCategorizer from './categorizer/humanReviewCategorizer';
+import { Box } from 'lucide-react';
 
 export const inputColumnDefinitions = {
 	selected: new Column({
@@ -154,6 +159,13 @@ const websearchColumnDefinitions = {
 		data: 'backendState.searchId',
 		description: 'Search ID of the company',
 	}),
+
+	siteMatchStatus: new CategoryColumn({
+		title: 'Site Match Status',
+		description: 'Status of site match for the company',
+		valuePath: 'SITE_MATCH',
+		categorizer: SiteMatchCategorizer,
+	}),
 	overallStatus: new Column({
 		title: 'Overall Status',
 		type: 'text',
@@ -231,43 +243,68 @@ export const comparabilityColumnDefinitions = {
 	}),
 };
 
-// product_services_comparability_decision: new ComparabilityColumn({
-// 	title: 'Products/Services',
-// 	titleLong: 'Product/service comparability',
-// 	key: 'product_services_comparability_decision',
-// 	icon: 'bi bi-box',
-// 	manualDecision: 'productsServicesStatus_manual',
-// 	aiDecision: 'productservicecomparability_status',
-// 	manualDescription: 'productsServicesDescription_manual',
-// 	aiDescription: 'productservicecomparability_explanation',
-// 	decisionSource: 'product_service_description',
-// 	kpis: ['ros', 'cost_plus', 'ebit_per_employee', 'roa'],
-// }),
 
-// functional_comparability_decision: new ComparabilityColumn({
-// 	title: 'Functional',
-// 	titleLong: 'Functional comparability',
-// 	key: 'functional_comparability_decision',
-// 	icon: 'bi bi-gear',
-// 	manualDecision: 'functionalStatus_manual',
-// 	aiDecision: 'functionalprofilecomparability_status',
-// 	manualDescription: 'functionalDescription_manual',
-// 	aiDescription: 'functionalprofilecomparability_explanation',
-// 	decisionSource: 'functional_profile_description',
-// 	kpis: ['revenue_per_employee', 'asset_per_employee', 'assets_intangible_total_assets'],
-// }),
+const comparabilityColumnDefinitionNew = {
+	// cfDataQuality: new ColumnComparabilityDefinition({
+	// 	title: 'Data Quality',
+	// 	type: 'text',
+	// 	width: 200,
+	// 	description: 'Comparability status of the company',
+	// 	aiDecisionPath: 'searchedCompanyData.dataquality_status',
+	// 	humanDecisionPath: 'inputValues.cfDataQualityHRDecision',
+	// 	aiMotivationPath: 'searchedCompanyData.dataquality_explanation',
+	// 	humanMotivationPath: 'inputValues.cfDataQualityHRMotivation',
+	// 	aiDescriptionPath: 'searchedCompanyData.dataquality_explanation',
+	// 	cfFactor: 'dataQuality',
+	// 	columnType: 'humanreview',
+	// 	renderer: humanReviewRenderer,
+	// }),
+	cfProducts: new ColumnComparabilityDefinition({
+		title: 'Products/Services',
+		type: 'text',
+		width: 200,
+		description: 'Comparability status of the company',
+		aiDecisionPath: 'searchedCompanyData.productservicecomparability_status',
+		humanDecisionPath: 'inputValues.cfProductsServicesHRDecision',
+		aiMotivationPath: 'searchedCompanyData.productservicecomparability_explanation',
+		humanMotivationPath: 'inputValues.cfProductsServicesHRMotivation',
+		aiDescriptionPath: 'searchedCompanyData.product_service_description',
+		cfFactor: 'products',
+		columnType: 'humanreview',
+		renderer: humanReviewRenderer,
+	}),
+	cfFunctions: new ColumnComparabilityDefinition({
+		title: 'Functions',
+		type: 'text',
+		width: 200,
+		description: 'Comparability status of the company',
+		aiDecisionPath: 'searchedCompanyData.functionalprofilecomparability_status',
+		humanDecisionPath: 'inputValues.cfFunctionalProfileHRDecision',
+		aiMotivationPath: 'searchedCompanyData.functionalprofilecomparability_explanation',
+		humanMotivationPath: 'inputValues.cfFunctionalProfileHRMotivation',
+		aiDescriptionPath: 'searchedCompanyData.functional_profile_description',
+		cfFactor: 'functions',
+		columnType: 'humanreview',
+		renderer: humanReviewRenderer,
+	}),
+	cfIndependence: new ColumnComparabilityDefinition({
+		title: 'Independence',
+		type: 'text',
+		width: 200,
+		description: 'Comparability status of the company',
+		aiDecisionPath: 'searchedCompanyData.independence_status',
+		humanDecisionPath: 'inputValues.cfIndependenceHRDecision',
+		aiMotivationPath: 'searchedCompanyData.independence_explanation',
+		humanMotivationPath: 'inputValues.cfIndependenceHRMotivation',
+		aiDescriptionPath: 'searchedCompanyData.corporatestructureandaffiliations_summary',
+		cfFactor: 'independence',
+		columnType: 'humanreview',
+		renderer: humanReviewRenderer,
+	}),
+};
 
-// independance_comparability_decision: new ComparabilityColumn({
-// 	title: 'Independence',
-// 	titleLong: 'Independance check',
-// 	key: 'independance_comparability_decision',
-// 	manualDecision: 'independenceStatus_manual',
-// 	aiDecision: 'independence_status',
-// 	manualDescription: 'independenceDescription_manual',
-// 	aiDescription: 'independence_explanation',
-// 	decisionSource: 'corporatestructureandaffiliations_summary',
-// 	kpis: ['ros', 'cost_plus', 'ebit_per_employee', 'roa'],
-// }),
+export { comparabilityColumnDefinitionNew };
+
 
 const statusColumns = {
 	inputStatus: new CategoryColumn({
@@ -300,6 +337,18 @@ const statusColumns = {
 		valuePath: 'ACCEPT_REJECT',
 		categorizer: AcceptRejectCategorizer,
 	}),
+	humanReviewStatus: new CategoryColumn({
+		title: 'Review Priority',
+		description: 'Priority and status of human review for the company',
+		valuePath: 'REVIEW_PRIORITY',
+		categorizer: ReviewPriorityCategorizer,
+	}),
+	decisionStatus: new CategoryColumn({
+		title: 'Decision',
+		description: 'Final decision based on all comparability factors',
+		valuePath: 'HUMAN_REVIEW',
+		categorizer: HumanReviewCategorizer,
+	}),
 };
 // Column definitions
 export const companyColumns = {
@@ -314,7 +363,7 @@ export const companyColumns = {
 		renderer: websiteValidationRenderer,
 		description: 'Validate the company website',
 	}),
-
+	decision: statusColumns.decisionStatus,
 };
 
 export type ColumnConfig = {

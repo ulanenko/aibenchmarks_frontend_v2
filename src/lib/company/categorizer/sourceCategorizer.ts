@@ -70,3 +70,29 @@ export const WebsiteCategorizer: Categorizer = [
 		return false;
 	},
 ];
+
+/**
+ * Categorizer for site match results
+ */
+export const SiteMatchCategorizer: Categorizer = [
+	(company) => {
+		const siteMatchResult = company.searchedCompanyData?.site_match?.overall_result;
+		
+		if (!siteMatchResult) {
+			return CATEGORIES.SITE_MATCH.NOT_AVAILABLE.toCategoryValue();
+		}
+
+		switch (siteMatchResult) {
+			case 'Likely':
+				return CATEGORIES.SITE_MATCH.LIKELY.toCategoryValue();
+			case 'Possibly':
+				return CATEGORIES.SITE_MATCH.POSSIBLY.toCategoryValue();
+			case 'Not Likely':
+				return CATEGORIES.SITE_MATCH.NOT_LIKELY.toCategoryValue();
+			case 'Uncertain':
+				return CATEGORIES.SITE_MATCH.UNCERTAIN.toCategoryValue();
+			default:
+				return CATEGORIES.SITE_MATCH.NOT_AVAILABLE.toCategoryValue();
+		}
+	},
+];
