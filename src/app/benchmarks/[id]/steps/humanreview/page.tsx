@@ -41,7 +41,6 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 		isSaving, 
 		refreshSearchData, 
 		isRefreshing,
-		updateHumanReview
 	} = useCompanyStore(
 		useShallow((state) => ({
 			loadCompanies: state.loadCompanies,
@@ -51,7 +50,6 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 			isSaving: state.isSaving,
 			refreshSearchData: state.refreshSearchData,
 			isRefreshing: state.isRefreshing,
-			updateHumanReview: state.updateHumanReview
 		})),
 	);
 
@@ -110,7 +108,7 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 	// Event listener for updateHumanReview events
 	useEffect(() => {
 		const handleHumanReviewUpdate = (event: CustomEvent) => {
-			const {companyId, factor, decision} = event.detail;
+			const {companyId, factor} = event.detail;
 			// if (decision === null) {
 				// Open the modal for review
 				setSelectedCompanyId(companyId);
@@ -127,7 +125,7 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 		return () => {
 			window.removeEventListener('updateHumanReview', handleHumanReviewUpdate as EventListener);
 		};
-	}, [updateHumanReview]);
+	}, []);
 
 	// Custom help content for the human review step
 	const humanReviewHelpContent = (
