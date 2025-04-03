@@ -1,21 +1,22 @@
 'use client';
 
-import {use, useEffect, useState} from 'react';
-import {Button} from '@/components/ui/button';
-import {toast} from 'sonner';
-import {useCompanyStore} from '@/stores/use-company-store';
-import {useShallow} from 'zustand/react/shallow';
-import {companyColumns} from '@/lib/company/company-columns';
+import { use, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useCompanyStore } from '@/stores/use-company-store';
+import { useShallow } from 'zustand/react/shallow';
+import { companyColumns } from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
-import {Loader2, Search, RefreshCw, Settings2} from 'lucide-react';
-import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
-import {CompanyTable} from '@/components/features/benchmark/company-table';
-import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
-import {SearchModal} from '@/components/features/search-modal';
-import {useRouter} from 'next/navigation';
-import {Switch} from '@/components/ui/switch';
-import {Label} from '@/components/ui/label';
-import {ColumnConfig} from '@/lib/company/company-columns';
+import { Loader2, Search, RefreshCw, Settings2 } from 'lucide-react';
+import { BenchmarkStepLayout, getNextStepUrl } from '@/components/features/benchmark/benchmark-step-layout';
+import { CompanyTable } from '@/components/features/benchmark/company-table';
+import { ColumnVisibility } from '@/components/features/benchmark/column-visibility';
+import { SearchModal } from '@/components/features/search-modal';
+import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ColumnConfig } from '@/lib/company/company-columns';
+import { CompanyDetailsDialogue } from '@/components/features/company-details-components/company-details-dialogue';
 
 interface Props {
 	params: Promise<{
@@ -23,8 +24,8 @@ interface Props {
 	}>;
 }
 
-export default function BenchmarkWebSearchPage({params}: Props) {
-	const {id} = use(params);
+export default function BenchmarkWebSearchPage({ params }: Props) {
+	const { id } = use(params);
 	const benchmarkId = parseInt(id);
 	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
@@ -33,12 +34,12 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 	const [selectedCompanyIds, setSelectedCompanyIds] = useState<number[]>([]);
 
 	const {
-		loadCompanies, 
-		saveChanges, 
-		companies, 
-		isLoading, 
-		isSaving, 
-		refreshSearchData, 
+		loadCompanies,
+		saveChanges,
+		companies,
+		isLoading,
+		isSaving,
+		refreshSearchData,
 		isRefreshing,
 		autoRefreshEnabled,
 		startAutoRefresh,
@@ -60,27 +61,33 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 
 	// Load companies data
 	useEffect(() => {
-		loadCompanies(benchmarkId, {includeSearchData: true});
+		loadCompanies(benchmarkId, { includeSearchData: true });
 	}, [benchmarkId, loadCompanies]);
 
 	// Define column configuration for this page
 	const columnConfigs: ColumnConfig[] = [
 		// Default columns that are always shown
-		{column: companyColumns.selected, show: 'yes', editable:true},
-		{column: companyColumns.expandToggle, show: 'yes', editable: true},
-		{column: companyColumns.name, show: 'always', editable: false},
-		{column: companyColumns.country, show: 'yes', editable: false},
-		{column: companyColumns.url, show: 'yes', editable: false},
-		{column: companyColumns.websiteValidation, show: 'no', editable: false},
-		
+		{ column: companyColumns.selected, show: 'yes', editable: true },
+		{ column: companyColumns.id, show: 'yes', editable: false },
+		{ column: companyColumns.expandToggle, show: 'yes', editable: true },
+		{ column: companyColumns.name, show: 'always', editable: false },
+		{ column: companyColumns.country, show: 'yes', editable: false },
+		{ column: companyColumns.url, show: 'yes', editable: false },
+		{ column: companyColumns.websiteValidation, show: 'no', editable: false },
+
+		// Site match risk ignored
+		{ column: companyColumns.siteMatchStatus, show: 'yes', editable: true },
+		{ column: companyColumns.urlAnalysis, show: 'yes', editable: false },
+		{ column: companyColumns.analysisMethod, show: 'yes', editable: false },
+
 		// Web search specific columns
-		{column: companyColumns.searchId, show: 'no', editable: false},
-		{column: companyColumns.overallStatus, show: 'no', editable: false},
-		{column: companyColumns.websearchStatus, show: 'yes', editable: false},
-		{column: companyColumns.analysisBusinessDescription, show: 'yes', editable: false},
-		{column: companyColumns.analysisProductServiceDescription, show: 'yes', editable: false},
-		{column: companyColumns.analysisFunctionalProfileDescription, show: 'yes', editable: false},
-		{column: companyColumns.analysisCorporateStructureAndAffiliationsSummary, show: 'yes', editable: false},
+		{ column: companyColumns.searchId, show: 'no', editable: false },
+		{ column: companyColumns.overallStatus, show: 'no', editable: false },
+		{ column: companyColumns.websearchStatus, show: 'yes', editable: false },
+		{ column: companyColumns.analysisBusinessDescription, show: 'yes', editable: false },
+		{ column: companyColumns.analysisProductServiceDescription, show: 'yes', editable: false },
+		{ column: companyColumns.analysisFunctionalProfileDescription, show: 'yes', editable: false },
+		{ column: companyColumns.analysisCorporateStructureAndAffiliationsSummary, show: 'yes', editable: false },
 	];
 
 	const handleSave = async () => {
@@ -152,36 +159,36 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 				columnConfigs={columnConfigs}
 				onHotInstanceReady={setHotInstance}
 			/>
-			<SearchModal 
-                open={searchModalOpen} 
-                onOpenChange={setSearchModalOpen} 
-                selectedCompanyIds={selectedCompanyIds} 
-            />
+			<SearchModal
+				open={searchModalOpen}
+				onOpenChange={setSearchModalOpen}
+				selectedCompanyIds={selectedCompanyIds}
+			/>
 		</>
 	);
 
 	// Toolbar content
 	const toolbarContent = (
 		<div className="flex items-center justify-between w-full gap-3">
-				<div className="flex items-center space-x-2">
-					<Label htmlFor="auto-refresh" className="text-xs">Auto-updates</Label>
-					<Switch
-						id="auto-refresh"
-						checked={autoRefreshEnabled}
-						onCheckedChange={handleToggleAutoRefresh}
-						disabled={isLoading}
-					/>
-				</div>
-				<Button
-					variant="outline"
-					onClick={handleRefreshSearchData}
-					disabled={isLoading || isRefreshing}
-					size="icon"
-					className="h-9 w-9 bg-primary text-primary-foreground hover:bg-primary/90"
-				>
-					<RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-				</Button>
-				<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={columnConfigs} />
+			<div className="flex items-center space-x-2">
+				<Label htmlFor="auto-refresh" className="text-xs">Auto-updates</Label>
+				<Switch
+					id="auto-refresh"
+					checked={autoRefreshEnabled}
+					onCheckedChange={handleToggleAutoRefresh}
+					disabled={isLoading}
+				/>
+			</div>
+			<Button
+				variant="outline"
+				onClick={handleRefreshSearchData}
+				disabled={isLoading || isRefreshing}
+				size="icon"
+				className="h-9 w-9 bg-primary text-primary-foreground hover:bg-primary/90"
+			>
+				<RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+			</Button>
+			<ColumnVisibility benchmarkId={benchmarkId} columnConfigs={columnConfigs} />
 		</div>
 	);
 
@@ -208,21 +215,26 @@ export default function BenchmarkWebSearchPage({params}: Props) {
 	);
 
 	return (
-		<BenchmarkStepLayout
-			benchmarkId={benchmarkId}
-			stepNumber={2}
-			pageTitle="Web Search"
-			pageDescription="Automatically search and fetch information about your companies."
-			helpSheetTitle="Web Search Help"
-			helpSheetContent={websearchHelpContent}
-			companies={companies}
-			isLoading={isLoading}
-			categoryColumn={companyColumns.websearchStatus}
-			hotInstance={hotInstance}
-			toolbarContent={toolbarContent}
-			mainContent={mainContent}
-			footerActions={footerActions}
-			onNext={handleNext}
-		/>
+		<>
+			<BenchmarkStepLayout
+				benchmarkId={benchmarkId}
+				stepNumber={2}
+				pageTitle="Web Search"
+				pageDescription="Automatically search and fetch information about your companies."
+				helpSheetTitle="Web Search Help"
+				helpSheetContent={websearchHelpContent}
+				companies={companies}
+				isLoading={isLoading}
+				categoryColumn={companyColumns.websearchStatus}
+				hotInstance={hotInstance}
+				toolbarContent={toolbarContent}
+				mainContent={mainContent}
+				footerActions={footerActions}
+				onNext={handleNext}
+			/>
+
+			{/* The modal is now self-contained and doesn't need any props */}
+			<CompanyDetailsDialogue />
+		</>
 	);
 }

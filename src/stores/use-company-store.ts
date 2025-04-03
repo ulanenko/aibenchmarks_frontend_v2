@@ -47,7 +47,7 @@ interface CompanyStore {
 	}>;
 	removeCompany: (id: number) => void;
 	loadCompanies: (benchmarkId: number, options?: {includeSearchData?: boolean}) => Promise<void>;
-	saveChanges: () => Promise<void>;
+	saveChanges: (ids?: number[]) => Promise<void>;
 	refreshSearchData: () => Promise<void>;
 	areAllCompaniesProcessed: () => boolean;
 	startAutoRefresh: () => void;
@@ -265,7 +265,7 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 			}
 		},
 
-		saveChanges: async () => {
+		saveChanges: async (ids?: number[]) => {
 			set({isSaving: true});
 			try {
 				const benchmarkId = get().benchmarkId;
@@ -274,7 +274,11 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 				}
 
 				// Filter companies that have changes
-				const companiesWithChanges = get().companies.filter((company) => company.hasChanges());
+				let companiesWithChanges = get().companies.filter((company) => company.hasChanges());
+
+				if (ids) {
+					companiesWithChanges = companiesWithChanges.filter((company) => ids.includes(company.id));
+				}
 
 				if (companiesWithChanges.length === 0) {
 					toast.info('No changes to save', {
@@ -299,17 +303,22 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 					throw new Error(error);
 				}
 
-				const newCompanies = get().companies.map((c) => {
-					const changedCompanyIndex = changedCompanies.findIndex((sc) => sc.id === c.id);
+				const newCompanies = get().companies.map((comp) => {
+					const changedCompanyIndex = changedCompanies.findIndex((sc) => sc.id === comp.id);
 					if (changedCompanyIndex !== -1) {
 						const company = new Company(savedCompanies[changedCompanyIndex]);
+						const changedSearchData = comp.searchedCompanyData;
+						if(changedSearchData) {
+							company.updateSearchData(changedSearchData.search_id, changedSearchData);
+						}
 						return company;
 					}
-					return c;
+					return comp;
 				});
 
 				// Reset original values for all companies after saving
-				newCompanies.forEach((company) => company.resetOriginalValues());
+				// i don't think we need to do this, because we recreate the companies from the saved companies
+				// newCompanies.forEach((company) => company.resetOriginalValues());
 
 				get().setCompanies(newCompanies);
 

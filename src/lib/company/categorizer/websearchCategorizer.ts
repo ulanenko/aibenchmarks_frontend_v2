@@ -1,16 +1,30 @@
 import { CATEGORIES } from "@/config/categories";
 import { Categorizer } from "@/types/category";
-import { isCompleted, isError, isInProgress, isInQueue, isUnsuccessful } from "../utils";
+import { areSimilarUrls, isCompleted, isError, isInProgress, isInQueue, isUnsuccessful } from "../utils";
 
 
 /**
  * Categorizer for web search status
  */
 export const WebSearchCategorizer: Categorizer = [
+	(company)=>{
+		const inputCompleted = company.categoryValues?.INPUT.category.status !== 'completed'
+		if (inputCompleted) {
+			return CATEGORIES.WEBSEARCH.NOT_READY.toCategoryValue();
+		}
+
+		return false
+	},
 	(company) => {
 		// If we have searchedCompanyData, the search is completed
-		if (company.searchedCompanyData !== null) {
-			const overallStatus = company.searchedCompanyData.overall_status!;
+		const searchedCompanyData = company.searchedCompanyData
+		const websiteIsUsed = searchedCompanyData?.analysis_method === "WEBSITE"
+		const websiteUpToDate = websiteIsUsed && areSimilarUrls(searchedCompanyData?.website, company.backendState?.urlValidationUrl) && company.backendState.urlValidationValid
+		const searchResultsAreOutdated = websiteIsUsed && !websiteUpToDate
+
+
+		if (searchedCompanyData !== null  && !searchResultsAreOutdated) {
+			const overallStatus = searchedCompanyData.overall_status!;
 			// Check the status in the searchedCompanyData to determine if it was successful or failed
 			if (isCompleted(overallStatus)) {
 				return CATEGORIES.WEBSEARCH.COMPLETED.toCategoryValue();
@@ -31,7 +45,7 @@ export const WebSearchCategorizer: Categorizer = [
 		}
 
 		// If we have a search ID, show as "In queue"
-		if (company.backendState?.searchId) {
+		if (company.backendState?.searchId && !searchResultsAreOutdated) {
 			return CATEGORIES.WEBSEARCH.IN_QUEUE.toCategoryValue();
 		}
 

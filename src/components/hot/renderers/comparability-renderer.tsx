@@ -35,8 +35,11 @@ export const comparabilityRenderer = (
   // Use utility functions to determine the status
   const acceptRejectCategory = rowData.categoryValues?.ACCEPT_REJECT?.category;
   const acceptRejectStatus = acceptRejectCategory?.categoryKey;
-  const {ACCEPTED, REJECTED, IN_PROGRESS, IN_QUEUE} = CATEGORIES.ACCEPT_REJECT
- 
+  const { ACCEPTED, REJECTED, IN_PROGRESS, IN_QUEUE } = CATEGORIES.ACCEPT_REJECT
+  if (!acceptRejectCategory?.categoryKey) {
+    return td;
+  }
+
 
   // Create a container for the cell content
   const container = document.createElement('div');
@@ -44,7 +47,7 @@ export const comparabilityRenderer = (
   const isAccept = isAcceptOrReject(value);
 
 
-  if(acceptRejectCategory && (acceptRejectStatus === ACCEPTED.categoryKey || acceptRejectStatus === REJECTED.categoryKey)){
+  if (acceptRejectCategory && (acceptRejectStatus === ACCEPTED.categoryKey || acceptRejectStatus === REJECTED.categoryKey)) {
     const motivationPath = cellProperties.motivationPath;
     const descriptionValue = getValueForPath(rowData, motivationPath);
     const description = typeof descriptionValue === 'string' ? descriptionValue : 'No motivation provided';
@@ -52,7 +55,7 @@ export const comparabilityRenderer = (
 
     const iconElement = document.createElement('div');
     iconElement.className = 'flex items-center justify-center w-5 h-5 rounded-full mr-2 flex-shrink-0';
-    
+
     if (isAccept) {
       // Green checkmark for accepted
       iconElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
@@ -62,40 +65,40 @@ export const comparabilityRenderer = (
       // Red X for rejected
       iconElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
       iconElement.className += ' bg-red-100 text-red-600';
-    } 
-    const color  = isAccept ? ACCEPTED.color : REJECTED.color;
+    }
+    const color = isAccept ? ACCEPTED.color : REJECTED.color;
     // td.style.backgroundColor = getColorValue(color as CategoryColor, 'soft') 
-      // Create the status icon element
+    // Create the status icon element
     const statusContainer = document.createElement('div');
     statusContainer.className = 'flex items-center';
     const expansionTextDiv = createExpansionTextDiv(description, rowData);
-     // Add elements to status container
+    // Add elements to status container
     statusContainer.appendChild(iconElement);
     statusContainer.appendChild(expansionTextDiv);
-    
+
     // Add status container to main container
     container.appendChild(statusContainer);
-  }else{
+  } else {
     td.style.backgroundColor = getColorValue(acceptRejectCategory?.color as CategoryColor, 'soft');
-    if(acceptRejectStatus === IN_PROGRESS.categoryKey || acceptRejectStatus === IN_QUEUE.categoryKey){
+    if (acceptRejectStatus === IN_PROGRESS.categoryKey || acceptRejectStatus === IN_QUEUE.categoryKey) {
       const statusBarElement = createStatusBar(true, acceptRejectCategory?.color as CategoryColor);
       container.appendChild(statusBarElement);
     }
-    if(acceptRejectCategory?.passed === false){
-      const statusBarElement = createStatusBar(false, acceptRejectCategory?.color as CategoryColor);
+    if (acceptRejectCategory?.passed === false) {
+      const statusBarElement = createStatusBar(false, acceptRejectCategory.color as CategoryColor);
       container.appendChild(statusBarElement);
     }
 
 
   }
-  
 
-  
+
+
   // Append the container to the td
   td.appendChild(container);
-  
+
   // Set cell alignment
   td.classList.add('htMiddle');
-  
+
   return td;
 }; 

@@ -40,13 +40,13 @@ export async function initiateCompanyAnalysisAction(
 			return buildCompanyAnalysisRequest(
 				company.name,
 				company.country || '',
-				company.website || company.url || '',
+				company.urlValidationValid && company.urlValidationUrl ? company.urlValidationUrl :  '',
 				options.language || 'en',
 				options.takeScreenshot !== undefined ? options.takeScreenshot : true,
 				{
-					useDbDescriptions: options.useDbDescriptions || false,
+					useDbDescriptions: options.useDbDescriptions || true,
 					tradeDatabaseDescription: company.tradeDescriptionEnglish || company.tradeDescriptionOriginal || undefined,
-					fullDatabaseOverview: company.fullOverview || company.fullOverviewManual || undefined,
+					fullDatabaseOverview: company.fullOverviewManual || company.fullOverview || undefined,
 					siteMatch:
 						company.databaseId || company.streetAndNumber || company.addressLine1
 							? {
@@ -76,17 +76,17 @@ export async function initiateCompanyAnalysisAction(
 		const searchIds = result.filter((item) => item.search_id).map((item) => item.search_id as string);
 
 		// Check if there were any errors
-		const errors = result
-			.filter((item) => item.error_message && item.error_message.length > 0)
-			.map((item) => `${item.company_name}: ${item.error_message?.join(', ')}`);
+		// const errors = result
+		// 	.filter((item) => item.error_message && item.error_message.length > 0)
+		// 	.map((item) => `${item.company_name}: ${item.error_message?.join(', ')}`);
 
-		if (errors.length > 0) {
-			return {
-				success: false,
-				message: `Analysis encountered errors: ${errors.join('; ')}`,
-				searchIds: searchIds.length > 0 ? searchIds : undefined,
-			};
-		}
+		// if (errors.length > 0) {
+		// 	return {
+		// 		success: false,
+		// 		message: `Analysis encountered errors: ${errors.join('; ')}`,
+		// 		searchIds: searchIds.length > 0 ? searchIds : undefined,
+		// 	};
+		// }
 
 		// If we have company IDs, save the search IDs to the companies
 		const companyIdsWithSearchIds: Record<number, string> = {};

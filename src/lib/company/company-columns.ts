@@ -13,6 +13,7 @@ import { humanReviewRenderer } from '@/components/hot/renderers/human-review-ren
 import ReviewPriorityCategorizer from './categorizer/reviewPriorityCategorizer';
 import HumanReviewCategorizer from './categorizer/humanReviewCategorizer';
 import { Box } from 'lucide-react';
+import SourceUsedCategorizer from './categorizer/sourceUsedCategorizer';
 
 export const inputColumnDefinitions = {
 	selected: new Column({
@@ -27,11 +28,19 @@ export const inputColumnDefinitions = {
 		readOnly: false,	
 		description: 'Select the company',
 	}),
+	id: new Column({
+		title: 'ID',
+		type: 'text',
+		width: 60,
+		data: 'id',
+		readOnly: true,
+		description: 'ID of the company',
+	}),
 	expandToggle: new Column({
 		title: '',
 		type: 'text',
 		width: 60,
-		data: 'id', // Just using id as a data reference, doesn't matter
+		data: 'expandToggle', // Just using id as a data reference, doesn't matter
 		renderer: expandToggleRenderer,
 		readOnly: true,
 		description: 'Expand or collapse description text',
@@ -159,12 +168,32 @@ const websearchColumnDefinitions = {
 		data: 'backendState.searchId',
 		description: 'Search ID of the company',
 	}),
+	urlAnalysis: new Column({
+		title: 'URL Analysis',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.website',
+		description: 'URL analysis of the company',
+	}),
+	analysisMethod: new Column({
+		title: 'Analysis Method',
+		type: 'text',
+		width: 200,
+		data: 'searchedCompanyData.analysis_method',
+		description: 'Analysis method of the company',
+	}),
 
 	siteMatchStatus: new CategoryColumn({
 		title: 'Site Match Status',
 		description: 'Status of site match for the company',
 		valuePath: 'SITE_MATCH',
 		categorizer: SiteMatchCategorizer,
+	}),
+	sourceUsedStatus: new CategoryColumn({
+		title: 'Source Used Status',
+		description: 'Status of source used for the company',
+		valuePath: 'SOURCE_USED',
+		categorizer: SourceUsedCategorizer,
 	}),
 	overallStatus: new Column({
 		title: 'Overall Status',

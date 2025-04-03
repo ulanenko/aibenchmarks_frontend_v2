@@ -10,7 +10,7 @@ import {Company, CompanyHotCopy} from '@/lib/company/company';
 import {WebsiteValidationStatus, createInputSettings} from '@/lib/company/website-validation';
 import {useCompanyStore} from '@/stores/use-company-store';
 
-export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) {
+export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company, updateState: boolean = true) {
 	const {inputValues, categoryValues} = hotCopy;
 	if (!hotCopy.id) {
 		alert('Company is not saved');
@@ -27,12 +27,12 @@ export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) 
 		return {result: null, error: 'Company name and country are required'};
 	}
 
-	// Create input settings string
-	const inputSettings = createInputSettings(name, country, url);
 
-	useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
-		company.markAsUrlValidationStarted();
-	});
+	if (updateState) {
+		useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+			company.markAsUrlValidationStarted();
+		});
+	}
 
 	// Get the benchmarkId from the store
 	const benchmarkId = useCompanyStore.getState().benchmarkId;
@@ -50,23 +50,23 @@ export async function validateCompanyWebsite(hotCopy: CompanyHotCopy | Company) 
 		databaseUrl: url,
 	};
 
-	const {result, error} = await validateAndFindWebsite(validateWebsiteDto);
+	const {result, error} = await validateAndFindWebsite(validateWebsiteDto, updateState);
 	if (!result) {
-		useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
-			company.markAsUrlValidationStarted(false);
-		});
+		if (updateState) {
+			useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+				company.markAsUrlValidationStarted(false);
+			});
+		}
+		return {result: null, error};
 	}else{
-		const update: WebsiteValidationStatus = {
-			urlValidationInput: inputSettings,
-			urlValidationUrl: result.official_url,
-			urlValidationValid: result.validation_passed		,
-		};
-		useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
-			company.updateWebsiteValidation(update);
-		});
-	}
 
-	return {result, error};
+		if (updateState) {
+			useCompanyStore.getState().updateCompaniesWithAction(hotCopy.id, (company) => {
+				company.updateWebsiteValidation(result);
+			});
+		}
+		return {result, error: null};
+	}
 }
 
 export async function validateCompanyWebsiteBatch() {

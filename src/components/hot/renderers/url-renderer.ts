@@ -32,9 +32,9 @@ function createUrlCell(url: string, isValid?: boolean, isUpdated?: boolean, sour
 
 	// Add border-bottom if URL has been replaced
 	if (isUpdated) {
-		const borderColorClass = getColorClass('red', 'border');
+		const borderColorClass = getColorClass('red', 'border').split(' ');
 		link.style.borderBottom = `1px dashed `;
-		link.classList.add(borderColorClass);
+		link.classList.add(...borderColorClass);
 	}
 
 	// Generate tooltip content

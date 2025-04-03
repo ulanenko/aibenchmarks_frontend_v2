@@ -1,6 +1,7 @@
 import {Company, CompanyHotCopy, DynamicInputValues} from '@/lib/company/company';
 import {initiateCompanyAnalysisAction} from '@/app/actions/companyAnalysis';
 import {useCompanyStore} from '@/stores/use-company-store';
+import { useBenchmarkStore } from '@/stores/use-benchmark-store';
 
 /**
  * Service function to initiate company analysis from a Company or CompanyHotCopy object
@@ -61,7 +62,7 @@ export async function analyzeCompanyService(
 	const result = await initiateCompanyAnalysisAction(companiesForAnalysis, options.authCode || 6666666, {
 		takeScreenshot: options.takeScreenshot,
 		language: options.language || 'en',
-		useDbDescriptions: options.useDbDescriptions,
+		useDbDescriptions: options.useDbDescriptions || (useBenchmarkStore.getState().benchmark?.useDescription ?? true),
 	});
 
 	// If we got a search ID, update it in the store

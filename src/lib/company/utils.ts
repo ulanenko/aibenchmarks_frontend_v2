@@ -29,6 +29,8 @@ export const updateCategories = (company: Company) => {
 
 	// step 4 - Web search status
 	companyColumns.websearchStatus.categorize(company);
+	// step 4b - Source used status
+	companyColumns.sourceUsedStatus.categorize(company);
 
 	// step 4 - Accept/reject status
 	companyColumns.acceptRejectStatus.categorize(company);
@@ -136,3 +138,22 @@ export const isAcceptOrReject = (status: StringOrNull) => {
 	return undefined;
 };
 
+
+// Helper function to normalize URLs for comparison
+export const normalizeUrl = (url: string | null | undefined): string => {
+	if (!url) return '';
+	let normalized = url.toLowerCase();
+	// Remove protocol
+	normalized = normalized.replace(/^https?:\/\//, '');
+	// Remove www.
+	normalized = normalized.replace(/^www\./, '');
+	// Remove trailing slash
+	normalized = normalized.replace(/\/$/, '');
+	return normalized;
+};
+
+// Check if two URLs are essentially the same, ignoring protocol, www, and trailing slashes
+export const areSimilarUrls = (url1: string | null | undefined, url2: string | null | undefined): boolean => {
+	if (!url1 || !url2) return false;
+	return normalizeUrl(url1) === normalizeUrl(url2);
+};

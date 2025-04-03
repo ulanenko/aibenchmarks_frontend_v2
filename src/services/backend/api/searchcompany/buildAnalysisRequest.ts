@@ -46,8 +46,8 @@ export function buildCompanyAnalysisRequest(
 		is_screenshot: takeScreenshot,
 		lang: language,
 		use_database_descriptions: options?.useDbDescriptions || false,
-		database_trade_description: options?.tradeDatabaseDescription || null,
-		database_full_overview: options?.fullDatabaseOverview || null,
+		database_trade_description: options?.tradeDatabaseDescription || '',
+		database_full_overview: options?.fullDatabaseOverview || '',
 		site_match: siteMatch,
 	};
 }

@@ -42,6 +42,9 @@ export interface SearchedCompany {
 	site_match?: SiteMatch;
 }
 
+export type SiteMatchStatus = "Likely" | "Possibly" | "Not Likely" | "Uncertain" | "Partial Match" | "No Data" | "No Match"
+// partial match and not data are just for the partial status and not for the overall status
+
 export interface SiteMatch {
 	id: number;
 	bvd_id: string | null;
@@ -49,18 +52,18 @@ export interface SiteMatch {
 	address_line: string | null;
 	search_id: string | null;
 	status: string | null;
-	name_match_status: string | null;
+	name_match_status: SiteMatchStatus | null;
 	name_match_notes: string | null;
 	name_match_website_extracted_data: string | null;
-	registration_id_match_status: string | null;
+	registration_id_match_status: SiteMatchStatus | null;
 	registration_id_match_notes: string | null;
 	registration_id_match_website_extracted_data: string | null;
-	address_match_status: string | null;
+	address_match_status: SiteMatchStatus | null;
 	address_match_notes: string | null;
 	address_match_website_extracted_data: string | null;
-	description_match_status: string | null;
+	description_match_status: SiteMatchStatus | null;
 	description_match_notes: string | null;
 	description_match_website_extracted_data: string | null;
-	overall_result: string | null;
+	overall_result: SiteMatchStatus | null;
 	explanation: string | null;
 }

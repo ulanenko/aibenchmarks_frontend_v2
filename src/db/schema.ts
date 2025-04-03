@@ -111,7 +111,7 @@ export const company = pgTable('bm_company', {
 
 	// Manual status and description fields
 	cfSufficientDataHRDecision: text('sufficient_data_status_manual'),
-	cfSufficientDataHRMotiviation: text('sufficient_data_description_manual'),
+	cfSufficientDataHRMotivation: text('sufficient_data_description_manual'),
 	
 	cfProductsServicesHRDecision: text('products_services_status_manual'),
 	cfProductsServicesHRMotivation: text('products_services_description_manual'),

@@ -48,7 +48,11 @@ export const getColorClassSimple = (color: CategoryColor, element: ElementType, 
 };
 
 export const getColorValue = (color: CategoryColor, intensity: ColorIntensity = 'soft', hovered: boolean = false) => {
-	const colorName = colorMap[color];
+	let colorName = colorMap[color];
+	if(!colorName){
+		console.error(`Color ${color} not found in colorMap`);
+		colorName = 'gray';
+	}
 	const numberIntensity = colorMapIntensity[hovered ? 'hover' : 'default'][intensity];
 	return colors[colorName][numberIntensity as keyof typeof colors[typeof colorName]];
 };

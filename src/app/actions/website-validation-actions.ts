@@ -8,7 +8,7 @@ import {
 } from '@/services/support-services/website-validation/types';
 import * as supportServices from '@/services/support-services';
 import {saveCompanies} from '@/services/server/company-service.server';
-import {createInputSettings} from '@/lib/company/website-validation';
+import {createInputSettings, WebsiteValidationStatus} from '@/lib/company/website-validation';
 
 export interface WebsiteValidateDTO {
 	id: number;
@@ -32,8 +32,8 @@ export interface ValidateWebsiteBatchDTO {
 /**
  * Server action to validate and find a website for a company
  */
-export async function validateAndFindWebsite(dto: ValidateWebsiteDTO): Promise<{
-	result: DTO_ValidateAndFindWebsiteResponse | null;
+export async function validateAndFindWebsite(dto: ValidateWebsiteDTO, saveToDatabase: boolean = true): Promise<{
+	result: WebsiteValidationStatus | null;
 	error: string | null;
 }> {
 	try {
@@ -45,33 +45,51 @@ export async function validateAndFindWebsite(dto: ValidateWebsiteDTO): Promise<{
 
 		const [response, error] = await supportServices.validateAndFindWebsite(request);
 
-		if (error) {
+		if (error || !response) {
 			return {result: null, error};
 		}
 
 		// Make sure response is not null before accessing its properties
-		if (response) {
-			// Create input settings string
-			const inputSettings = createInputSettings(dto.name, dto.country, dto.databaseUrl);
+		// Create input settings string
+		const inputSettings = createInputSettings(dto.name, dto.country, dto.databaseUrl);
 
-			// save the response to the database
-			await saveCompanies(dto.benchmarkId, [
-				{
-					id: dto.id,
-					// We don't update the URL, keep it as it was in the source
-					urlValidationInput: inputSettings,
-					urlValidationValid: response.validation_passed,
-					urlValidationUrl: response.official_url,
-				},
-			]);
+		const result: WebsiteValidationStatus = {
+			urlValidationInput: inputSettings,
+			urlValidationUrl: response.official_url,
+			urlValidationValid: response.validation_passed,
+		};
+		// save the response to the database
+		if (saveToDatabase) {
+			await saveValidationResultAction(dto.benchmarkId, dto.id, result);
 		}
 
-		return {result: response, error: null};
+		return {result, error: null};
 	} catch (error) {
 		console.error(`Error validating website for company ${dto.name}:`, error);
 		return {
 			result: null,
 			error: error instanceof Error ? error.message : 'Failed to validate website',
+		};
+	}
+}
+
+export async function saveValidationResultAction(benchmarkId: number, companyId: number, dto: WebsiteValidationStatus): Promise<{
+	result: WebsiteValidationStatus | null;
+	error: string | null;
+}> {
+	try {
+		await saveCompanies(benchmarkId, [
+			{
+				id: companyId,
+				...dto,
+			},
+		]);
+		return {result: dto, error: null};
+	} catch (error) {
+		console.error(`Error saving validation state for company ${companyId}:`, error);
+		return {
+			result: null,
+			error: error instanceof Error ? error.message : 'Failed to save validation state',
 		};
 	}
 }

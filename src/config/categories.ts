@@ -1,9 +1,27 @@
 import {CategoryDefinition} from '@/lib/category-definition';
-import {CompanyHotCopy} from '@/lib/company/company';
+import {CompanyHotCopy, Company} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
 import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot, Clock, BarChart, CircleHelp} from 'lucide-react';
 import {analyzeCompanyService} from '@/lib/company/services/companyAnalysisService';
 import {comparabilityAnalysisService} from '@/lib/company/services/comparabilityAnalysisService';
+import { CompanyDetailsTab } from '@/components/features/company-details-components/company-details-dialogue';
+
+// Function to open the Source Information Modal
+const openCompanyDetailsDialogue = (company: Company | CompanyHotCopy, initialPage?: CompanyDetailsTab) => {
+	if (!company.id) return;
+	window.dispatchEvent(new CustomEvent('openCompanyDetailsDialogue', {
+		detail: {
+			companyId: company.id,
+			initialPage
+		}
+	}));
+};
+
+// Helper functions for opening the modal to specific tabs
+const openWebsiteTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "website");
+const openDescriptionTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "description");
+const openAnalysisTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "analysis");
+const openSourceUsedTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "source-used");
 
 const CATEGORIES = {
 	WEBSITE: {
@@ -39,6 +57,8 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'WEBSITE.VALID',
 			passed: true,
+			onclick: openWebsiteTab,
+			onclickTooltip: 'View website details',
 		}),
 		INVALID: new CategoryDefinition({
 			label: 'Invalid',
@@ -47,6 +67,8 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'WEBSITE.INVALID',
 			passed: false,
+			onclick: openWebsiteTab,
+			onclickTooltip: 'View website issues',
 		}),
 	},
 	DESCRIPTION: {
@@ -57,10 +79,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'DESCRIPTION.INVALID',
 			passed: false,
-			onclick: (company) => {
-				// We'll implement the modal opening logic in a separate hook
-				window.dispatchEvent(new CustomEvent('openDescriptionModal', {detail: {company}}));
-			},
+			onclick: openDescriptionTab,
 			onclickTooltip: 'Edit company description',
 		}),
 		VALID: new CategoryDefinition({
@@ -70,10 +89,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'DESCRIPTION.VALID',
 			passed: true,
-			onclick: (company) => {
-				// We'll implement the modal opening logic in a separate hook
-				window.dispatchEvent(new CustomEvent('openDescriptionModal', {detail: {company}}));
-			},
+			onclick: openDescriptionTab,
 			onclickTooltip: 'View company description',
 		}),
 	},
@@ -135,6 +151,41 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'INPUT.COMPLETED',
 			passed: true,
+		}),
+	},
+
+	SOURCE_USED:{
+		NOT_READY: new CategoryDefinition({
+			label: 'Not Ready',
+			color: 'gray',
+			icon: AlertCircle,
+			status: 'not_ready',
+			categoryKey: 'SOURCE_USED.NOT_READY',
+			passed: undefined,
+		}),
+		WEBSITE: new CategoryDefinition({
+			label: 'Website',
+			color: 'blue',
+			icon: Globe,
+			status: 'completed',
+			categoryKey: 'SOURCE_USED.WEBSITE',
+			passed: true,
+		}),
+		DESCRIPTION: new CategoryDefinition({
+			label: 'Description',
+			color: 'blue',
+			icon: FileText,
+			status: 'completed',
+			categoryKey: 'SOURCE_USED.DESCRIPTION',
+			passed: true,
+		}),
+		FAILED: new CategoryDefinition({
+			label: 'Failed',
+			color: 'red',
+			icon: X,
+			status: 'failed',
+			categoryKey: 'SOURCE_USED.FAILED',
+			passed: false,
 		}),
 	},
 	WEBSEARCH: {
@@ -352,6 +403,16 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'SITE_MATCH.NOT_AVAILABLE',
 			passed: undefined,
+			onclick: openCompanyDetailsDialogue,
+			onclickTooltip: 'View source information',
+		}),
+		NO_MATCH: new CategoryDefinition({
+			label: 'No Match',
+			color: 'red',
+			icon: X,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.NO_MATCH',
+			passed: false,
 		}),
 		LIKELY: new CategoryDefinition({
 			label: 'Likely',
@@ -360,6 +421,16 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.LIKELY',
 			passed: true,
+			onclick: openCompanyDetailsDialogue,
+			onclickTooltip: 'View site match details',
+		}),
+		PARTIAL_MATCH: new CategoryDefinition({
+			label: 'Partial Match',
+			color: 'yellow',
+			icon: AlertCircle,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.PARTIAL_MATCH',
+			passed: undefined,
 		}),
 		POSSIBLY: new CategoryDefinition({
 			label: 'Possibly',
@@ -368,6 +439,8 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.POSSIBLY',
 			passed: undefined,
+			onclick: openAnalysisTab,
+			onclickTooltip: 'View site match details',
 		}),
 		NOT_LIKELY: new CategoryDefinition({
 			label: 'Not Likely',
@@ -376,6 +449,8 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.NOT_LIKELY',
 			passed: false,
+			onclick: openAnalysisTab,
+			onclickTooltip: 'View site match details',
 		}),
 		UNCERTAIN: new CategoryDefinition({
 			label: 'Uncertain',
@@ -384,6 +459,28 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.UNCERTAIN',
 			passed: undefined,
+			onclick: openAnalysisTab,
+			onclickTooltip: 'View site match details',
+		}),
+		UNKNOWN: new CategoryDefinition({
+			label: 'Unknown',
+			color: 'gray',
+			icon: CircleHelp,
+			status: 'not_ready',
+			categoryKey: 'SITE_MATCH.UNKNOWN',
+			passed: undefined,
+			onclick: openAnalysisTab,
+			onclickTooltip: 'View website analysis details',
+		}),
+		VALID: new CategoryDefinition({
+			label: 'Valid',
+			color: 'green',
+			icon: ThumbsUp,
+			status: 'completed',
+			categoryKey: 'SITE_MATCH.VALID',
+			passed: true,
+			onclick: openAnalysisTab,
+			onclickTooltip: 'View website analysis details',
 		}),
 	},
 };
@@ -391,3 +488,11 @@ const CATEGORIES = {
 export type CategoryType = keyof typeof CATEGORIES;
 
 export {CATEGORIES};
+
+export {
+	openCompanyDetailsDialogue,
+	openWebsiteTab,
+	openDescriptionTab,
+	openAnalysisTab,
+	openSourceUsedTab
+};

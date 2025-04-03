@@ -1,12 +1,16 @@
-import {Badge, badgeVariants} from '@/components/ui/badge';
-import {LucideIcon, Loader2} from 'lucide-react';
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from '@/components/ui/tooltip';
-import {VariantProps} from 'class-variance-authority';
-import {CategoryColor, CategoryConfig, CategoryValue} from '@/types/category';
-import {StepStatus} from '@/db/schema';
-import {Button} from '@/components/ui/button';
-import {getColorClass} from '@/lib/colors';
-import {Company, CompanyHotCopy} from '@/lib/company/company';
+import { Badge, badgeVariants } from '@/components/ui/badge';
+import { LucideIcon, Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { VariantProps } from 'class-variance-authority';
+import { CategoryColor, CategoryConfig, CategoryValue } from '@/types/category';
+import { StepStatus } from '@/db/schema';
+import { Button } from '@/components/ui/button';
+import { getColorClass } from '@/lib/colors';
+import { Company, CompanyHotCopy } from '@/lib/company/company';
+import { ReactNode } from 'react';
+import { cn } from "@/lib/utils";
+
+
 type BadgeVariant = VariantProps<typeof badgeVariants>['variant'];
 
 export class CategoryDefinition {
@@ -67,7 +71,7 @@ export class CategoryDefinition {
 				className="my-1 whitespace-nowrap cursor-pointer"
 				onClick={() => badgeClickFunction(rowData)}
 			>
-				{this.icon && <this.icon className={iconClassName} style={{marginRight: '0.35rem'}} />}
+				{this.icon && <this.icon className={iconClassName} style={{ marginRight: '0.35rem' }} />}
 				{value}
 			</Badge>
 		);
@@ -86,7 +90,18 @@ export class CategoryDefinition {
 		return badge;
 	}
 
-	toCategoryValue({label, description}: {label?: string; description?: string} = {}): CategoryValue {
+	getBadgeIcon(company: Company | CompanyHotCopy, showText: boolean = false, size: 'sm' | 'md' = 'sm'): ReactNode {
+		const containerSize = size === 'sm' ? '5' : '6';
+		const iconSize = size === 'sm' ? '3' : '4';
+		return (
+			<div className={cn(this.getColorClass(), showText ? `h-${containerSize} gap-1 px-2` : `w-${containerSize} h-${containerSize}`, ' inline-flex items-center justify-center  rounded-full ')}>
+				<this.icon className={`w-${iconSize} h-${iconSize} text-white`} />
+				{showText && <span className="text-xs text-white">{this.label}</span>}
+			</div>
+		);
+	}
+
+	toCategoryValue({ label, description }: { label?: string; description?: string } = {}): CategoryValue {
 		return {
 			category: this,
 			categoryKey: this.categoryKey,

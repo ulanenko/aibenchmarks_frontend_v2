@@ -67,17 +67,39 @@ export const siteMatch = pgTable('site_match', {
 	explanation: text('explanation'),
 });
 
+// ScrapedWebsite table schema
+export const scrapedWebsite = pgTable('scraped_websites', {
+	id: integer('id').primaryKey(),
+	searched_company: text('searched_company'),
+	url: text('url'),
+	content: text('content'),
+	screenshot: text('screenshot'),
+	search_id: text('search_id').references(() => searchedCompany.search_id),
+	auth_code: text('auth_code'),
+	accessed_on: timestamp('accessed_on', { withTimezone: true }),
+	screenshot_status: text('screenshot_status'),
+	page_title: text('page_title'),
+});
+
 // Relationships
-export const searchedCompanyRelations = relations(searchedCompany, ({one}) => ({
+export const searchedCompanyRelations = relations(searchedCompany, ({one, many}) => ({
 	siteMatch: one(siteMatch, {
 		fields: [searchedCompany.search_id],
 		references: [siteMatch.search_id],
 	}),
+	scrapedWebsites: many(scrapedWebsite),
 }));
 
 export const siteMatchRelations = relations(siteMatch, ({one}) => ({
 	searchedCompany: one(searchedCompany, {
 		fields: [siteMatch.search_id],
+		references: [searchedCompany.search_id],
+	}),
+}));
+
+export const scrapedWebsiteRelations = relations(scrapedWebsite, ({one}) => ({
+	searchedCompany: one(searchedCompany, {
+		fields: [scrapedWebsite.search_id],
 		references: [searchedCompany.search_id],
 	}),
 }));

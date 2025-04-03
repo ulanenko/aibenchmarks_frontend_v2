@@ -1,10 +1,11 @@
-import {useState} from 'react';
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
-import {Check, X, AlertCircle, FileEdit, LucideIcon, ArrowRight} from 'lucide-react';
-import {useToast} from '@/hooks/use-toast';
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
-import {Company} from '@/lib/company/company';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Check, X, AlertCircle, FileEdit, LucideIcon, ArrowRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Company } from '@/lib/company/company';
+import { areSimilarUrls, normalizeUrl } from '@/lib/company/utils';
 
 export interface WebsiteValidationResultsDialogProps {
 	isOpen: boolean;
@@ -21,24 +22,7 @@ interface CategoryItem {
 	iconColorClass: string;
 }
 
-// Helper function to normalize URLs for comparison
-const normalizeUrl = (url: string | null): string => {
-	if (!url) return '';
-	let normalized = url.toLowerCase();
-	// Remove protocol
-	normalized = normalized.replace(/^https?:\/\//, '');
-	// Remove www.
-	normalized = normalized.replace(/^www\./, '');
-	// Remove trailing slash
-	normalized = normalized.replace(/\/$/, '');
-	return normalized;
-};
 
-// Check if two URLs are essentially the same, ignoring protocol, www, and trailing slashes
-const areSimilarUrls = (url1: string | null, url2: string | null): boolean => {
-	if (!url1 || !url2) return false;
-	return normalizeUrl(url1) === normalizeUrl(url2);
-};
 
 // Check if a URL has been fine-tuned (same core domain but with differences)
 const isFineTunedUrl = (original: string | null, updated: string | null): boolean => {
@@ -66,7 +50,7 @@ export function WebsiteValidationResultsDialog({
 	onOpenChange,
 	validatedCompanies,
 }: WebsiteValidationResultsDialogProps) {
-	const {toast} = useToast();
+	const { toast } = useToast();
 	const [isSaving, setIsSaving] = useState(false);
 
 	const companyCategories: CategoryItem[] = [
@@ -151,9 +135,8 @@ export function WebsiteValidationResultsDialog({
 															href={ensureProtocol(company.inputValues.url)}
 															target="_blank"
 															rel="noopener noreferrer"
-															className={`text-muted-foreground hover:underline truncate inline-block max-w-full ${
-																category.title === 'Fine-tuned' ? 'line-through text-red-400' : ''
-															}`}
+															className={`text-muted-foreground hover:underline truncate inline-block max-w-full ${category.title === 'Fine-tuned' ? 'line-through text-red-400' : ''
+																}`}
 														>
 															{company.inputValues.url || 'No URL'}
 														</a>

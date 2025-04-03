@@ -17,6 +17,7 @@ export class Benchmark implements BenchmarkDTO {
 	userName: string | null;
 	mappingSettings: MappingSettings | null;
 	strategy: StrategyBenchmark | null;
+	useDescription: boolean = true;
 
 	// Track changes for optimistic updates
 	changes: Record<
@@ -40,6 +41,7 @@ export class Benchmark implements BenchmarkDTO {
 		this.userName = data?.userName ?? null;
 		this.mappingSettings = data?.mappingSettings ?? null;
 		this.strategy = data?.strategy ?? null;
+		this.useDescription = true;
 	}
 
 	private static getNextTempId(): number {
