@@ -59,10 +59,15 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
   })
 
   // Function to update URL parameters
-  const updateUrlParams = useCallback((companyId: number, tab: CompanyDetailsTab) => {
+  const updateUrlParams = useCallback((companyId: number, tab: CompanyDetailsTab, subtab?: string) => {
     const params = new URLSearchParams(searchParams)
     params.set('companyId', companyId.toString())
     params.set('tab', tab)
+    if (subtab) {
+      params.set('subtab', subtab)
+    } else {
+      params.delete('subtab')
+    }
     router.replace(`${pathname}?${params.toString()}`)
   }, [pathname, router, searchParams])
 
@@ -71,15 +76,17 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
     const params = new URLSearchParams(searchParams)
     params.delete('companyId')
     params.delete('tab')
+    params.delete('subtab')
     router.replace(pathname)
   }, [pathname, router, searchParams])
 
   // Handle the open source information modal event
   const handleOpenModal = useCallback((event: CustomEvent<{
     companyId: number,
-    initialPage?: CompanyDetailsTab
+    initialPage?: CompanyDetailsTab,
+    subtab?: string
   }>) => {
-    const { companyId, initialPage } = event.detail
+    const { companyId, initialPage, subtab } = event.detail
     if (!companyId) return
 
     setSelectedCompanyId(companyId)
@@ -88,7 +95,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
     // Set the initial page if provided and update URL
     if (initialPage) {
       setActiveSource(initialPage)
-      updateUrlParams(companyId, initialPage)
+      updateUrlParams(companyId, initialPage, subtab)
     } else {
       updateUrlParams(companyId, "website")
     }
@@ -128,6 +135,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
   useEffect(() => {
     const tab = searchParams.get('tab') as CompanyDetailsTab
     const companyId = searchParams.get('companyId')
+    const subtab = searchParams.get('subtab')
 
     if (companyId && tab) {
       const id = parseInt(companyId, 10)
@@ -333,6 +341,11 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                 <CompanyComparabilityTab
                   company={selectedCompany}
                   onActionsChange={handleTabActions}
+                  onSubtabChange={(factor) => {
+                    if (selectedCompanyId) {
+                      updateUrlParams(selectedCompanyId, "comparability", factor);
+                    }
+                  }}
                 />
               )}
             </div>

@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ColumnConfig } from '@/lib/company/company-columns';
-import { CompanyDetailsDialogue } from '@/components/features/company-details-components/company-details-dialogue';
+// import { CompanyDetailsDialogue } from '@/components/features/company-details-components/company-details-dialogue';
 
 interface Props {
 	params: Promise<{
@@ -234,7 +234,7 @@ export default function BenchmarkWebSearchPage({ params }: Props) {
 			/>
 
 			{/* The modal is now self-contained and doesn't need any props */}
-			<CompanyDetailsDialogue />
+			{/* <CompanyDetailsDialogue /> */}
 		</>
 	);
 }

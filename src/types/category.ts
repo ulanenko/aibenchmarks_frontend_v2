@@ -13,7 +13,7 @@ interface CategoryConfig {
 	icon: LucideIcon;
 	onclick?: (company: Company | CompanyHotCopy) => void;
 	onclickTooltip?: string;
-	
+	secondIcon?: LucideIcon;
 	status?: StepStatus;
 	// if passed is true or false, it can proceed to the next step
 	// if undefined, it means that the category is not yet ready to proceed

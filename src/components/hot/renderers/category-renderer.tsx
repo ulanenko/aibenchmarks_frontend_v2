@@ -1,12 +1,12 @@
-import {createRoot, Root} from 'react-dom/client';
+import { createRoot, Root } from 'react-dom/client';
 import Handsontable from 'handsontable';
-import {getValueForPath, setValueForPath} from '@/lib/object-utils';
-import {CompanyHotCopy, getObjectsByCategory, getUniqueValuesForPath} from '@/lib/company';
-import {CategoryColor, CategoryValue} from '@/types/category';
-import {CategoryDefinition} from '@/lib/category-definition';
-import {CategoryColumn} from '@/lib/column-definition';
-import {CATEGORIES} from '@/config/categories';
-import {createReactCell} from '@/components/hot/react-cell';
+import { getValueForPath, setValueForPath } from '@/lib/object-utils';
+import { CompanyHotCopy, getObjectsByCategory, getUniqueValuesForPath } from '@/lib/company';
+import { CategoryColor, CategoryValue } from '@/types/category';
+import { CategoryDefinition } from '@/lib/category-definition';
+import { CategoryColumn } from '@/lib/column-definition';
+import { CATEGORIES } from '@/config/categories';
+import { createReactCell } from '@/components/hot/react-cell';
 import { getColorValue } from '@/lib/colors';
 // A wrapper component that renders a Badge which opens a dialogue on click.
 
@@ -31,9 +31,9 @@ export const CategoryRenderer = (
 		return td;
 	}
 
-	const {categoryValuePath} = cellProperties;
+	const { categoryValuePath } = cellProperties;
 	const categoryValue = getValueForPath(rowData, categoryValuePath) as CategoryValue;
-	let {category, label, description, categoryKey} = categoryValue ?? {};
+	let { category, label, description, categoryKey } = categoryValue ?? {};
 
 	if (!categoryKey && isMainStatusCol) {
 		category = CATEGORIES.INPUT.NEW;
@@ -51,12 +51,12 @@ export const CategoryRenderer = (
 	// Render our interactive BadgeWithDialogue component
 	const hotFilter = createHOTFilter(instance, categoryValuePath, category, col);
 	const isFiltered = getValueForPath(instance, `categoryFilters.${category.categoryKey}`) == true;
-	const badge = category.createBadge(label, rowData, description, hotFilter, isFiltered);
+	const badge = category.createBadge(label, rowData, description, hotFilter, isFiltered, true);
 
 	// Render the badge
 	root.render(badge);
 
-	if(category.status === 'decision' || category.status === 'ready' || category.status === 'completed'){
+	if (['decision', 'ready', 'completed', 'reviewed'].includes(category.status || '')) {
 		td.style.backgroundColor = getColorValue(category.color as CategoryColor, 'soft');
 	}
 	return td;

@@ -1,5 +1,5 @@
 import { Badge, badgeVariants } from '@/components/ui/badge';
-import { LucideIcon, Loader2 } from 'lucide-react';
+import { LucideIcon, Loader2, ChevronDown, Expand } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { VariantProps } from 'class-variance-authority';
 import { CategoryColor, CategoryConfig, CategoryValue } from '@/types/category';
@@ -20,6 +20,7 @@ export class CategoryDefinition {
 	tooltipText?: string;
 	status?: StepStatus;
 	label: string;
+	secondIcon?: LucideIcon;
 	passed: boolean | undefined;
 	categoryKey: string;
 	constructor(config: CategoryConfig) {
@@ -31,6 +32,7 @@ export class CategoryDefinition {
 		this.label = config.label;
 		this.categoryKey = config.categoryKey;
 		this.passed = config.passed;
+		this.secondIcon = config.secondIcon;
 	}
 
 	getColorClass() {
@@ -59,12 +61,15 @@ export class CategoryDefinition {
 		tooltipText?: string,
 		filterFunction?: () => void,
 		isFiltered: boolean = true,
+		showSecondary: boolean = false,
 	) {
 		const variant = `${this.color}-${isFiltered ? 'emphasized' : 'default'}` as BadgeVariant;
 		const isLoader = this.icon === Loader2;
 		const iconClassName = `w-3 h-3 ${isLoader ? 'animate-spin' : ''}`;
 
 		const badgeClickFunction = this.onclick ?? (() => filterFunction?.());
+		// secondary icon is a expand icon
+		const secondaryIcon = showSecondary && this.secondIcon ? <this.secondIcon className="w-3 h-3 ml-1" /> : null;
 		const badge = (
 			<Badge
 				variant={variant}
@@ -73,6 +78,7 @@ export class CategoryDefinition {
 			>
 				{this.icon && <this.icon className={iconClassName} style={{ marginRight: '0.35rem' }} />}
 				{value}
+				{secondaryIcon}
 			</Badge>
 		);
 

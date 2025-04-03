@@ -1,27 +1,14 @@
 import {CategoryDefinition} from '@/lib/category-definition';
 import {CompanyHotCopy, Company} from '@/lib/company/company';
 import {validateCompanyWebsite} from '@/services/client/validate-company-website';
-import {PlayCircle, AlertCircle, CheckCircle, PlusCircle, Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot, Clock, BarChart, CircleHelp} from 'lucide-react';
+import {PlayCircle, AlertCircle, CheckCircle, PlusCircle,  Globe, FileText, X, Loader2, Search, ThumbsUp, ThumbsDown, User, Bot, Clock, BarChart, CircleHelp, Expand, Signal, SignalHigh, SignalLow, SignalMedium} from 'lucide-react';
 import {analyzeCompanyService} from '@/lib/company/services/companyAnalysisService';
 import {comparabilityAnalysisService} from '@/lib/company/services/comparabilityAnalysisService';
 import { CompanyDetailsTab } from '@/components/features/company-details-components/company-details-dialogue';
+import { openWebsiteTab } from '@/lib/modal-render-utils';
+import { openComparabilityTab } from '@/lib/modal-render-utils';
+import { openCompanyDetailsDialogue, openDescriptionTab, openSitematchTab, openSourceUsedTab } from '@/lib/modal-render-utils';
 
-// Function to open the Source Information Modal
-const openCompanyDetailsDialogue = (company: Company | CompanyHotCopy, initialPage?: CompanyDetailsTab) => {
-	if (!company.id) return;
-	window.dispatchEvent(new CustomEvent('openCompanyDetailsDialogue', {
-		detail: {
-			companyId: company.id,
-			initialPage
-		}
-	}));
-};
-
-// Helper functions for opening the modal to specific tabs
-const openWebsiteTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "website");
-const openDescriptionTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "description");
-const openAnalysisTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "analysis");
-const openSourceUsedTab = (company: Company | CompanyHotCopy) => openCompanyDetailsDialogue(company, "source-used");
 
 const CATEGORIES = {
 	WEBSITE: {
@@ -79,7 +66,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'DESCRIPTION.INVALID',
 			passed: false,
-			onclick: openDescriptionTab,
+			onclick: openDescriptionTab	,
 			onclickTooltip: 'Edit company description',
 		}),
 		VALID: new CategoryDefinition({
@@ -165,7 +152,7 @@ const CATEGORIES = {
 		}),
 		WEBSITE: new CategoryDefinition({
 			label: 'Website',
-			color: 'blue',
+			color: 'green',
 			icon: Globe,
 			status: 'completed',
 			categoryKey: 'SOURCE_USED.WEBSITE',
@@ -173,7 +160,7 @@ const CATEGORIES = {
 		}),
 		DESCRIPTION: new CategoryDefinition({
 			label: 'Description',
-			color: 'blue',
+			color: 'yellow',
 			icon: FileText,
 			status: 'completed',
 			categoryKey: 'SOURCE_USED.DESCRIPTION',
@@ -237,6 +224,9 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'WEBSEARCH.COMPLETED',
 			passed: true,
+			onclick: openSourceUsedTab,
+			onclickTooltip: 'View analysis details',
+			secondIcon: Expand,
 		}),
 		FAILED: new CategoryDefinition({
 			label: 'Human review',
@@ -245,6 +235,9 @@ const CATEGORIES = {
 			status: 'failed',
 			categoryKey: 'WEBSEARCH.FAILED',
 			passed: false,
+			onclick: openSourceUsedTab,
+			onclickTooltip: 'View analysis details',
+			secondIcon: Expand,
 		}),
 	},
 
@@ -289,6 +282,8 @@ const CATEGORIES = {
 			icon: User,
 			status: 'failed',
 			categoryKey: 'ACCEPT_REJECT.FAILED',
+			onclick: openComparabilityTab,
+			onclickTooltip: 'View comparability analysis',
 			passed: false,
 		}),
 		ACCEPTED: new CategoryDefinition({
@@ -311,33 +306,34 @@ const CATEGORIES = {
 	
 	REVIEW_PRIORITY: {
 		NOT_READY: new CategoryDefinition({
-			label: 'Not Ready',
+			label: 'Human review',
 			color: 'gray',
 			icon: AlertCircle,
-			status: 'not_ready',
+			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.NOT_READY',
+			onclickTooltip: 'No suggestion, human review required',
 			passed: undefined,
 		}),
 		HIGH_PRIORITY: new CategoryDefinition({
-			label: 'High Priority',
+			label: 'High',
 			color: 'red',
-			icon: ThumbsUp,
+			icon: Signal,
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.HIGH_PRIORITY',
 			passed: undefined,
 		}),
 		MEDIUM_PRIORITY: new CategoryDefinition({
-			label: 'Medium Priority',
+			label: 'Medium',
 			color: 'orange',
-			icon: BarChart,
+			icon: SignalHigh,
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.MEDIUM_PRIORITY',
 			passed: undefined,
 		}),
 		LOW_PRIORITY: new CategoryDefinition({
-			label: 'Low Priority',
+			label: 'Low',
 			color: 'yellow',
-			icon: BarChart,
+			icon: SignalMedium,
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.LOW_PRIORITY',
 			passed: undefined,
@@ -403,7 +399,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'SITE_MATCH.NOT_AVAILABLE',
 			passed: undefined,
-			onclick: openCompanyDetailsDialogue,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View source information',
 		}),
 		NO_MATCH: new CategoryDefinition({
@@ -421,7 +417,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.LIKELY',
 			passed: true,
-			onclick: openCompanyDetailsDialogue,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
 		}),
 		PARTIAL_MATCH: new CategoryDefinition({
@@ -439,7 +435,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.POSSIBLY',
 			passed: undefined,
-			onclick: openAnalysisTab,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
 		}),
 		NOT_LIKELY: new CategoryDefinition({
@@ -449,7 +445,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.NOT_LIKELY',
 			passed: false,
-			onclick: openAnalysisTab,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
 		}),
 		UNCERTAIN: new CategoryDefinition({
@@ -459,7 +455,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.UNCERTAIN',
 			passed: undefined,
-			onclick: openAnalysisTab,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
 		}),
 		UNKNOWN: new CategoryDefinition({
@@ -469,7 +465,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'SITE_MATCH.UNKNOWN',
 			passed: undefined,
-			onclick: openAnalysisTab,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View website analysis details',
 		}),
 		VALID: new CategoryDefinition({
@@ -479,7 +475,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.VALID',
 			passed: true,
-			onclick: openAnalysisTab,
+			onclick: openSitematchTab,
 			onclickTooltip: 'View website analysis details',
 		}),
 	},
@@ -489,10 +485,3 @@ export type CategoryType = keyof typeof CATEGORIES;
 
 export {CATEGORIES};
 
-export {
-	openCompanyDetailsDialogue,
-	openWebsiteTab,
-	openDescriptionTab,
-	openAnalysisTab,
-	openSourceUsedTab
-};

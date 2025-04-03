@@ -15,12 +15,7 @@ const ReviewPriorityCategorizer: Categorizer = [
     (company) => {
         const acceptRejectCategory = company.categoryValues?.ACCEPT_REJECT;
         if (!acceptRejectCategory || !acceptRejectCategory.category.isDone()) {
-            return {
-                category: CATEGORIES.REVIEW_PRIORITY.NOT_READY,
-                categoryKey: CATEGORIES.REVIEW_PRIORITY.NOT_READY.categoryKey,
-                label: 'Analysis Required',
-                description: 'Comparability analysis must be completed first',
-            };
+            return CATEGORIES.REVIEW_PRIORITY.NOT_READY.toCategoryValue();
         }
         return false;
     },

@@ -1,21 +1,20 @@
 'use client';
 
-import {use, useEffect, useState} from 'react';
-import {Button} from '@/components/ui/button';
-import {toast} from 'sonner';
-import {useCompanyStore} from '@/stores/use-company-store';
-import {useShallow} from 'zustand/react/shallow';
-import {companyColumns, comparabilityColumnDefinitionNew} from '@/lib/company/company-columns';
+import { use, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useCompanyStore } from '@/stores/use-company-store';
+import { useShallow } from 'zustand/react/shallow';
+import { companyColumns, comparabilityColumnDefinitionNew } from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
-import {Loader2, ThumbsUp, RefreshCw, Settings2, Save} from 'lucide-react';
-import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
-import {CompanyTable} from '@/components/features/benchmark/company-table';
-import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
-import {useRouter} from 'next/navigation';
-import {Switch} from '@/components/ui/switch';
-import {Label} from '@/components/ui/label';
-import {ColumnConfig} from '@/lib/company/company-columns';
-import { ComparabilityReviewModal } from '@/components/features/comparability-review-modal';
+import { Loader2, ThumbsUp, RefreshCw, Settings2, Save } from 'lucide-react';
+import { BenchmarkStepLayout, getNextStepUrl } from '@/components/features/benchmark/benchmark-step-layout';
+import { CompanyTable } from '@/components/features/benchmark/company-table';
+import { ColumnVisibility } from '@/components/features/benchmark/column-visibility';
+import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ColumnConfig } from '@/lib/company/company-columns';
 
 interface Props {
 	params: Promise<{
@@ -23,23 +22,19 @@ interface Props {
 	}>;
 }
 
-export default function BenchmarkHumanReviewPage({params}: Props) {
-	const {id} = use(params);
+export default function BenchmarkHumanReviewPage({ params }: Props) {
+	const { id } = use(params);
 	const benchmarkId = parseInt(id);
 	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
-	const [isColumnsOpen, setIsColumnsOpen] = useState<boolean>(false);
-	const [reviewModalOpen, setReviewModalOpen] = useState(false);
-	const [selectedCompanyId, setSelectedCompanyId] = useState<number | undefined>(undefined);
-	const [selectedFactor, setSelectedFactor] = useState<'products' | 'functions' | 'independence'>('products');
 
 	const {
-		loadCompanies, 
-		saveChanges, 
-		companies, 
-		isLoading, 
-		isSaving, 
-		refreshSearchData, 
+		loadCompanies,
+		saveChanges,
+		companies,
+		isLoading,
+		isSaving,
+		refreshSearchData,
 		isRefreshing,
 	} = useCompanyStore(
 		useShallow((state) => ({
@@ -55,28 +50,28 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 
 	// Load companies data
 	useEffect(() => {
-		loadCompanies(benchmarkId, {includeSearchData: true});
+		loadCompanies(benchmarkId, { includeSearchData: true });
 	}, [benchmarkId, loadCompanies]);
 
 	// Define column configuration for this page
 	const columnConfigs: ColumnConfig[] = [
 		// Default columns that are always shown
-		{column: companyColumns.selected, show: 'yes', editable:true},
-		{column: companyColumns.expandToggle, show: 'yes', editable: true},
-		{column: companyColumns.name, show: 'always', editable: false},
-		{column: companyColumns.country, show: 'yes', editable: false},
-		{column: companyColumns.url, show: 'yes', editable: false},
-		
+		{ column: companyColumns.selected, show: 'yes', editable: true },
+		{ column: companyColumns.expandToggle, show: 'yes', editable: true },
+		{ column: companyColumns.name, show: 'always', editable: false },
+		{ column: companyColumns.country, show: 'yes', editable: false },
+		{ column: companyColumns.url, show: 'yes', editable: false },
+
 		// Human review specific columns
-		{column: companyColumns.siteMatchStatus, show: 'always', editable: false},
-		{column: companyColumns.humanReviewStatus, show: 'always', editable: false},
-		{column: companyColumns.decision, show: 'always', editable: false},
-		{column: comparabilityColumnDefinitionNew.cfProducts, show: 'yes', editable: true},
-		{column: comparabilityColumnDefinitionNew.cfFunctions, show: 'yes', editable: true},
-		{column: comparabilityColumnDefinitionNew.cfIndependence, show: 'yes', editable: true},
-		
+		{ column: companyColumns.siteMatchStatus, show: 'always', editable: false },
+		{ column: companyColumns.humanReviewStatus, show: 'always', editable: false },
+		{ column: companyColumns.decision, show: 'always', editable: false },
+		{ column: comparabilityColumnDefinitionNew.cfProducts, show: 'yes', editable: true },
+		{ column: comparabilityColumnDefinitionNew.cfFunctions, show: 'yes', editable: true },
+		{ column: comparabilityColumnDefinitionNew.cfIndependence, show: 'yes', editable: true },
+
 		// Optional metadata columns
-		{column: companyColumns.acceptRejectStatus, show: 'no', editable: false},
+		{ column: companyColumns.acceptRejectStatus, show: 'no', editable: false },
 	];
 
 	const handleSave = async () => {
@@ -105,27 +100,7 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 		await refreshSearchData();
 	};
 
-	// Event listener for updateHumanReview events
-	useEffect(() => {
-		const handleHumanReviewUpdate = (event: CustomEvent) => {
-			const {companyId, factor} = event.detail;
-			// if (decision === null) {
-				// Open the modal for review
-				setSelectedCompanyId(companyId);
-				setSelectedFactor(factor);
-				setReviewModalOpen(true);
-			// } else {
-			// 	// Direct update from button click
-			// 	updateHumanReview(companyId, factor, decision);
-			// }
-		};
 
-		window.addEventListener('updateHumanReview', handleHumanReviewUpdate as EventListener);
-		
-		return () => {
-			window.removeEventListener('updateHumanReview', handleHumanReviewUpdate as EventListener);
-		};
-	}, []);
 
 	// Custom help content for the human review step
 	const humanReviewHelpContent = (
@@ -160,12 +135,7 @@ export default function BenchmarkHumanReviewPage({params}: Props) {
 				columnConfigs={columnConfigs}
 				onHotInstanceReady={setHotInstance}
 			/>
-			<ComparabilityReviewModal
-				open={reviewModalOpen}
-				onOpenChange={setReviewModalOpen}
-				companyId={selectedCompanyId}
-				initialFactor={selectedFactor}
-			/>
+
 		</>
 	);
 

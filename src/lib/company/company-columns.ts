@@ -245,6 +245,7 @@ export const comparabilityColumnDefinitions = {
 		description: 'Comparability status of the company',
 		renderer: comparabilityRenderer,
 		hotProps: {
+			cfFactor: 'products',
 			motivationPath: 'searchedCompanyData.productservicecomparability_explanation',
 		},
 	}),
@@ -256,6 +257,7 @@ export const comparabilityColumnDefinitions = {
 		description: 'Comparability status of the company',
 		renderer: comparabilityRenderer,
 		hotProps: {
+			cfFactor: 'functions',
 			motivationPath: 'searchedCompanyData.functionalprofilecomparability_explanation',
 		},
 	}),
@@ -267,6 +269,7 @@ export const comparabilityColumnDefinitions = {
 		description: 'Comparability status of the company',
 		renderer: comparabilityRenderer,
 		hotProps: {
+			cfFactor: 'independence',
 			motivationPath: 'searchedCompanyData.independence_explanation',
 		},
 	}),

@@ -13,16 +13,33 @@ import { useShallow } from 'zustand/react/shallow';
 import { setValueForPath } from '@/lib/object-utils';
 import { ButtonAcceptReject } from '@/components/ui-custom/button-accept-reject';
 import { updateCompany } from '@/services/client/update-company';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 interface CompanyComparabilityTabProps {
     company: Company;
     onActionsChange?: (actions: React.ReactNode) => void;
+    onSubtabChange?: (factor: ComparabilityFactorOptions) => void;
 }
 
-export function CompanyComparabilityTab({ company, onActionsChange }: CompanyComparabilityTabProps) {
+export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChange }: CompanyComparabilityTabProps) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Initialize activeTab from URL parameter or default to 'products'
     const [activeTab, setActiveTab] = useState<ComparabilityFactorOptions>('products');
     const [motivation, setMotivation] = useState<string>('');
     const compFactors = Object.values(comparabilityColumnDefinitionNew);
+
+    // Update activeTab when URL parameters change
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        const subtab = searchParams.get('subtab');
+        // Only use the subtab if we're on the comparability tab
+        if (tab === 'comparability' && subtab && ['products', 'functions', 'independence'].includes(subtab)) {
+            setActiveTab(subtab as ComparabilityFactorOptions);
+        }
+    }, [searchParams]);
 
     // Get the current column definition
     const columnDef = compFactors.find(factor => factor.cfFactor === activeTab)!;
@@ -67,13 +84,21 @@ export function CompanyComparabilityTab({ company, onActionsChange }: CompanyCom
         }
     }
 
-
     // Update motivation when tab changes
     useEffect(() => {
         if (columnDef) {
             setMotivation(humanMotivation || '');
         }
     }, [company, columnDef, activeTab, humanMotivation]);
+
+    // Handle tab changes
+    const handleTabChange = useCallback((value: string) => {
+        const newFactor = value as ComparabilityFactorOptions;
+        setActiveTab(newFactor);
+        if (onSubtabChange) {
+            onSubtabChange(newFactor);
+        }
+    }, [onSubtabChange]);
 
     // Set actions in parent component
     useEffect(() => {
@@ -126,7 +151,7 @@ export function CompanyComparabilityTab({ company, onActionsChange }: CompanyCom
                 </p>
             </div>
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ComparabilityFactorOptions)}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
                 <TabsList className="mb-4 w-full justify-around">
                     {compFactors.map((factor) => (
                         <TabsTrigger key={factor.cfFactor} value={factor.cfFactor}>
