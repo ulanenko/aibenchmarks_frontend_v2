@@ -224,7 +224,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                     )}
                   >
                     {WEBSITE.category.getBadgeIcon(selectedCompany, false, 'md')}
-                    <span>Website</span>
+                    <span className="text-sm">Website</span>
                   </button>
                   <button
                     onClick={() => handleTabChange("description")}
@@ -236,7 +236,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                     )}
                   >
                     {DESCRIPTION.category.getBadgeIcon(selectedCompany, false, 'md')}
-                    <span>Description</span>
+                    <span className="text-sm">Description</span>
                   </button>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                     )}
                   >
                     {SOURCE_USED.category.getBadgeIcon(selectedCompany, false, 'md')}
-                    <span>Source Used</span>
+                    <span className="text-sm">Source Used</span>
                   </button>
                   <button
                     onClick={() => handleTabChange("analysis")}
@@ -272,7 +272,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                     )}
                   >
                     {SITE_MATCH.category.getBadgeIcon(selectedCompany, false, 'md')}
-                    <span>Website Match</span>
+                    <span className="text-sm">Website Match</span>
                   </button>
                 </div>
               </div>
@@ -302,7 +302,7 @@ export function CompanyDetailsDialogue({ open: controlledOpen, onOpenChange: con
                     )}
                   >
                     {HUMAN_REVIEW.category.getBadgeIcon(selectedCompany, false, 'md')}
-                    <span>Human Review</span>
+                    <span className="text-sm">Human Review</span>
                   </button>
                 </div>
               </div>

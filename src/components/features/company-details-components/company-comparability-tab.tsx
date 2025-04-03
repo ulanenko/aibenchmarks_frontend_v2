@@ -14,6 +14,10 @@ import { setValueForPath } from '@/lib/object-utils';
 import { ButtonAcceptReject } from '@/components/ui-custom/button-accept-reject';
 import { updateCompany } from '@/services/client/update-company';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { Accordion } from '@/components/ui/accordion';
+import { ComparabilityChecklist, ConfidenceExplanation } from './comparability-items';
+import { ComparabilityAnalysisResultsDTO } from '@/services/backend/models/comparabilityAnalysisResults';
+import { getComparabilityAnalysisResults } from '@/app/actions/comparability/results';
 
 interface CompanyComparabilityTabProps {
     company: Company;
@@ -30,6 +34,11 @@ export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChan
     const [activeTab, setActiveTab] = useState<ComparabilityFactorOptions>('products');
     const [motivation, setMotivation] = useState<string>('');
     const compFactors = Object.values(comparabilityColumnDefinitionNew);
+
+    // State for comparability analysis results
+    const [analysisData, setAnalysisData] = useState<ComparabilityAnalysisResultsDTO | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Update activeTab when URL parameters change
     useEffect(() => {
@@ -99,6 +108,53 @@ export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChan
             onSubtabChange(newFactor);
         }
     }, [onSubtabChange]);
+
+    // Fetch comparability analysis results
+    const fetchAnalysisResults = useCallback(async () => {
+        if (!company.backendState?.searchId) {
+            setError("No search ID available for this company");
+            return;
+        }
+
+        // Map the factor to the corresponding test type for the API
+        const getTestType = (factor: ComparabilityFactorOptions) => {
+            switch (factor) {
+                case 'products':
+                    return 'product_service';
+                case 'functions':
+                    return 'functional_profile';
+                case 'independence':
+                    return 'independence';
+                default:
+                    return 'product_service';
+            }
+        };
+
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            const testType = getTestType(activeTab);
+            const result = await getComparabilityAnalysisResults(company.backendState.searchId, testType);
+
+            if (result.error) {
+                setError(result.error);
+                setAnalysisData(null);
+            } else {
+                setAnalysisData(result.data);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to fetch comparability analysis results");
+            setAnalysisData(null);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [company.backendState?.searchId, activeTab]);
+
+    // Fetch results when component mounts or when activeTab changes
+    useEffect(() => {
+        fetchAnalysisResults();
+    }, [fetchAnalysisResults]);
 
     // Set actions in parent component
     useEffect(() => {
@@ -222,6 +278,26 @@ export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChan
                                 <p className="text-xs text-muted-foreground">
                                     Your motivation will be saved when clicking Accept, Reject, or Save Motivation buttons.
                                 </p>
+                            </div>
+
+                            {/* Comparability Analysis Results */}
+                            <div className="space-y-3">
+                                <p className="flex items-center gap-1 text-xs text-muted-foreground uppercase tracking-wide">
+                                    <Bot size={14} /> Analysis Results
+                                </p>
+                                <Accordion type="multiple" defaultValue={["confidence", "checklist"]} className="divide-y rounded-md border">
+                                    <ConfidenceExplanation
+                                        analysisData={analysisData}
+                                        isLoading={isLoading}
+                                        error={error}
+                                    />
+                                    <ComparabilityChecklist
+                                        analysisData={analysisData}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        activeTab={activeTab}
+                                    />
+                                </Accordion>
                             </div>
                         </div>
                     </TabsContent>

@@ -1,4 +1,7 @@
 import { BENCHMARK_API_CONFIG } from "@/config/env";
+import * as Results from "./results";
+
+export { Results };
 
 export interface ComparabilityAnalysis {
     search_id: string;

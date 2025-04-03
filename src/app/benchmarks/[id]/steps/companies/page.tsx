@@ -1,20 +1,20 @@
 'use client';
 
-import {use, useEffect, useState} from 'react';
-import {Button} from '@/components/ui/button';
-import {toast} from 'sonner';
-import {useCompanyStore} from '@/stores/use-company-store';
-import {useUpload} from '@/components/features/benchmark/upload-excel/hooks';
-import {useValidation} from '@/components/features/website-validation/hooks';
-import {CompanyTable} from '@/components/features/benchmark/company-table';
-import {ColumnVisibility} from '@/components/features/benchmark/column-visibility';
-import {useShallow} from 'zustand/react/shallow';
-import {companyColumns} from '@/lib/company/company-columns';
+import { use, useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useCompanyStore } from '@/stores/use-company-store';
+import { useUpload } from '@/components/features/benchmark/upload-excel/hooks';
+import { useValidation } from '@/components/features/website-validation/hooks';
+import { CompanyTable } from '@/components/features/benchmark/company-table';
+import { ColumnVisibility } from '@/components/features/benchmark/column-visibility';
+import { useShallow } from 'zustand/react/shallow';
+import { companyColumns } from '@/lib/company/company-columns';
 import Handsontable from 'handsontable';
-import {FileUpIcon, Loader2} from 'lucide-react';
-import {BenchmarkStepLayout, getNextStepUrl} from '@/components/features/benchmark/benchmark-step-layout';
-import {useRouter} from 'next/navigation';
-import {ColumnConfig} from '@/lib/company/company-columns';
+import { FileUpIcon, Loader2 } from 'lucide-react';
+import { BenchmarkStepLayout, getNextStepUrl } from '@/components/features/benchmark/benchmark-step-layout';
+import { useRouter } from 'next/navigation';
+import { ColumnConfig } from '@/lib/company/company-columns';
 
 interface Props {
 	params: Promise<{
@@ -22,17 +22,17 @@ interface Props {
 	}>;
 }
 
-export default function BenchmarkStep1Page({params}: Props) {
-	const {id} = use(params);
+export default function BenchmarkStep1Page({ params }: Props) {
+	const { id } = use(params);
 	const benchmarkId = parseInt(id);
 	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
 
 	// Get validation and upload utilities
-	const {isValidating, canValidate, openValidationModal, ValidationDialogs} = useValidation();
-	const {isUploading, isUploadModalOpen, setIsUploadModalOpen, UploadModal} = useUpload();
+	const { isValidating, canValidate, openValidationModal, ValidationDialogs } = useValidation();
+	const { isUploading, isUploadModalOpen, setIsUploadModalOpen, UploadModal } = useUpload();
 
-	const {loadCompanies, saveChanges, companies, isLoading, isSaving} = useCompanyStore(
+	const { loadCompanies, saveChanges, companies, isLoading, isSaving } = useCompanyStore(
 		useShallow((state) => ({
 			loadCompanies: state.loadCompanies,
 			saveChanges: state.saveChanges,
@@ -44,31 +44,31 @@ export default function BenchmarkStep1Page({params}: Props) {
 
 	// Load companies data
 	useEffect(() => {
-		loadCompanies(benchmarkId);
+		loadCompanies(benchmarkId, { includeSearchData: true });
 	}, [benchmarkId, loadCompanies]);
 
 	// Define column configuration for this page
 	const columnConfigs: ColumnConfig[] = [
 		// Default columns that are always shown
-		{column: companyColumns.selected, show: 'yes', editable: true},
-		{column: companyColumns.expandToggle, show: 'yes', editable: false},
-		{column: companyColumns.inputStatus, show: 'yes', editable: false},
-		{column: companyColumns.name, show: 'always', editable: true},
-		{column: companyColumns.country, show: 'yes', editable: true},
-		{column: companyColumns.url, show: 'yes', editable: true},
-		{column: companyColumns.websiteValidation, show: 'yes', editable: false},
-		
+		{ column: companyColumns.selected, show: 'yes', editable: true },
+		{ column: companyColumns.expandToggle, show: 'yes', editable: false },
+		{ column: companyColumns.inputStatus, show: 'yes', editable: false },
+		{ column: companyColumns.name, show: 'always', editable: true },
+		{ column: companyColumns.country, show: 'yes', editable: true },
+		{ column: companyColumns.url, show: 'yes', editable: true },
+		{ column: companyColumns.websiteValidation, show: 'yes', editable: false },
+
 		// Additional input columns
-		{column: companyColumns.streetAndNumber, show: 'yes', editable: true},
-		{column: companyColumns.addressLine1, show: 'yes', editable: true},
-		{column: companyColumns.consolidationCode, show: 'no', editable: true},
-		{column: companyColumns.independenceIndicator, show: 'no', editable: true},
-		{column: companyColumns.naceRev2, show: 'yes', editable: true},
-		{column: companyColumns.fullOverview, show: 'yes', editable: true},
-		{column: companyColumns.tradeDescriptionEnglish, show: 'yes', editable: true},
-		{column: companyColumns.tradeDescriptionOriginal, show: 'no', editable: true},
-		{column: companyColumns.mainActivity, show: 'yes', editable: true},
-		{column: companyColumns.mainProductsAndServices, show: 'yes', editable: true},
+		{ column: companyColumns.streetAndNumber, show: 'yes', editable: true },
+		{ column: companyColumns.addressLine1, show: 'yes', editable: true },
+		{ column: companyColumns.consolidationCode, show: 'no', editable: true },
+		{ column: companyColumns.independenceIndicator, show: 'no', editable: true },
+		{ column: companyColumns.naceRev2, show: 'yes', editable: true },
+		{ column: companyColumns.fullOverview, show: 'yes', editable: true },
+		{ column: companyColumns.tradeDescriptionEnglish, show: 'yes', editable: true },
+		{ column: companyColumns.tradeDescriptionOriginal, show: 'no', editable: true },
+		{ column: companyColumns.mainActivity, show: 'yes', editable: true },
+		{ column: companyColumns.mainProductsAndServices, show: 'yes', editable: true },
 	];
 
 	const handleSave = async () => {

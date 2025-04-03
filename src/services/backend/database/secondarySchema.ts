@@ -1,4 +1,4 @@
-import {pgTable, integer, text, timestamp} from 'drizzle-orm/pg-core';
+import {pgTable, integer, text, timestamp, varchar, boolean, serial} from 'drizzle-orm/pg-core';
 import {relations} from 'drizzle-orm';
 
 // SearchedCompany table schema
@@ -79,6 +79,24 @@ export const scrapedWebsite = pgTable('scraped_websites', {
 	accessed_on: timestamp('accessed_on', { withTimezone: true }),
 	screenshot_status: text('screenshot_status'),
 	page_title: text('page_title'),
+});
+
+// ComparabilityAnalysisResults table schema
+export const comparabilityAnalysisResults = pgTable('comparability_analysis_results', {
+	id: serial('id').primaryKey(),
+	search_id: varchar('search_id').notNull(),
+	auth_code: varchar('auth_code'),
+	test_type: varchar('test_type'),
+	status: varchar('status'),
+	explanation: text('explanation'),
+	raw_response: text('raw_response'),
+	is_relaxed: boolean('is_relaxed').default(false),
+	ideal_criteria: text('ideal_criteria'),
+	company_data: text('company_data'),
+	language: varchar('language').default('english'),
+	default_explanation: text('default_explanation'),
+	created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+	updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 // Relationships
