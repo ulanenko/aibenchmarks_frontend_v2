@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import {BarChart2, CheckSquare, LayoutDashboard, Users, Info, LogOut, ChevronLeft, ChevronRight} from 'lucide-react';
+import { BarChart2, CheckSquare, LayoutDashboard, Users, Info, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import {useSession, signOut} from 'next-auth/react';
-import {Button} from '@/components/ui/button';
-import {ThemeToggle} from '@/components/features/theme-toggle';
+import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/features/theme-toggle';
 import {
 	Sidebar,
 	SidebarContent,
@@ -21,7 +21,7 @@ import {
 	SidebarGroup,
 	SidebarGroupLabel,
 } from '@/components/ui/sidebar';
-import {routes} from '@/lib/routes';
+import { routes } from '@/lib/routes';
 
 const navMain = [
 	{
@@ -41,13 +41,13 @@ const navMain = [
 	},
 ];
 
-export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const pathname = usePathname();
-	const {toggleSidebar, state} = useSidebar();
-	const {data: session} = useSession();
+	const { toggleSidebar, state } = useSidebar();
+	const { data: session } = useSession();
 
 	const handleLogout = async () => {
-		await signOut({redirect: true, callbackUrl: '/login'});
+		await signOut({ redirect: true, callbackUrl: '/login' });
 	};
 
 	return (
@@ -71,12 +71,12 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 					</Button>
 				</div>
 			</SidebarHeader>
-			<SidebarContent className="px-2">
+			<SidebarContent className={state === 'collapsed' ? 'px-0' : 'px-2'}>
 				<SidebarGroup>
 					<SidebarGroupLabel>Platform</SidebarGroupLabel>
 					<SidebarMenu>
 						{/* <NavMain items={navMain} /> */}
-						{navMain.map(({title, url, icon: Icon}) => (
+						{navMain.map(({ title, url, icon: Icon }) => (
 							<SidebarMenuItem key={url}>
 								<SidebarMenuButton asChild isActive={pathname === url}>
 									<Link href={url}>
@@ -91,7 +91,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarSeparator />
-				<SidebarGroup>
+				<SidebarGroup className={state === 'collapsed' ? 'px-0' : 'px-2'}>
 					<SidebarMenu>
 						<SidebarMenuItem>
 							<SidebarMenuButton asChild>
