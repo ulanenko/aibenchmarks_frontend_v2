@@ -2,6 +2,8 @@
 export {aiMapper} from './ai-mapper/ai-mapper';
 export {validateAndFindWebsite, validateAndFindWebsiteBatch} from './website-validation/website-validator';
 export {strategyWizard} from './strategy-wizard/strategy-wizard';
+export {decisionSubstantiation} from './decision-substantiation/decision-substantiation';
+export {translateText} from './translation/translation';
 
 // Export types
 export type {
@@ -23,3 +25,13 @@ export type {
 	StrategyWizardRequest,
 	StrategyWizardResponse,
 } from './strategy-wizard/types';
+
+export type {
+	DecisionStrategy,
+	DecisionSubstantiationRequest,
+	DecisionSubstantiationResponse,
+} from './decision-substantiation/types';
+
+export type {
+	TranslateRequest,
+} from './translation/types';

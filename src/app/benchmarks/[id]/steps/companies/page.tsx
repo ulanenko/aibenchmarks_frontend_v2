@@ -171,31 +171,28 @@ export default function BenchmarkStep1Page({ params }: Props) {
 		</>
 	);
 
-	// Additional content
-	const additionalContent = (
+
+
+	return (
 		<>
+			<BenchmarkStepLayout
+				benchmarkId={benchmarkId}
+				stepNumber={1}
+				pageTitle="Uploaded Companies"
+				pageDescription="Add, manage and validate companies here."
+				helpSheetTitle="Companies Step Help"
+				helpSheetContent={companiesHelpContent}
+				companies={companies}
+				isLoading={isLoading}
+				categoryColumn={companyColumns.inputStatus}
+				hotInstance={hotInstance}
+				toolbarContent={toolbarContent}
+				mainContent={mainContent}
+				footerActions={footerActions}
+				onNext={handleNext}
+			/>
 			<UploadModal />
 			<ValidationDialogs />
 		</>
-	);
-
-	return (
-		<BenchmarkStepLayout
-			benchmarkId={benchmarkId}
-			stepNumber={1}
-			pageTitle="Uploaded Companies"
-			pageDescription="Add, manage and validate companies here."
-			helpSheetTitle="Companies Step Help"
-			helpSheetContent={companiesHelpContent}
-			companies={companies}
-			isLoading={isLoading}
-			categoryColumn={companyColumns.inputStatus}
-			hotInstance={hotInstance}
-			toolbarContent={toolbarContent}
-			mainContent={mainContent}
-			footerActions={footerActions}
-			additionalContent={additionalContent}
-			onNext={handleNext}
-		/>
 	);
 }

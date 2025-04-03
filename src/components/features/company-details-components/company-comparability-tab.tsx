@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Company } from '@/lib/company/company';
-import { Bot, User, Save } from 'lucide-react';
+import { Bot, User, Save, Book } from 'lucide-react';
 import { comparabilityColumnDefinitionNew } from '@/lib/company/company-columns';
 import { ComparabilityFactorOptions } from '@/lib/column-comparability-definition';
 import ReactMarkdown from 'react-markdown';
@@ -18,6 +18,7 @@ import { Accordion } from '@/components/ui/accordion';
 import { ComparabilityChecklist, ConfidenceExplanation } from './comparability-items';
 import { ComparabilityAnalysisResultsDTO } from '@/services/backend/models/comparabilityAnalysisResults';
 import { getComparabilityAnalysisResults } from '@/app/actions/comparability/results';
+import { DecisionSubstantiationAccordion } from './decision-substantiation';
 
 interface CompanyComparabilityTabProps {
     company: Company;
@@ -283,9 +284,9 @@ export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChan
                             {/* Comparability Analysis Results */}
                             <div className="space-y-3">
                                 <p className="flex items-center gap-1 text-xs text-muted-foreground uppercase tracking-wide">
-                                    <Bot size={14} /> Analysis Results
+                                    <Book size={14} /> Analysis Sources
                                 </p>
-                                <Accordion type="multiple" defaultValue={["confidence", "checklist"]} className="divide-y rounded-md border">
+                                <Accordion type="multiple" defaultValue={[]} className="divide-y rounded-md border">
                                     <ConfidenceExplanation
                                         analysisData={analysisData}
                                         isLoading={isLoading}
@@ -295,6 +296,10 @@ export function CompanyComparabilityTab({ company, onActionsChange, onSubtabChan
                                         analysisData={analysisData}
                                         isLoading={isLoading}
                                         error={error}
+                                        activeTab={activeTab}
+                                    />
+                                    <DecisionSubstantiationAccordion
+                                        company={company}
                                         activeTab={activeTab}
                                     />
                                 </Accordion>

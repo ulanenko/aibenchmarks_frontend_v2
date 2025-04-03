@@ -34,18 +34,7 @@ if (result.error) {
 }
 ```
 
-For updating reactive state in components, you can use the included helper function:
 
-```typescript
-'use client';
-
-import { updateComparabilityAnalysisResults } from '@/app/actions/comparability/results';
-
-// In your component
-const resultsByCompanyAndColumn = {};
-
-// Update results for a specific company and column
-updateComparabilityAnalysisResults(resultsByCompanyAndColumn, selectedCompany, compColumn);
 
 // The state object will be updated once the results are fetched
 ```
