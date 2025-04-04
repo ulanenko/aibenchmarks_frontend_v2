@@ -60,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						alt="Logo"
 						className="h-8 hidden group-data-[collapsible=icon]:block"
 					/>
-					<Button
+					{/* <Button
 						variant="outline"
 						size="icon"
 						className="absolute -right-[1.5rem] group-data-[state=collapsed]:right-[-2.5rem] top-1/2 -translate-y-1/2 h-8 w-8 rounded-full border shadow-sm bg-background z-50"
@@ -68,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					>
 						{state === 'collapsed' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
 						<span className="sr-only">Toggle Sidebar</span>
-					</Button>
+					</Button> */}
 				</div>
 			</SidebarHeader>
 			<SidebarContent className={state === 'collapsed' ? 'px-0' : 'px-2'}>

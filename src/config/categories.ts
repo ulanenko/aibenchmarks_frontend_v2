@@ -19,6 +19,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'WEBSITE.NOT_READY',
 			passed: undefined,
+			completed: false,
 		}),
 		NOT_VALIDATED: new CategoryDefinition({
 			label: 'Not Validated',
@@ -28,6 +29,7 @@ const CATEGORIES = {
 			onclick: validateCompanyWebsite,
 			categoryKey: 'WEBSITE.NOT_VALIDATED',
 			passed: undefined,
+			completed: false,
 		}),
 		VALIDATING: new CategoryDefinition({
 			label: 'Validating',
@@ -36,6 +38,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'WEBSITE.VALIDATING',
 			passed: undefined,
+			completed: false,
 		}),
 		VALID: new CategoryDefinition({
 			label: 'Valid',
@@ -46,6 +49,7 @@ const CATEGORIES = {
 			passed: true,
 			onclick: openWebsiteTab,
 			onclickTooltip: 'View website details',
+			completed: true,
 		}),
 		INVALID: new CategoryDefinition({
 			label: 'Invalid',
@@ -54,6 +58,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'WEBSITE.INVALID',
 			passed: false,
+			completed: true,
 			onclick: openWebsiteTab,
 			onclickTooltip: 'View website issues',
 		}),
@@ -68,6 +73,7 @@ const CATEGORIES = {
 			passed: false,
 			onclick: openDescriptionTab	,
 			onclickTooltip: 'Edit company description',
+			completed: true,
 		}),
 		VALID: new CategoryDefinition({
 			label: 'Valid',
@@ -78,6 +84,7 @@ const CATEGORIES = {
 			passed: true,
 			onclick: openDescriptionTab,
 			onclickTooltip: 'View company description',
+			completed: true,
 		}),
 	},
 
@@ -89,6 +96,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'INPUT.NEW',
 			passed: undefined,
+			completed: false,
 		}),
 		INPUT_REQUIRED: new CategoryDefinition({
 			label: 'Input Required',
@@ -97,6 +105,7 @@ const CATEGORIES = {
 			status: 'input_required',
 			categoryKey: 'INPUT.INPUT_REQUIRED',
 			passed: undefined,
+			completed: false,
 		}),
 		WEBSITE_INVALID: new CategoryDefinition({
 			label: 'Website Invalid',
@@ -105,6 +114,7 @@ const CATEGORIES = {
 			status: 'input_required',
 			categoryKey: 'INPUT.WEBSITE_INVALID',
 			passed: undefined,
+			completed: false,
 		}),
 		READY: new CategoryDefinition({
 			label: 'Validate',
@@ -114,6 +124,7 @@ const CATEGORIES = {
 			onclick: validateCompanyWebsite,
 			categoryKey: 'INPUT.READY',
 			passed: undefined,
+			completed: false,
 		}),
 		IN_PROGRESS: new CategoryDefinition({
 			label: 'Validating',
@@ -122,6 +133,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'INPUT.IN_PROGRESS',
 			passed: undefined,
+			completed: false,
 		}),
 		REJECT_NO_SOURCE: new CategoryDefinition({
 			label: 'Reject: no source data',
@@ -130,6 +142,7 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'INPUT.REJECT_NO_SOURCE',
 			passed: false,
+			completed: false,
 		}),
 		COMPLETED: new CategoryDefinition({
 			label: 'Validated',
@@ -138,6 +151,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'INPUT.COMPLETED',
 			passed: true,
+			completed: true,
 		}),
 	},
 
@@ -149,7 +163,8 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'SOURCE_USED.NOT_READY',
 			passed: undefined,
-		}),
+			completed: false,
+			}),
 		WEBSITE: new CategoryDefinition({
 			label: 'Website',
 			color: 'green',
@@ -157,6 +172,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SOURCE_USED.WEBSITE',
 			passed: true,
+			completed: true,
 		}),
 		DESCRIPTION: new CategoryDefinition({
 			label: 'Description',
@@ -165,6 +181,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SOURCE_USED.DESCRIPTION',
 			passed: true,
+			completed: true,
 		}),
 		FAILED: new CategoryDefinition({
 			label: 'Failed',
@@ -173,7 +190,8 @@ const CATEGORIES = {
 			status: 'failed',
 			categoryKey: 'SOURCE_USED.FAILED',
 			passed: false,
-		}),
+			completed: true,
+			}),
 	},
 	WEBSEARCH: {
 		NOT_READY: new CategoryDefinition({
@@ -183,6 +201,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'WEBSEARCH.NOT_READY',
 			passed: undefined,
+			completed: false,
 		}),
 		READY: new CategoryDefinition({
 			label: 'Start analysis',
@@ -192,6 +211,7 @@ const CATEGORIES = {
 			categoryKey: 'WEBSEARCH.READY',
 			onclick: analyzeCompanyService,
 			passed: undefined,
+			completed: false,
 		}),
 		FRONTEND_INITIALIZED: new CategoryDefinition({
 			label: 'Analysis started',
@@ -200,6 +220,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'WEBSEARCH.FRONTEND_INITIALIZED',
 			passed: undefined,
+			completed: false,
 		}),
 		IN_QUEUE: new CategoryDefinition({
 			label: 'In queue',
@@ -208,6 +229,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'WEBSEARCH.IN_QUEUE',
 			passed: undefined,
+			completed: false,
 		}),
 		IN_PROGRESS: new CategoryDefinition({
 			label: 'Searching',
@@ -216,6 +238,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'WEBSEARCH.IN_PROGRESS',
 			passed: undefined,
+			completed: false,
 		}),
 		COMPLETED: new CategoryDefinition({
 			label: 'Completed',
@@ -227,6 +250,7 @@ const CATEGORIES = {
 			onclick: openSourceUsedTab,
 			onclickTooltip: 'View analysis details',
 			secondIcon: Expand,
+			completed: true,
 		}),
 		FAILED: new CategoryDefinition({
 			label: 'Human review',
@@ -237,7 +261,8 @@ const CATEGORIES = {
 			passed: false,
 			onclick: openSourceUsedTab,
 			onclickTooltip: 'View analysis details',
-			secondIcon: Expand,
+				secondIcon: Expand,
+			completed: true,
 		}),
 	},
 
@@ -249,6 +274,7 @@ const CATEGORIES = {
 			status: 'not_ready',
 			categoryKey: 'ACCEPT_REJECT.NOT_READY',
 			passed: undefined,
+			completed: false,
 		}),
 		READY: new CategoryDefinition({
 			label: 'Start analysis',
@@ -259,6 +285,7 @@ const CATEGORIES = {
 			onclick: comparabilityAnalysisService,
 			onclickTooltip: 'Start comparability analysis',
 			passed: undefined,
+			completed: false,
 		}),
 		IN_QUEUE: new CategoryDefinition({
 			label: 'In queue',
@@ -267,6 +294,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'ACCEPT_REJECT.IN_QUEUE',
 			passed: undefined,
+			completed: false,
 		}),
 		IN_PROGRESS: new CategoryDefinition({
 			label: 'Evaluating',
@@ -275,6 +303,7 @@ const CATEGORIES = {
 			status: 'in_progress',
 			categoryKey: 'ACCEPT_REJECT.IN_PROGRESS',
 			passed: undefined,
+			completed: false,
 		}),
 		FAILED: new CategoryDefinition({
 			label: 'Human review 2',
@@ -285,6 +314,7 @@ const CATEGORIES = {
 			onclick: openComparabilityTab,
 			onclickTooltip: 'View comparability analysis',
 			passed: false,
+			completed: true,
 		}),
 		ACCEPTED: new CategoryDefinition({
 			label: 'Accepted',
@@ -293,6 +323,7 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'ACCEPT_REJECT.ACCEPTED',
 			passed: true,
+			completed: true,
 		}),
 		REJECTED: new CategoryDefinition({
 			label: 'Rejected',
@@ -301,6 +332,7 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'ACCEPT_REJECT.REJECTED',
 			passed: false,
+			completed: true,
 		}),
 	},
 	
@@ -313,6 +345,7 @@ const CATEGORIES = {
 			categoryKey: 'REVIEW_PRIORITY.NOT_READY',
 			onclickTooltip: 'No suggestion, human review required',
 			passed: undefined,
+			completed: false,
 		}),
 		HIGH_PRIORITY: new CategoryDefinition({
 			label: 'High',
@@ -321,6 +354,7 @@ const CATEGORIES = {
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.HIGH_PRIORITY',
 			passed: undefined,
+			completed: false,
 		}),
 		MEDIUM_PRIORITY: new CategoryDefinition({
 			label: 'Medium',
@@ -329,6 +363,7 @@ const CATEGORIES = {
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.MEDIUM_PRIORITY',
 			passed: undefined,
+			completed: false,
 		}),
 		LOW_PRIORITY: new CategoryDefinition({
 			label: 'Low',
@@ -337,6 +372,7 @@ const CATEGORIES = {
 			status: 'ready',
 			categoryKey: 'REVIEW_PRIORITY.LOW_PRIORITY',
 			passed: undefined,
+			completed: false,
 		}),
 		REVIEWED: new CategoryDefinition({
 			label: 'Reviewed',
@@ -345,6 +381,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'REVIEW_PRIORITY.REVIEWED',
 			passed: true,
+			completed: true,
 		}),
 	},
 	
@@ -356,6 +393,7 @@ const CATEGORIES = {
 			status: 'ready',
 			categoryKey: 'HUMAN_REVIEW.NO_DECISION',
 			passed: undefined,
+			completed: false,
 		}),
 		ACCEPT_HR: new CategoryDefinition({
 			label: 'Accept (HR)',
@@ -364,6 +402,7 @@ const CATEGORIES = {
 			status: 'reviewed',
 			categoryKey: 'HUMAN_REVIEW.ACCEPT_HR',
 			passed: true,
+			completed: true,
 		}),
 		ACCEPT_AI: new CategoryDefinition({
 			label: 'Accept (AI)',
@@ -372,6 +411,7 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'HUMAN_REVIEW.ACCEPT_AI',
 			passed: true,
+			completed: true,
 		}),
 		REJECT_HR: new CategoryDefinition({
 			label: 'Reject (HR)',
@@ -380,6 +420,7 @@ const CATEGORIES = {
 			status: 'reviewed',
 			categoryKey: 'HUMAN_REVIEW.REJECT_HR',
 			passed: false,
+			completed: true,
 		}),
 		REJECT_AI: new CategoryDefinition({
 			label: 'Reject (AI)',
@@ -388,6 +429,7 @@ const CATEGORIES = {
 			status: 'decision',
 			categoryKey: 'HUMAN_REVIEW.REJECT_AI',
 			passed: false,
+			completed: true,
 		}),
 	},
 	
@@ -401,6 +443,7 @@ const CATEGORIES = {
 			passed: undefined,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View source information',
+			completed: false,
 		}),
 		NO_MATCH: new CategoryDefinition({
 			label: 'No Match',
@@ -409,6 +452,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.NO_MATCH',
 			passed: false,
+			completed: true,
 		}),
 		LIKELY: new CategoryDefinition({
 			label: 'Likely',
@@ -419,6 +463,7 @@ const CATEGORIES = {
 			passed: true,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
+			completed: true,
 		}),
 		PARTIAL_MATCH: new CategoryDefinition({
 			label: 'Partial Match',
@@ -427,6 +472,7 @@ const CATEGORIES = {
 			status: 'completed',
 			categoryKey: 'SITE_MATCH.PARTIAL_MATCH',
 			passed: undefined,
+			completed: true,
 		}),
 		POSSIBLY: new CategoryDefinition({
 			label: 'Possibly',
@@ -437,6 +483,7 @@ const CATEGORIES = {
 			passed: undefined,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
+			completed: true,
 		}),
 		NOT_LIKELY: new CategoryDefinition({
 			label: 'Not Likely',
@@ -447,6 +494,7 @@ const CATEGORIES = {
 			passed: false,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
+			completed: true,
 		}),
 		UNCERTAIN: new CategoryDefinition({
 			label: 'Uncertain',
@@ -457,17 +505,9 @@ const CATEGORIES = {
 			passed: undefined,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View site match details',
+			completed: true,
 		}),
-		UNKNOWN: new CategoryDefinition({
-			label: 'Unknown',
-			color: 'gray',
-			icon: CircleHelp,
-			status: 'not_ready',
-			categoryKey: 'SITE_MATCH.UNKNOWN',
-			passed: undefined,
-			onclick: openSitematchTab,
-			onclickTooltip: 'View website analysis details',
-		}),
+		
 		VALID: new CategoryDefinition({
 			label: 'Valid',
 			color: 'green',
@@ -477,6 +517,7 @@ const CATEGORIES = {
 			passed: true,
 			onclick: openSitematchTab,
 			onclickTooltip: 'View website analysis details',
+			completed: true,
 		}),
 	},
 };

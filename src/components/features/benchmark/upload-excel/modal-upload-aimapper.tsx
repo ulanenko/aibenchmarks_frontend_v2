@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import {useState} from 'react';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import { useState, useEffect, useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
 	Stepper,
 	StepperIndicator,
@@ -11,11 +11,11 @@ import {
 	StepperTitle,
 	StepperTrigger,
 } from '@/components/ui/stepper';
-import {FileSelectionStep} from './file-selection-step';
-import {ColumnMappingStep} from './column-mapping-step';
-import {PreviewStep} from './preview-step';
-import {UploadState, UploadStep} from './types';
-import {useToast} from '@/hooks/use-toast';
+import { FileSelectionStep } from './file-selection-step';
+import { ColumnMappingStep } from './column-mapping-step';
+import { PreviewStep } from './preview-step';
+import { UploadState, UploadStep } from './types';
+import { useToast } from '@/hooks/use-toast';
 
 interface UploadExcelModalProps {
 	open: boolean;
@@ -45,21 +45,48 @@ const STEPS_CONFIG = [
 	},
 ];
 
-export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: UploadExcelModalProps) {
-	const {toast} = useToast();
-	const [state, setState] = useState<UploadState>({
-		file: null,
-		sheet: '',
-		database: '',
-		sheets: [],
-		step: STEPS_CONFIG[0].id,
-		isLoading: false,
-		isProcessing: false,
-		error: null,
-	});
+// Initial state for the upload process
+const INITIAL_STATE: UploadState = {
+	file: null,
+	sheet: '',
+	database: '',
+	sheets: [],
+	step: STEPS_CONFIG[0].id,
+	isLoading: false,
+	isProcessing: false,
+	error: null,
+};
+
+export function ModalUploadAimapper({ open, onOpenChange, onUploadComplete }: UploadExcelModalProps) {
+	const { toast } = useToast();
+	const [state, setState] = useState<UploadState>(INITIAL_STATE);
+	const isMountedRef = useRef(true);
+
+	// Set up mount/unmount tracking
+	useEffect(() => {
+		isMountedRef.current = true;
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, []);
+
+	// Reset the state when the modal closes
+	useEffect(() => {
+		if (!open) {
+			// Small delay to ensure clean reset after animation completes
+			const timeout = setTimeout(() => {
+				if (isMountedRef.current) {
+					setState(INITIAL_STATE);
+				}
+			}, 300);
+			return () => clearTimeout(timeout);
+		}
+	}, [open]);
 
 	const updateState = (newState: Partial<UploadState>) => {
-		setState((prev) => ({...prev, ...newState}));
+		if (isMountedRef.current) {
+			setState((prev) => ({ ...prev, ...newState }));
+		}
 	};
 
 	const handleNext = () => {
@@ -68,7 +95,7 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 		// Get next step or go back to first step if we're at the end
 		const nextStep = currentIndex < STEPS_CONFIG.length - 1 ? STEPS_CONFIG[currentIndex + 1].id : STEPS_CONFIG[0].id;
 
-		updateState({step: nextStep, error: null});
+		updateState({ step: nextStep, error: null });
 	};
 
 	const handleBack = () => {
@@ -77,29 +104,30 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 		// Get previous step or stay on current step if we're at the beginning
 		const prevStep = currentIndex > 0 ? STEPS_CONFIG[currentIndex - 1].id : state.step;
 
-		updateState({step: prevStep, error: null});
+		updateState({ step: prevStep, error: null });
 	};
 
 	const handleComplete = async () => {
-		// The actual import is now handled in the PreviewStep
-		// Just reset the state and close the modal
+		// Immediately close the modal
+		onOpenChange(false);
 
-		// Reset state and close modal
-		updateState({
-			file: null,
-			sheet: '',
-			sheets: [],
-			step: STEPS_CONFIG[0].id,
-			isLoading: false,
-			isProcessing: false,
-			error: null,
-		});
-
+		// Let parent know upload was completed
 		if (onUploadComplete) {
 			onUploadComplete(true);
 		}
+	};
 
-		onOpenChange(false);
+	// Handle modal closing
+	const safeOnOpenChange = (newOpen: boolean) => {
+		if (!newOpen) {
+			// Reset state immediately when closing
+			setTimeout(() => {
+				if (isMountedRef.current) {
+					setState(INITIAL_STATE);
+				}
+			}, 0);
+		}
+		onOpenChange(newOpen);
 	};
 
 	// Common props for all steps
@@ -118,12 +146,12 @@ export function ModalUploadAimapper({open, onOpenChange, onUploadComplete}: Uplo
 	const handleStepChange = (stepIndex: number) => {
 		// Only allow navigating to previous steps or the current step
 		if (stepIndex <= currentStepIndex) {
-			updateState({step: STEPS_CONFIG[stepIndex].id, error: null});
+			updateState({ step: STEPS_CONFIG[stepIndex].id, error: null });
 		}
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={open} onOpenChange={safeOnOpenChange}>
 			<DialogContent className="sm:max-w-[1100px] max-h-[90vh] flex flex-col">
 				<DialogHeader>
 					<DialogTitle>{currentStep.title}</DialogTitle>

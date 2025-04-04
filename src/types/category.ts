@@ -19,6 +19,7 @@ interface CategoryConfig {
 	// if undefined, it means that the category is not yet ready to proceed
 	// if it's true, it means that the company has not yet been rejected
 	passed: boolean | undefined;
+	completed: boolean;
 }
 
 // this value is assigned to companies and is used by the column renderer

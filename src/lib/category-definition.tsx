@@ -22,6 +22,7 @@ export class CategoryDefinition {
 	label: string;
 	secondIcon?: LucideIcon;
 	passed: boolean | undefined;
+	completed: boolean;
 	categoryKey: string;
 	constructor(config: CategoryConfig) {
 		this.color = config.color;
@@ -32,6 +33,7 @@ export class CategoryDefinition {
 		this.label = config.label;
 		this.categoryKey = config.categoryKey;
 		this.passed = config.passed;
+		this.completed = config.completed;
 		this.secondIcon = config.secondIcon;
 	}
 

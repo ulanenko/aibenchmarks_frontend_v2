@@ -4,7 +4,6 @@ import { use, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useCompanyStore } from '@/stores/use-company-store';
-import { useUpload } from '@/components/features/benchmark/upload-excel/hooks';
 import { useValidation } from '@/components/features/website-validation/hooks';
 import { CompanyTable } from '@/components/features/benchmark/company-table';
 import { ColumnVisibility } from '@/components/features/benchmark/column-visibility';
@@ -15,6 +14,7 @@ import { FileUpIcon, Loader2 } from 'lucide-react';
 import { BenchmarkStepLayout, getNextStepUrl } from '@/components/features/benchmark/benchmark-step-layout';
 import { useRouter } from 'next/navigation';
 import { ColumnConfig } from '@/lib/company/company-columns';
+import { ModalUploadAimapper } from '@/components/features/benchmark/upload-excel/modal-upload-aimapper';
 
 interface Props {
 	params: Promise<{
@@ -28,9 +28,11 @@ export default function BenchmarkStep1Page({ params }: Props) {
 	const router = useRouter();
 	const [hotInstance, setHotInstance] = useState<Handsontable | undefined>(undefined);
 
-	// Get validation and upload utilities
+	// Modal state directly in the component
+	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+	// Get validation utilities
 	const { isValidating, canValidate, openValidationModal, ValidationDialogs } = useValidation();
-	const { isUploading, isUploadModalOpen, setIsUploadModalOpen, UploadModal } = useUpload();
 
 	const { loadCompanies, saveChanges, companies, isLoading, isSaving } = useCompanyStore(
 		useShallow((state) => ({
@@ -96,6 +98,13 @@ export default function BenchmarkStep1Page({ params }: Props) {
 		openValidationModal();
 	};
 
+	// Handle upload completion
+	const handleUploadComplete = (success: boolean) => {
+		if (success) {
+			toast.success('Companies imported successfully');
+		}
+	};
+
 	// Custom help content for the companies step
 	const companiesHelpContent = (
 		<div className="prose prose-sm">
@@ -134,8 +143,8 @@ export default function BenchmarkStep1Page({ params }: Props) {
 	// Footer actions
 	const footerActions = (
 		<>
-			<Button variant="outline" onClick={() => setIsUploadModalOpen(true)} size="sm" disabled={isUploading || isSaving}>
-				{isUploading ? (
+			<Button variant="outline" onClick={() => setIsUploadModalOpen(true)} size="sm" disabled={isUploadModalOpen || isSaving}>
+				{isUploadModalOpen ? (
 					<>
 						<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 						Uploading...
@@ -151,7 +160,7 @@ export default function BenchmarkStep1Page({ params }: Props) {
 				variant="outline"
 				onClick={handleValidationClick}
 				size="sm"
-				disabled={isUploading || isSaving || isValidating || !canValidate}
+				disabled={isUploadModalOpen || isSaving || isValidating || !canValidate}
 			>
 				{isValidating ? (
 					<>
@@ -162,16 +171,14 @@ export default function BenchmarkStep1Page({ params }: Props) {
 					<>Validate Companies</>
 				)}
 			</Button>
-			<Button variant="outline" onClick={handleSave} disabled={isSaving || isUploading} size="sm">
+			<Button variant="outline" onClick={handleSave} disabled={isSaving || isUploadModalOpen} size="sm">
 				{isSaving ? 'Saving...' : 'Save Changes'}
 			</Button>
-			<Button onClick={handleNext} size="sm" disabled={isUploading}>
+			<Button onClick={handleNext} size="sm" disabled={isUploadModalOpen}>
 				Next Step →
 			</Button>
 		</>
 	);
-
-
 
 	return (
 		<>
@@ -191,7 +198,11 @@ export default function BenchmarkStep1Page({ params }: Props) {
 				footerActions={footerActions}
 				onNext={handleNext}
 			/>
-			<UploadModal />
+			<ModalUploadAimapper
+				open={isUploadModalOpen}
+				onOpenChange={setIsUploadModalOpen}
+				onUploadComplete={handleUploadComplete}
+			/>
 			<ValidationDialogs />
 		</>
 	);

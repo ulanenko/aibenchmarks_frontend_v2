@@ -8,6 +8,7 @@ import {isEmpty} from '@/lib/utils';
 import * as companyActions from '@/app/actions/company-actions';
 import * as benchmarkAction from '@/app/actions/benchmark-actions';
 import {WebsiteValidationStatus} from '@/lib/company/website-validation';
+import {BENCHMARK_STEPS, StepId} from '@/config/steps';
 
 interface UpdateCompany {
 	frontendState: FrontendState;
@@ -52,6 +53,13 @@ interface CompanyStore {
 	areAllCompaniesProcessed: () => boolean;
 	startAutoRefresh: () => void;
 	stopAutoRefresh: () => void;
+	progressByStep: Record<string, {
+		completedCount: number;
+		totalCount: number;
+		percentage: number;
+		step: typeof BENCHMARK_STEPS[number];
+	}>;
+	updateProgressByStep: () => void;
 }
 
 export const useCompanyStore = create<CompanyStore>((set, get) => {
@@ -69,6 +77,12 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 		isRefreshing: false,
 		autoRefreshEnabled: false,
 		hotCopyCompanies: [],
+		progressByStep: {} as Record<string, {
+				completedCount: number;
+				totalCount: number;
+				percentage: number;
+				step: typeof BENCHMARK_STEPS[number];
+			}>,
 		setCompanies: (companies: Company[]) => {
 			// Sort companies: positive IDs first in ascending order, then negative IDs in descending order (so -1 before -2)
 			const sortedCompanies = [...companies].sort((a, b) => {
@@ -90,6 +104,54 @@ export const useCompanyStore = create<CompanyStore>((set, get) => {
 
 			set({companies: sortedCompanies});
 			set({hotCopyCompanies: sortedCompanies.map((c) => c.hotCopy)});
+			get().updateProgressByStep();
+		},
+
+		updateProgressByStep: () => {
+			const companies = get().companies;
+			const progressByStep = {} as Record<string, {
+				completedCount: number;
+				totalCount: number;
+				percentage: number;
+				step: typeof BENCHMARK_STEPS[number];
+			}>;
+			
+			// If no companies, return empty object
+			if (companies.length === 0) {
+				return progressByStep;
+			}
+
+			// Iterate through each benchmark step
+			BENCHMARK_STEPS.forEach(step => {
+				if (!step.completionColumn) return;
+				
+				// Get column name from the completion column
+				const completionColumnName = step.completionColumn.valuePath;
+				
+				// Count how many companies have this step completed
+				let completedCount = 0;
+				
+				companies.forEach(company => {
+					const categoryValue = company.categoryValues?.[completionColumnName];
+					if (categoryValue && categoryValue.category.completed) {
+						completedCount++;
+					}
+				});
+				
+				// Calculate percentage
+				const percentage = companies.length > 0 ? (completedCount / companies.length)  : 0;
+				
+				// Store progress for this step
+				progressByStep[step.id] = {
+					completedCount,
+					totalCount: companies.length,
+					percentage: Math.round(percentage * 10000) / 10000,
+					step
+				};
+			});
+			console.log(progressByStep);
+			
+			set({progressByStep});
 		},
 
 		// addCompany: (company) =>
